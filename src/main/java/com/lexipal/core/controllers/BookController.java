@@ -1,18 +1,17 @@
 package com.lexipal.core.controllers;
 
+import com.lexipal.core.dtos.BookUpdateDTO;
 import com.lexipal.core.entities.Book;
 import com.lexipal.core.services.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/lexipal/api/v1/books")
@@ -26,10 +25,55 @@ public class BookController
         this.bookService = bookService;
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Book> getBook(@PathVariable Long id,
+                                        @AuthenticationPrincipal Jwt jwt)
+    {
+        String keycloakSub = jwt.getSubject();
+
+        Book book = bookService.getBookById(id, keycloakSub);
+
+        return ResponseEntity.ok(book);
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<List<Book>> getAllBooks(@AuthenticationPrincipal Jwt jwt)
+    {
+        String keycloakSub = jwt.getSubject();
+
+        List<Book> activeBooks = bookService.getAllBooksByUserId(keycloakSub);
+
+        return ResponseEntity.ok(activeBooks);
+    }
+
     @PostMapping
-    public ResponseEntity<Book> addBook(@RequestBody Book book, @AuthenticationPrincipal final Jwt jwt)
+    public ResponseEntity<Book> addBook(@RequestBody Book book,
+                                        @AuthenticationPrincipal final Jwt jwt)
     {
         String keycloakSub =  jwt.getSubject();
         return ResponseEntity.status(HttpStatus.CREATED).body(bookService.addBook(book, keycloakSub));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Book> updateBook(@PathVariable Long id,
+                                           @RequestBody BookUpdateDTO dto,
+                                           @AuthenticationPrincipal final Jwt jwt)
+    {
+        String keycloakSub =  jwt.getSubject();
+
+        Book updatedBook = bookService.updateBook(id, dto, keycloakSub);
+
+        return ResponseEntity.ok(updatedBook);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteBook(@PathVariable Long id,
+                                        @AuthenticationPrincipal final Jwt jwt)
+    {
+        String keycloakSub =  jwt.getSubject();
+
+        bookService.deleteBook(id, keycloakSub);
+
+        return ResponseEntity.noContent().build();
     }
 }

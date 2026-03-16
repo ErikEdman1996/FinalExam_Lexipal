@@ -1,5 +1,4 @@
 package com.lexipal.core.configs;
-
 import com.lexipal.core.utils.JwtAuthConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;

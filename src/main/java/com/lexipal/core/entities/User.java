@@ -1,8 +1,7 @@
 package com.lexipal.core.entities;
-
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +32,7 @@ public class User
     private Integer totalBooksRead;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonManagedReference
     private List<Book> books = new ArrayList<>();
 
     public enum UserStatus

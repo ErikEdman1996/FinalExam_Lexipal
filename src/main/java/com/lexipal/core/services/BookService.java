@@ -1,5 +1,4 @@
 package com.lexipal.core.services;
-
 import com.lexipal.core.dtos.BookUpdateDTO;
 import com.lexipal.core.entities.Book;
 import com.lexipal.core.entities.User;
@@ -10,8 +9,6 @@ import com.lexipal.core.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,6 +44,7 @@ public class BookService implements BookServiceInterface
     }
 
     @Override
+    @Transactional
     public Book updateBook(Long bookId, BookUpdateDTO dto, String keycloakSub)
     {
         Book existingBook = bookRepository.findById(bookId).orElseThrow(()->new ResourceNotFoundException("Book", "id", bookId));
@@ -66,20 +64,33 @@ public class BookService implements BookServiceInterface
     }
 
     @Override
+    @Transactional
     public void deleteBook(Long bookId, String keycloakSub)
     {
+        Book existingBook = bookRepository.findById(bookId).orElseThrow(()->new ResourceNotFoundException("Book", "id", bookId));
 
+        if(!existingBook.getUser().getKeycloakSub().equals(keycloakSub))
+        {
+            throw new UnauthorizedActionException("You do not own this book");
+        }
+
+        existingBook.setStatus(Book.BookStatus.DELETED);
+
+        bookRepository.save(existingBook);
     }
 
     @Override
-    public Optional<Book> getBookById(Long bookId, String keycloakSub)
+    public Book getBookById(Long bookId, String keycloakSub)
     {
-        return Optional.empty();
+        return bookRepository.findById(bookId)
+                .filter(book -> book.getUser().getKeycloakSub().equals(keycloakSub))
+                .filter(book -> book.getStatus() != Book.BookStatus.DELETED)
+                .orElseThrow(()->new ResourceNotFoundException("Book", "id", bookId));
     }
 
     @Override
     public List<Book> getAllBooksByUserId(String keycloakSub)
     {
-        return List.of();
+        return bookRepository.findAllActiveBooks(keycloakSub);
     }
 }

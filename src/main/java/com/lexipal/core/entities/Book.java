@@ -1,9 +1,6 @@
 package com.lexipal.core.entities;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -36,7 +33,7 @@ public class Book
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    @JsonIgnoreProperties
+    @JsonBackReference
     private User user;
 
     public Book()
@@ -135,6 +132,7 @@ public class Book
     {
         ACTIVE,
         COMPLETE,
-        ARCHIVED
+        ARCHIVED,
+        DELETED
     }
 }
