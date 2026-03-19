@@ -11,4 +11,5 @@ public interface BookServiceInterface
     void deleteBook(Long bookId, String keycloakSub);
     Book getBookById(Long bookId, String keycloakSub);
     List<Book> getAllBooksByUserId(String keycloakSub);
+    void syncBookProgress(Long bookId);
 }

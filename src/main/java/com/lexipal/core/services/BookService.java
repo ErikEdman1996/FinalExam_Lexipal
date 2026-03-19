@@ -5,6 +5,7 @@ import com.lexipal.core.entities.User;
 import com.lexipal.core.exceptions.ResourceNotFoundException;
 import com.lexipal.core.exceptions.UnauthorizedActionException;
 import com.lexipal.core.repositories.BookRepository;
+import com.lexipal.core.repositories.SessionRepository;
 import com.lexipal.core.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,12 +18,16 @@ public class BookService implements BookServiceInterface
 {
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
+    private final SessionRepository sessionRepository;
 
     @Autowired
-    public BookService(final BookRepository bookRepository, final UserRepository userRepository)
+    public BookService(final BookRepository bookRepository,
+                       final UserRepository userRepository,
+                       final SessionRepository sessionRepository)
     {
         this.bookRepository = bookRepository;
         this.userRepository = userRepository;
+        this.sessionRepository = sessionRepository;
     }
 
     @Override
@@ -92,5 +97,31 @@ public class BookService implements BookServiceInterface
     public List<Book> getAllBooksByUserId(String keycloakSub)
     {
         return bookRepository.findAllActiveBooks(keycloakSub);
+    }
+
+    @Override
+    public void syncBookProgress(Long bookId)
+    {
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new ResourceNotFoundException("Book", "id", bookId));
+
+        // Find the highest endPage across all sessions
+        // You can add this method to your SessionRepository
+        Integer furthestPage = sessionRepository.findMaxEndPageByBookId(bookId);
+
+        if (furthestPage == null) {
+            book.setReadPages(0);
+        } else {
+            book.setReadPages(furthestPage);
+        }
+
+        // Auto-complete logic
+        if (book.getReadPages() >= book.getTotalPages()) {
+            book.setStatus(Book.BookStatus.COMPLETE);
+        } else {
+            book.setStatus(Book.BookStatus.ACTIVE);
+        }
+
+        bookRepository.save(book);
     }
 }

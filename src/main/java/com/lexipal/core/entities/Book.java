@@ -2,6 +2,8 @@ package com.lexipal.core.entities;
 import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "books")
@@ -36,13 +38,17 @@ public class Book
     @JsonBackReference
     private User user;
 
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private List<Session> sessions = new ArrayList<>();
+
     public Book()
     {
 
     }
 
     public Book(Long id, String title, String author, Integer readPages, Integer totalPages,
-                LocalDateTime createdAt, BookStatus status, User user) {
+                LocalDateTime createdAt, BookStatus status, User user, List<Session> sessions) {
         this.id = id;
         this.title = title;
         this.author = author;
@@ -51,6 +57,7 @@ public class Book
         this.createdAt = createdAt;
         this.status = status;
         this.user = user;
+        this.sessions = sessions;
     }
 
     @PrePersist
@@ -126,6 +133,14 @@ public class Book
 
     public void setStatus(BookStatus status) {
         this.status = status;
+    }
+
+    public List<Session> getSessions() {
+        return sessions;
+    }
+
+    public void setSessions(List<Session> sessions) {
+        this.sessions = sessions;
     }
 
     public enum BookStatus
