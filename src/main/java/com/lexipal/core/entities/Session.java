@@ -2,9 +2,12 @@ package com.lexipal.core.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "sessions")
@@ -35,20 +38,25 @@ public class Session
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    @JsonBackReference
+    @JsonBackReference(value = "user-sessions")
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "book_id", nullable = false)
-    @JsonBackReference
+    @JsonBackReference(value = "book-sessions")
     private Book book;
+
+    @OneToMany(mappedBy = "session", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private List<CapturedWord> capturedWords = new ArrayList<>();
 
     public Session()
     {
 
     }
 
-    public Session(Long durationSeconds, Integer startPage, Integer endPage, Integer pagesRead, String reflection, LocalDateTime sessionDate, User user, Book book)
+    public Session(Long durationSeconds, Integer startPage, Integer endPage, Integer pagesRead,
+                   String reflection, LocalDateTime sessionDate, User user, Book book, List<CapturedWord> capturedWords)
     {
         this.durationSeconds = durationSeconds;
         this.startPage = startPage;
@@ -58,6 +66,7 @@ public class Session
         this.sessionDate = sessionDate;
         this.user = user;
         this.book = book;
+        this.capturedWords = capturedWords;
     }
 
     @PrePersist
@@ -143,5 +152,11 @@ public class Session
         this.user = user;
     }
 
+    public List<CapturedWord> getCapturedWords() {
+        return capturedWords;
+    }
 
+    public void setCapturedWords(List<CapturedWord> capturedWords) {
+        this.capturedWords = capturedWords;
+    }
 }

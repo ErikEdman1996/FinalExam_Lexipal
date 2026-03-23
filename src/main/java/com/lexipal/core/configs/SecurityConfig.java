@@ -3,6 +3,7 @@ import com.lexipal.core.utils.JwtAuthConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -21,9 +22,12 @@ public class SecurityConfig
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception
     {
         http
+                .cors(Customizer.withDefaults())
                 .csrf(crsf -> crsf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/lexipal/api/v1/books/**").authenticated()
+                        .requestMatchers("/lexipal/api/v1/sessions/**").authenticated()
+                        .requestMatchers("/test/dictionary/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2.

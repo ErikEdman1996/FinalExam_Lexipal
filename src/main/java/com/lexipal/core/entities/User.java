@@ -39,6 +39,10 @@ public class User
     @JsonManagedReference
     private List<Session> sessions = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private List<CapturedWord> capturedWords = new ArrayList<>();
+
     public enum UserStatus
     {
         ACTIVE,
@@ -52,7 +56,8 @@ public class User
     }
 
     public User(String keycloakSub, LocalDateTime createdAt, UserStatus status,
-                Integer totalPagesRead, Integer totalBooksRead, List<Book> books, List<Session> sessions) {
+                Integer totalPagesRead, Integer totalBooksRead, List<Book> books, List<Session> sessions,
+                List<CapturedWord> capturedWords) {
         this.keycloakSub = keycloakSub;
         this.createdAt = createdAt;
         this.status = status;
@@ -60,6 +65,7 @@ public class User
         this.totalBooksRead = totalBooksRead;
         this.books = books;
         this.sessions = sessions;
+        this.capturedWords = capturedWords;
     }
 
     @PrePersist
@@ -143,5 +149,13 @@ public class User
 
     public void setSessions(List<Session> sessions) {
         this.sessions = sessions;
+    }
+
+    public List<CapturedWord> getCapturedWords() {
+        return capturedWords;
+    }
+
+    public void setCapturedWords(List<CapturedWord> capturedWords) {
+        this.capturedWords = capturedWords;
     }
 }
