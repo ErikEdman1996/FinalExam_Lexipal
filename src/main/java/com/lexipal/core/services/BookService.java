@@ -1,5 +1,7 @@
 package com.lexipal.core.services;
+import com.lexipal.core.dtos.BookSummaryDTO;
 import com.lexipal.core.dtos.BookUpdateDTO;
+import com.lexipal.core.dtos.CreateBookRequest;
 import com.lexipal.core.entities.Book;
 import com.lexipal.core.entities.User;
 import com.lexipal.core.exceptions.ResourceNotFoundException;
@@ -8,10 +10,12 @@ import com.lexipal.core.repositories.BookRepository;
 import com.lexipal.core.repositories.SessionRepository;
 import com.lexipal.core.repositories.UserRepository;
 import jakarta.transaction.Transactional;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class BookService implements BookServiceInterface
@@ -19,6 +23,9 @@ public class BookService implements BookServiceInterface
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
     private final SessionRepository sessionRepository;
+
+    private static final Logger bookLogger = LogManager.getLogger("BookLogger");
+    private static final Logger userLogger = LogManager.getLogger("UserLogger");
 
     @Autowired
     public BookService(final BookRepository bookRepository,
@@ -32,39 +39,61 @@ public class BookService implements BookServiceInterface
 
     @Override
     @Transactional
-    public Book addBook(Book book, String keycloakSub)
+    public Book addBook(CreateBookRequest request, String keycloakSub)
     {
+        userLogger.info("Retrieving user...");
         User user = userRepository.findByKeycloakSub(keycloakSub)
                 .orElseGet(() -> {
+                    userLogger.info("User not found, creating new user...");
                     User newUser = new User();
                     newUser.setKeycloakSub(keycloakSub);
-                    return userRepository.save(newUser);
+                    User savedUser = userRepository.save(newUser);
+                    userLogger.info("Created new user with id: {}", savedUser.getId());
+                    return savedUser;
                 });
 
-        book.setUser(user);
+        bookLogger.info("Creating a new book for user: {}", user.getId());
+        Book newBook = new Book();
 
-        user.getBooks().add(book);
+        newBook.setTitle(request.getTitle().trim());
+        newBook.setAuthor(request.getAuthor().trim());
+        newBook.setTotalPages(request.getTotalPages());
+        newBook.setUser(user);
 
-        return bookRepository.save(book);
+        user.getBooks().add(newBook);
+
+        Book savedBook = bookRepository.save(newBook);
+        bookLogger.info("Created new book with id: {} for user: {}", savedBook.getId(), user.getId());
+
+        return savedBook;
     }
 
     @Override
     @Transactional
     public Book updateBook(Long bookId, BookUpdateDTO dto, String keycloakSub)
     {
-        Book existingBook = bookRepository.findById(bookId).orElseThrow(()->new ResourceNotFoundException("Book", "id", bookId));
+        bookLogger.info("Retrieving book with id: {}", bookId);
+        Book existingBook = bookRepository.findById(bookId).orElseThrow(()->
+        {
+            bookLogger.error("Book not found with id: {}", bookId);
+            return new ResourceNotFoundException("Book", "id", bookId);
+        });
+
 
         if(!existingBook.getUser().getKeycloakSub().equals(keycloakSub))
         {
+            bookLogger.error("Current user does not own book with id: {}", bookId);
             throw new UnauthorizedActionException("You do not own this book");
         }
 
+        bookLogger.info("Updating book with id: {}", bookId);
         if(dto.getTitle() != null) existingBook.setTitle(dto.getTitle());
         if(dto.getAuthor() != null) existingBook.setAuthor(dto.getAuthor());
         if(dto.getStatus() != null) existingBook.setStatus(dto.getStatus());
         if(dto.getReadPages() != null) existingBook.setReadPages(dto.getReadPages());
         if(dto.getTotalPages() != null) existingBook.setTotalPages(dto.getTotalPages());
 
+        bookLogger.info("Book updated with id: {}", bookId);
         return bookRepository.save(existingBook);
     }
 
@@ -72,47 +101,92 @@ public class BookService implements BookServiceInterface
     @Transactional
     public void deleteBook(Long bookId, String keycloakSub)
     {
-        Book existingBook = bookRepository.findById(bookId).orElseThrow(()->new ResourceNotFoundException("Book", "id", bookId));
+        bookLogger.info("Retrieving book with id: {}", bookId);
+        Book existingBook = bookRepository.findById(bookId).orElseThrow(()->
+        {
+            bookLogger.error("Book not found with id: {}", bookId);
+            return new ResourceNotFoundException("Book", "id", bookId);
+        });
 
         if(!existingBook.getUser().getKeycloakSub().equals(keycloakSub))
         {
+            bookLogger.error("Current user does not own book with id: {}", bookId);
             throw new UnauthorizedActionException("You do not own this book");
         }
 
+        bookLogger.info("Changing status to DELETED for book with id: {}", bookId);
         existingBook.setStatus(Book.BookStatus.DELETED);
 
+        bookLogger.info("Book with id: {} marked as DELETED", bookId);
         bookRepository.save(existingBook);
     }
 
     @Override
     public Book getBookById(Long bookId, String keycloakSub)
     {
+        bookLogger.info("Retrieving book with id: {}", bookId);
         return bookRepository.findById(bookId)
                 .filter(book -> book.getUser().getKeycloakSub().equals(keycloakSub))
                 .filter(book -> book.getStatus() != Book.BookStatus.DELETED)
-                .orElseThrow(()->new ResourceNotFoundException("Book", "id", bookId));
+                .orElseThrow(()->
+                {
+                    bookLogger.error("Book not found with id: {}", bookId);
+                    return new ResourceNotFoundException("Book", "id", bookId);
+                });
     }
 
     @Override
-    public List<Book> getAllBooksByUserId(String keycloakSub)
+    public List<BookSummaryDTO> getAllBooksByUserSub(String keycloakSub)
     {
-        return bookRepository.findAllActiveBooks(keycloakSub);
+        userLogger.info("Retrieving user...");
+        User user = userRepository.findByKeycloakSub(keycloakSub)
+                .orElseGet(() -> {
+                    userLogger.info("User not found, creating new user...");
+                    User newUser = new User();
+                    newUser.setKeycloakSub(keycloakSub);
+                    User savedUser = userRepository.save(newUser);
+                    userLogger.info("Created new user with id: {}", savedUser.getId());
+                    return savedUser;
+                });
+
+        bookLogger.info("Retrieving all active books for user with id: {}", user.getId());
+
+        List<Book> activeBooks = bookRepository.findAllActiveBooks(keycloakSub);
+
+        return activeBooks.stream().map(book -> new BookSummaryDTO(
+                book.getId(),
+                book.getTitle(),
+                book.getAuthor(),
+                book.getReadPages(),
+                book.getTotalPages(),
+                calculateBookProgress(book),
+                book.getStatus().name(),
+                book.getSessions().size()
+        )).collect(Collectors.toList());
     }
 
     @Override
     public void syncBookProgress(Long bookId)
     {
-        Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new ResourceNotFoundException("Book", "id", bookId));
+        bookLogger.info("Retrieving book with id: {}", bookId);
+        Book book = bookRepository.findById(bookId).orElseThrow(()->
+        {
+            bookLogger.error("Book not found with id: {}", bookId);
+            return new ResourceNotFoundException("Book", "id", bookId);
+        });
 
         // Find the highest endPage across all sessions
-        // You can add this method to your SessionRepository
         Integer furthestPage = sessionRepository.findMaxEndPageByBookId(bookId);
 
         if (furthestPage == null) {
             book.setReadPages(0);
         } else {
             book.setReadPages(furthestPage);
+        }
+
+        if (book.getStatus() == Book.BookStatus.DELETED || book.getStatus() == Book.BookStatus.ARCHIVED) {
+            bookRepository.save(book);
+            return;
         }
 
         // Auto-complete logic
@@ -123,5 +197,12 @@ public class BookService implements BookServiceInterface
         }
 
         bookRepository.save(book);
+    }
+
+    @Override
+    public double calculateBookProgress(Book book)
+    {
+        if (book.getTotalPages() == 0) return 0;
+        return (double) book.getReadPages() / book.getTotalPages() * 100;
     }
 }

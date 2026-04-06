@@ -41,7 +41,8 @@ public class SessionService implements SessionServiceInterface
     @Transactional
     public Session addSession(SessionRequestDTO dto, String keycloakSub)
     {
-        User user = userRepository.findByKeycloakSub(keycloakSub).orElseThrow(()->new RuntimeException("User not found"));
+        User user = userRepository.findByKeycloakSub(keycloakSub)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "sub", keycloakSub));
 
         Long bookId = dto.getBookId();
 
@@ -51,6 +52,8 @@ public class SessionService implements SessionServiceInterface
         {
             throw new UnauthorizedActionException("This book does belong to you.");
         }
+
+        validateBookCanAcceptSessionChanges(book);
 
         Session session = new Session();
         session.setUser(user);
@@ -71,24 +74,78 @@ public class SessionService implements SessionServiceInterface
     @Transactional
     public Session updateSession(Long sessionId, SessionUpdateDTO dto, String keycloakSub)
     {
-        Session existingSession = sessionRepository.findById(sessionId).orElseThrow(()->new ResourceNotFoundException("Session", "id", sessionId));
+        Session existingSession = sessionRepository.findById(sessionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Session", "id", sessionId));
 
-        if(!existingSession.getUser().getKeycloakSub().equals(keycloakSub))
+        if (!existingSession.getUser().getKeycloakSub().equals(keycloakSub))
         {
             throw new UnauthorizedActionException("This session does not belong to you.");
         }
 
-        if(dto.getEndPage() != null) existingSession.setEndPage(dto.getEndPage());
-        if(dto.getDurationSeconds() != null) existingSession.setDurationSeconds(dto.getDurationSeconds());
-        if(dto.getReflection() != null) existingSession.setReflection(dto.getReflection());
+        validateBookCanAcceptSessionChanges(existingSession.getBook());
 
-        existingSession.setPagesRead(Math.max(0, dto.getEndPage() - existingSession.getStartPage()));
+        if (dto.getDurationSeconds() != null)
+        {
+            if (dto.getDurationSeconds() < 0)
+            {
+                throw new IllegalArgumentException("durationSeconds cannot be negative.");
+            }
+            existingSession.setDurationSeconds(dto.getDurationSeconds());
+        }
+
+        if (dto.getEndPage() != null)
+        {
+            if (existingSession.getStartPage() != null && dto.getEndPage() < existingSession.getStartPage())
+            {
+                throw new IllegalArgumentException("endPage cannot be less than startPage.");
+            }
+            existingSession.setEndPage(dto.getEndPage());
+        }
+
+        if (dto.getReflection() != null) {
+            existingSession.setReflection(dto.getReflection().trim());
+        }
+
+        if (dto.getStatus() != null && dto.getStatus() == Session.SessionStatus.COMPLETED)
+        {
+            existingSession.setStatus(dto.getStatus());
+        }
+
+        Integer startPage = existingSession.getStartPage();
+        Integer endPage = existingSession.getEndPage();
+
+        if (startPage != null && endPage != null)
+        {
+            existingSession.setPagesRead(Math.max(0, endPage - startPage));
+        }
+        else
+        {
+            existingSession.setPagesRead(0);
+        }
+
+        // Optional guard: auto-complete if all completion fields exist
+        if (existingSession.getEndPage() != null
+                && existingSession.getDurationSeconds() != null
+                && existingSession.getDurationSeconds() > 0
+                && existingSession.getReflection() != null
+                && !existingSession.getReflection().isBlank())
+        {
+            existingSession.setStatus(Session.SessionStatus.COMPLETED);
+        }
 
         Session updatedSession = sessionRepository.save(existingSession);
 
         bookService.syncBookProgress(updatedSession.getBook().getId());
 
         return updatedSession;
+    }
+
+    private void validateBookCanAcceptSessionChanges(Book book)
+    {
+        if (book.getStatus() == Book.BookStatus.DELETED || book.getStatus() == Book.BookStatus.ARCHIVED)
+        {
+            throw new IllegalArgumentException("Sessions cannot be modified for archived or deleted books.");
+        }
     }
 
     @Override

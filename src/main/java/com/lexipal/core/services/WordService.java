@@ -2,6 +2,8 @@ package com.lexipal.core.services;
 
 import com.lexipal.core.dtos.DictionaryAPIRequestDTO;
 import com.lexipal.core.entities.Word;
+import com.lexipal.core.exceptions.ExternalServiceException;
+import com.lexipal.core.exceptions.ResourceNotFoundException;
 import com.lexipal.core.repositories.WordRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +34,11 @@ public class WordService implements WordServiceInterface
             DictionaryAPIRequestDTO dto = client.fetchWordFromApi(lemma);
 
             if (dto == null) {
-                throw new RuntimeException("Could not retrieve word data for: " + lemma);
+                throw new ExternalServiceException("Could not retrieve word data for: " + lemma);
+            }
+
+            if (dto.getWord() == null || dto.getWord().isBlank()) {
+                throw new ResourceNotFoundException("Word", "lemma", lemma);
             }
 
             // 3. Map the DTO to our Entity

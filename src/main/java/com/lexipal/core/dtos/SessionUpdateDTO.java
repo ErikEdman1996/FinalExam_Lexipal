@@ -1,21 +1,32 @@
 package com.lexipal.core.dtos;
 
+import com.lexipal.core.entities.Session;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
+
 public class SessionUpdateDTO
 {
+    @Min(value = 0, message = "End page must be zero or greater")
     private Integer endPage;
+
+    @Min(value = 0, message = "Duration must be zero or greater")
     private Long durationSeconds;
+
+    @Size(max = 2000, message = "Reflection must be 2000 characters or fewer")
     private String reflection;
+    private Session.SessionStatus status;
 
     public SessionUpdateDTO()
     {
 
     }
 
-    public SessionUpdateDTO(Integer endPage, Long durationSeconds, String reflection)
+    public SessionUpdateDTO(Integer endPage, Long durationSeconds, String reflection, Session.SessionStatus status)
     {
         this.endPage = endPage;
         this.durationSeconds = durationSeconds;
         this.reflection = reflection;
+        this.status = status;
     }
 
     public Integer getEndPage() {
@@ -40,5 +51,13 @@ public class SessionUpdateDTO
 
     public void setReflection(String reflection) {
         this.reflection = reflection;
+    }
+
+    public Session.SessionStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(Session.SessionStatus status) {
+        this.status = status;
     }
 }

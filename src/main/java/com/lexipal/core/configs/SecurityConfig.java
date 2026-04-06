@@ -27,6 +27,7 @@ public class SecurityConfig
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/lexipal/api/v1/books/**").authenticated()
                         .requestMatchers("/lexipal/api/v1/sessions/**").authenticated()
+                        .requestMatchers("/lexipal/api/v1/capturedWords/**").authenticated()
                         .requestMatchers("/test/dictionary/**").authenticated()
                         .anyRequest().permitAll()
                 )

@@ -1,8 +1,11 @@
 package com.lexipal.core.controllers;
 
+import com.lexipal.core.dtos.BookSummaryDTO;
 import com.lexipal.core.dtos.BookUpdateDTO;
+import com.lexipal.core.dtos.CreateBookRequest;
 import com.lexipal.core.entities.Book;
 import com.lexipal.core.services.BookService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,7 +14,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/lexipal/api/v1/books")
@@ -37,26 +39,26 @@ public class BookController
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<Book>> getAllBooks(@AuthenticationPrincipal Jwt jwt)
+    public ResponseEntity<List<BookSummaryDTO>> getAllBooks(@AuthenticationPrincipal Jwt jwt)
     {
         String keycloakSub = jwt.getSubject();
 
-        List<Book> activeBooks = bookService.getAllBooksByUserId(keycloakSub);
+        List<BookSummaryDTO> activeBooks = bookService.getAllBooksByUserSub(keycloakSub);
 
         return ResponseEntity.ok(activeBooks);
     }
 
     @PostMapping
-    public ResponseEntity<Book> addBook(@RequestBody Book book,
+    public ResponseEntity<Book> addBook(@Valid @RequestBody CreateBookRequest request,
                                         @AuthenticationPrincipal final Jwt jwt)
     {
         String keycloakSub =  jwt.getSubject();
-        return ResponseEntity.status(HttpStatus.CREATED).body(bookService.addBook(book, keycloakSub));
+        return ResponseEntity.status(HttpStatus.CREATED).body(bookService.addBook(request, keycloakSub));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Book> updateBook(@PathVariable Long id,
-                                           @RequestBody BookUpdateDTO dto,
+                                           @Valid @RequestBody BookUpdateDTO dto,
                                            @AuthenticationPrincipal final Jwt jwt)
     {
         String keycloakSub =  jwt.getSubject();

@@ -1,14 +1,17 @@
 package com.lexipal.core.dtos;
 import com.lexipal.core.entities.Book;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public class BookUpdateDTO
 {
     @Size(min = 1, max = 100, message = "Title must be between 1 and 100 characters")
+    @Pattern(regexp = ".*\\S.*", message = "Title must not be blank")
     private String title;
 
     @Size(min = 1, max = 100, message = "Author must be between 1 and 100 characters")
+    @Pattern(regexp = ".*\\S.*", message = "Author must not be blank")
     private String author;
 
     @Min(value = 0, message = "Read pages cannot be negative")
@@ -33,35 +36,35 @@ public class BookUpdateDTO
         this.status = status;
     }
 
-    public @Size(min = 1, max = 100, message = "Title must be between 1 and 100 characters") String getTitle() {
+    public String getTitle() {
         return title;
     }
 
-    public void setTitle(@Size(min = 1, max = 100, message = "Title must be between 1 and 100 characters") String title) {
+    public void setTitle(String title) {
         this.title = title;
     }
 
-    public @Size(min = 1, max = 100, message = "Author must be between 1 and 100 characters") String getAuthor() {
+    public String getAuthor() {
         return author;
     }
 
-    public void setAuthor(@Size(min = 1, max = 100, message = "Author must be between 1 and 100 characters") String author) {
+    public void setAuthor(String author) {
         this.author = author;
     }
 
-    public @Min(value = 0, message = "Read pages cannot be negative") Integer getReadPages() {
+    public Integer getReadPages() {
         return readPages;
     }
 
-    public void setReadPages(@Min(value = 0, message = "Read pages cannot be negative") Integer readPages) {
+    public void setReadPages(Integer readPages) {
         this.readPages = readPages;
     }
 
-    public @Min(value = 1, message = "Total pages must be at least 1") Integer getTotalPages() {
+    public Integer getTotalPages() {
         return totalPages;
     }
 
-    public void setTotalPages(@Min(value = 1, message = "Total pages must be at least 1") Integer totalPages) {
+    public void setTotalPages(Integer totalPages) {
         this.totalPages = totalPages;
     }
 

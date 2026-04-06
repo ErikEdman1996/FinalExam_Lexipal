@@ -35,11 +35,11 @@ public class Book
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    @JsonBackReference
+    @JsonBackReference("user-books")
     private User user;
 
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL)
-    @JsonManagedReference
+    @JsonManagedReference("book-sessions")
     private List<Session> sessions = new ArrayList<>();
 
     public Book()

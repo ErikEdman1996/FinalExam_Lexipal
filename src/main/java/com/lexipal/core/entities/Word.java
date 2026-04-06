@@ -33,16 +33,12 @@ public class Word
     @Column(columnDefinition = "jsonb")
     private JsonNode phonetics;
 
-    @OneToMany(mappedBy = "word", cascade = CascadeType.ALL)
-    @JsonManagedReference
-    private List<CapturedWord> capturedWords = new ArrayList<>();
-
     public Word()
     {
 
     }
 
-    public Word(Long id, String lemma, Double rarityScore, String source, JsonNode definitions, JsonNode phonetics, List<CapturedWord> capturedWords)
+    public Word(Long id, String lemma, Double rarityScore, String source, JsonNode definitions, JsonNode phonetics)
     {
         this.id = id;
         this.lemma = lemma;
@@ -50,7 +46,6 @@ public class Word
         this.source = source;
         this.definitions = definitions;
         this.phonetics = phonetics;
-        this.capturedWords = capturedWords;
     }
 
     public Long getId() {
@@ -99,13 +94,5 @@ public class Word
 
     public void setPhonetics(JsonNode phonetics) {
         this.phonetics = phonetics;
-    }
-
-    public List<CapturedWord> getCapturedWords() {
-        return capturedWords;
-    }
-
-    public void setCapturedWords(List<CapturedWord> capturedWords) {
-        this.capturedWords = capturedWords;
     }
 }

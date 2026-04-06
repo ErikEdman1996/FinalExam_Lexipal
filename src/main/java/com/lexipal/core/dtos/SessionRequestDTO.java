@@ -1,11 +1,27 @@
 package com.lexipal.core.dtos;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
 public class SessionRequestDTO
 {
+    @NotNull(message = "Book id is required")
     private Long bookId;
+
+    @NotNull(message = "Duration is required")
+    @Min(value = 0, message = "Duration must be zero or greater")
     private Long durationSeconds;
+
+    @NotNull(message = "Start page is required")
+    @Min(value = 0, message = "Start page must be zero or greater")
     private Integer startPage;
+
+    @NotNull(message = "End page is required")
+    @Min(value = 0, message = "End page must be zero or greater")
     private Integer endPage;
+
+    @Size(max = 2000, message = "Reflection must be 2000 characters or fewer")
     private String reflection;
 
     public SessionRequestDTO()

@@ -32,6 +32,10 @@ public class Session
     @Column(columnDefinition = "TEXT")
     private String reflection;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private SessionStatus status;
+
     @Column(nullable = false)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime sessionDate;
@@ -47,7 +51,7 @@ public class Session
     private Book book;
 
     @OneToMany(mappedBy = "session", cascade = CascadeType.ALL)
-    @JsonManagedReference
+    @JsonManagedReference("session-capturedWords")
     private List<CapturedWord> capturedWords = new ArrayList<>();
 
     public Session()
@@ -56,13 +60,14 @@ public class Session
     }
 
     public Session(Long durationSeconds, Integer startPage, Integer endPage, Integer pagesRead,
-                   String reflection, LocalDateTime sessionDate, User user, Book book, List<CapturedWord> capturedWords)
+                   String reflection, SessionStatus status, LocalDateTime sessionDate, User user, Book book, List<CapturedWord> capturedWords)
     {
         this.durationSeconds = durationSeconds;
         this.startPage = startPage;
         this.endPage = endPage;
         this.pagesRead = pagesRead;
         this.reflection = reflection;
+        this.status = status;
         this.sessionDate = sessionDate;
         this.user = user;
         this.book = book;
@@ -73,6 +78,7 @@ public class Session
     protected void onCreate()
     {
         this.sessionDate = LocalDateTime.now();
+        this.status = SessionStatus.IN_PROGRESS;
 
         if(this.startPage != null && this.endPage != null)
         {
@@ -158,5 +164,19 @@ public class Session
 
     public void setCapturedWords(List<CapturedWord> capturedWords) {
         this.capturedWords = capturedWords;
+    }
+
+    public SessionStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(SessionStatus status) {
+        this.status = status;
+    }
+
+    public enum SessionStatus
+    {
+        IN_PROGRESS,
+        COMPLETED
     }
 }

@@ -4,12 +4,14 @@ package com.lexipal.core.controllers;
 import com.lexipal.core.dtos.CaptureRequestDTO;
 import com.lexipal.core.dtos.CaptureResponseDTO;
 import com.lexipal.core.services.CapturedWordService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
 
 @RestController
 @RequestMapping("/lexipal/api/v1/capturedWords")
@@ -23,10 +25,14 @@ public class CapturedWordController
         this.capturedWordService = capturedWordService;
     }
 
-    @PostMapping
-    public ResponseEntity<CaptureResponseDTO> searchAndCapture(@RequestBody CaptureRequestDTO requestDTO)
+    @PostMapping("/{sessionId}")
+    public ResponseEntity<CaptureResponseDTO> searchAndCapture(@PathVariable Long sessionId,
+                                                               @Valid @RequestBody CaptureRequestDTO requestDTO,
+                                                               @AuthenticationPrincipal Jwt jwt)
     {
-        CaptureResponseDTO response = capturedWordService.performSearchAndCapture(requestDTO);
+        String keycloakSub = jwt.getSubject();
+
+        CaptureResponseDTO response = capturedWordService.performSearchAndCapture(sessionId, requestDTO, keycloakSub);
 
         return ResponseEntity.ok(response);
     }

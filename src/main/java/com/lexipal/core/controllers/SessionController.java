@@ -4,6 +4,7 @@ import com.lexipal.core.dtos.SessionRequestDTO;
 import com.lexipal.core.dtos.SessionUpdateDTO;
 import com.lexipal.core.entities.Session;
 import com.lexipal.core.services.SessionService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -47,7 +48,7 @@ public class SessionController
 
 
     @PostMapping
-    public ResponseEntity<Session> addSession(@RequestBody final SessionRequestDTO dto,
+    public ResponseEntity<Session> addSession(@Valid @RequestBody final SessionRequestDTO dto,
                                               @AuthenticationPrincipal Jwt jwt)
     {
         String keycloakSub = jwt.getSubject();
@@ -57,7 +58,7 @@ public class SessionController
 
     @PutMapping("/{id}")
     public ResponseEntity<Session> updateSession(@PathVariable Long id,
-                                                 @RequestBody SessionUpdateDTO dto,
+                                                 @Valid @RequestBody SessionUpdateDTO dto,
                                                  @AuthenticationPrincipal Jwt jwt)
     {
         String keycloakSub = jwt.getSubject();

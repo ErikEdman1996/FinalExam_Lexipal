@@ -32,15 +32,15 @@ public class User
     private Integer totalBooksRead;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    @JsonManagedReference
+    @JsonManagedReference("user-books")
     private List<Book> books = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    @JsonManagedReference
+    @JsonManagedReference("user-sessions")
     private List<Session> sessions = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    @JsonManagedReference
+    @JsonManagedReference("user-capturedWords")
     private List<CapturedWord> capturedWords = new ArrayList<>();
 
     public enum UserStatus

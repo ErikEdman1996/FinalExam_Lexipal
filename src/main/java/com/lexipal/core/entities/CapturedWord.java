@@ -6,7 +6,12 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "captured_words")
+@Table(
+        name = "captured_words",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_captured_word_user_word", columnNames = {"user_id", "word_id"})
+        }
+)
 public class CapturedWord
 {
     @Id
@@ -26,12 +31,12 @@ public class CapturedWord
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    @JsonBackReference
+    @JsonBackReference("user-capturedWords")
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "session_id", nullable = false)
-    @JsonBackReference
+    @JsonBackReference("session-capturedWords")
     private Session session;
 
     public CapturedWord()
@@ -73,11 +78,11 @@ public class CapturedWord
         this.word = word;
     }
 
-    public String getspecificDefinition() {
+    public String getSpecificDefinition() {
         return specificDefinition;
     }
 
-    public void setSpecificDefintion(String specificDefinition) {
+    public void setSpecificDefinition(String specificDefinition) {
         this.specificDefinition = specificDefinition;
     }
 

@@ -5,5 +5,5 @@ import com.lexipal.core.dtos.CaptureResponseDTO;
 
 public interface CapturedWordServiceInterface
 {
-    CaptureResponseDTO performSearchAndCapture(CaptureRequestDTO dto);
+    CaptureResponseDTO performSearchAndCapture(Long sessionId, CaptureRequestDTO dto, String keycloakSub);
 }
