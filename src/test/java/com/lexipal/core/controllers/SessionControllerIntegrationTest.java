@@ -1,8 +1,8 @@
 package com.lexipal.core.controllers;
 
 import com.lexipal.core.IntegrationTestBase;
-import com.lexipal.core.dtos.SessionRequestDTO;
-import com.lexipal.core.dtos.SessionUpdateDTO;
+import com.lexipal.core.dtos.requests.SessionCreateRequestDTO;
+import com.lexipal.core.dtos.requests.SessionUpdateRequestDTO;
 import com.lexipal.core.entities.Book;
 import com.lexipal.core.entities.Session;
 import com.lexipal.core.entities.User;
@@ -76,7 +76,7 @@ class SessionControllerIntegrationTest extends IntegrationTestBase
     @DisplayName("POST /sessions — creates session and syncs book progress")
     void addSession_createsSession() throws Exception
     {
-        SessionRequestDTO dto = new SessionRequestDTO(testBook.getId(), 1800L, 1, 50, "Great reading!");
+        SessionCreateRequestDTO dto = new SessionCreateRequestDTO(testBook.getId(), 1800L, 1, 50, "Great reading!");
 
         mockMvc.perform(post(BASE_URL)
                         .with(jwtWithSub(USER_SUB))
@@ -97,7 +97,7 @@ class SessionControllerIntegrationTest extends IntegrationTestBase
     @DisplayName("POST /sessions — returns error when book belongs to another user")
     void addSession_otherUsersBook_throwsUnauthorized() throws Exception
     {
-        SessionRequestDTO dto = new SessionRequestDTO(testBook.getId(), 1800L, 1, 50, null);
+        SessionCreateRequestDTO dto = new SessionCreateRequestDTO(testBook.getId(), 1800L, 1, 50, null);
 
         mockMvc.perform(post(BASE_URL)
                         .with(jwtWithSub(OTHER_USER_SUB))
@@ -113,7 +113,7 @@ class SessionControllerIntegrationTest extends IntegrationTestBase
         testBook.setStatus(Book.BookStatus.DELETED);
         bookRepository.save(testBook);
 
-        SessionRequestDTO dto = new SessionRequestDTO(testBook.getId(), 1800L, 1, 50, "Should fail");
+        SessionCreateRequestDTO dto = new SessionCreateRequestDTO(testBook.getId(), 1800L, 1, 50, "Should fail");
 
         mockMvc.perform(post(BASE_URL)
                         .with(jwtWithSub(USER_SUB))
@@ -129,7 +129,7 @@ class SessionControllerIntegrationTest extends IntegrationTestBase
         testBook.setStatus(Book.BookStatus.ARCHIVED);
         bookRepository.save(testBook);
 
-        SessionRequestDTO dto = new SessionRequestDTO(testBook.getId(), 1800L, 1, 50, "Should fail");
+        SessionCreateRequestDTO dto = new SessionCreateRequestDTO(testBook.getId(), 1800L, 1, 50, "Should fail");
 
         mockMvc.perform(post(BASE_URL)
                         .with(jwtWithSub(USER_SUB))
@@ -142,7 +142,7 @@ class SessionControllerIntegrationTest extends IntegrationTestBase
     @DisplayName("POST /sessions - rejects invalid request body")
     void addSession_invalidPayload_returnsBadRequest() throws Exception
     {
-        SessionRequestDTO dto = new SessionRequestDTO(null, -1L, null, -5, null);
+        SessionCreateRequestDTO dto = new SessionCreateRequestDTO(null, -1L, null, -5, null);
 
         mockMvc.perform(post(BASE_URL)
                         .with(jwtWithSub(USER_SUB))
@@ -160,7 +160,7 @@ class SessionControllerIntegrationTest extends IntegrationTestBase
     @DisplayName("POST /sessions returns 404 with error body when authenticated user is missing")
     void addSession_missingUser_returnsNotFoundWithBody() throws Exception
     {
-        SessionRequestDTO dto = new SessionRequestDTO(testBook.getId(), 1800L, 1, 50, "Great reading!");
+        SessionCreateRequestDTO dto = new SessionCreateRequestDTO(testBook.getId(), 1800L, 1, 50, "Great reading!");
 
         mockMvc.perform(post(BASE_URL)
                         .with(jwtWithSub("missing-user-sub"))
@@ -229,7 +229,7 @@ class SessionControllerIntegrationTest extends IntegrationTestBase
     {
         Session session = createSession(testUser, testBook, 1, 30, 900L);
 
-        SessionUpdateDTO dto = new SessionUpdateDTO(80, 2400L, "Updated reflection", null);
+        SessionUpdateRequestDTO dto = new SessionUpdateRequestDTO(80, 2400L, "Updated reflection", null);
 
         mockMvc.perform(put(BASE_URL + "/" + session.getId())
                         .with(jwtWithSub(USER_SUB))
@@ -252,7 +252,7 @@ class SessionControllerIntegrationTest extends IntegrationTestBase
     {
         Session session = createSession(testUser, testBook, 1, 30, 0L);
 
-        SessionUpdateDTO dto = new SessionUpdateDTO(100, 3600L, "Finished the book!", null);
+        SessionUpdateRequestDTO dto = new SessionUpdateRequestDTO(100, 3600L, "Finished the book!", null);
 
         mockMvc.perform(put(BASE_URL + "/" + session.getId())
                         .with(jwtWithSub(USER_SUB))
@@ -269,7 +269,7 @@ class SessionControllerIntegrationTest extends IntegrationTestBase
         Session session = createSession(testUser, testBook, 50, 60, 900L);
 
         // endPage (10) < startPage (50) should throw
-        SessionUpdateDTO dto = new SessionUpdateDTO(10, null, null, null);
+        SessionUpdateRequestDTO dto = new SessionUpdateRequestDTO(10, null, null, null);
 
         mockMvc.perform(put(BASE_URL + "/" + session.getId())
                         .with(jwtWithSub(USER_SUB))
@@ -286,7 +286,7 @@ class SessionControllerIntegrationTest extends IntegrationTestBase
         testBook.setStatus(Book.BookStatus.DELETED);
         bookRepository.save(testBook);
 
-        SessionUpdateDTO dto = new SessionUpdateDTO(80, 2400L, "Should fail", null);
+        SessionUpdateRequestDTO dto = new SessionUpdateRequestDTO(80, 2400L, "Should fail", null);
 
         mockMvc.perform(put(BASE_URL + "/" + session.getId())
                         .with(jwtWithSub(USER_SUB))
@@ -306,7 +306,7 @@ class SessionControllerIntegrationTest extends IntegrationTestBase
         testBook.setStatus(Book.BookStatus.ARCHIVED);
         bookRepository.save(testBook);
 
-        SessionUpdateDTO dto = new SessionUpdateDTO(80, 2400L, "Should fail", null);
+        SessionUpdateRequestDTO dto = new SessionUpdateRequestDTO(80, 2400L, "Should fail", null);
 
         mockMvc.perform(put(BASE_URL + "/" + session.getId())
                         .with(jwtWithSub(USER_SUB))
@@ -323,7 +323,7 @@ class SessionControllerIntegrationTest extends IntegrationTestBase
     void updateSession_invalidPayload_returnsBadRequest() throws Exception
     {
         Session session = createSession(testUser, testBook, 1, 30, 900L);
-        SessionUpdateDTO dto = new SessionUpdateDTO(-10, -1L, null, null);
+        SessionUpdateRequestDTO dto = new SessionUpdateRequestDTO(-10, -1L, null, null);
 
         mockMvc.perform(put(BASE_URL + "/" + session.getId())
                         .with(jwtWithSub(USER_SUB))

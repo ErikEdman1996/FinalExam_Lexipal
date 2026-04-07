@@ -1,7 +1,10 @@
 package com.lexipal.core.services;
 
-import com.lexipal.core.dtos.SessionRequestDTO;
-import com.lexipal.core.dtos.SessionUpdateDTO;
+import com.lexipal.core.dtos.requests.SessionCreateRequestDTO;
+import com.lexipal.core.dtos.requests.SessionUpdateRequestDTO;
+import com.lexipal.core.dtos.responses.SessionCreateResponseDTO;
+import com.lexipal.core.dtos.responses.SessionReadResponseDTO;
+import com.lexipal.core.dtos.responses.SessionUpdateResponseDTO;
 import com.lexipal.core.entities.Book;
 import com.lexipal.core.entities.Session;
 import com.lexipal.core.entities.User;
@@ -15,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class SessionService implements SessionServiceInterface
@@ -23,13 +27,13 @@ public class SessionService implements SessionServiceInterface
     final SessionRepository sessionRepository;
     final UserRepository userRepository;
     final BookRepository bookRepository;
-    private final BookService bookService;
+    private final BookServiceInterface bookService;
 
     @Autowired
     public SessionService(final SessionRepository sessionRepository,
                           final UserRepository userRepository,
                           final BookRepository bookRepository,
-                          final BookService bookService)
+                          final BookServiceInterface bookService)
     {
         this.sessionRepository = sessionRepository;
         this.userRepository = userRepository;
@@ -39,7 +43,7 @@ public class SessionService implements SessionServiceInterface
 
     @Override
     @Transactional
-    public Session addSession(SessionRequestDTO dto, String keycloakSub)
+    public SessionCreateResponseDTO addSession(SessionCreateRequestDTO dto, String keycloakSub)
     {
         User user = userRepository.findByKeycloakSub(keycloakSub)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "sub", keycloakSub));
@@ -61,18 +65,18 @@ public class SessionService implements SessionServiceInterface
         session.setStartPage(dto.getStartPage());
         session.setEndPage(dto.getEndPage());
         session.setDurationSeconds(dto.getDurationSeconds());
-        session.setReflection(dto.getReflection());
+        session.setReflection(dto.getReflection() == null ? null : dto.getReflection().trim());
 
         Session savedSession = sessionRepository.save(session);
 
         bookService.syncBookProgress(book.getId());
 
-        return savedSession;
+        return toSessionCreateResponse(savedSession);
     }
 
     @Override
     @Transactional
-    public Session updateSession(Long sessionId, SessionUpdateDTO dto, String keycloakSub)
+    public SessionUpdateResponseDTO updateSession(Long sessionId, SessionUpdateRequestDTO dto, String keycloakSub)
     {
         Session existingSession = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Session", "id", sessionId));
@@ -137,7 +141,7 @@ public class SessionService implements SessionServiceInterface
 
         bookService.syncBookProgress(updatedSession.getBook().getId());
 
-        return updatedSession;
+        return toSessionUpdateResponse(updatedSession);
     }
 
     private void validateBookCanAcceptSessionChanges(Book book)
@@ -149,15 +153,17 @@ public class SessionService implements SessionServiceInterface
     }
 
     @Override
-    public Session getSession(Long sessionId, String keycloakSub)
+    public SessionReadResponseDTO getSession(Long sessionId, String keycloakSub)
     {
-        return sessionRepository.findById(sessionId)
-                .filter(session -> session.getUser().getKeycloakSub().equals(keycloakSub))
+        Session session = sessionRepository.findById(sessionId)
+                .filter(foundSession -> foundSession.getUser().getKeycloakSub().equals(keycloakSub))
                 .orElseThrow(()->new ResourceNotFoundException("Session", "id", sessionId));
+
+        return toSessionReadResponse(session);
     }
 
     @Override
-    public List<Session> getSessionsByBook(Long bookId, String keycloakSub)
+    public List<SessionReadResponseDTO> getSessionsByBook(Long bookId, String keycloakSub)
     {
         Book book = bookRepository.findById(bookId).orElseThrow(()->new ResourceNotFoundException("Book", "id", bookId));
 
@@ -166,6 +172,56 @@ public class SessionService implements SessionServiceInterface
             throw new UnauthorizedActionException("This book does not belong to you.");
         }
 
-        return sessionRepository.findByBookIdOrderBySessionDateDesc(bookId);
+        return sessionRepository.findByBookIdOrderBySessionDateDesc(bookId).stream()
+                .map(this::toSessionReadResponse)
+                .collect(Collectors.toList());
+    }
+
+    private SessionCreateResponseDTO toSessionCreateResponse(Session session)
+    {
+        return new SessionCreateResponseDTO(
+                session.getId(),
+                session.getBook().getId(),
+                session.getDurationSeconds(),
+                session.getStartPage(),
+                session.getEndPage(),
+                session.getPagesRead(),
+                session.getReflection(),
+                session.getStatus().name(),
+                session.getSessionDate(),
+                session.getCapturedWords().size()
+        );
+    }
+
+    private SessionReadResponseDTO toSessionReadResponse(Session session)
+    {
+        return new SessionReadResponseDTO(
+                session.getId(),
+                session.getBook().getId(),
+                session.getDurationSeconds(),
+                session.getStartPage(),
+                session.getEndPage(),
+                session.getPagesRead(),
+                session.getReflection(),
+                session.getStatus().name(),
+                session.getSessionDate(),
+                session.getCapturedWords().size()
+        );
+    }
+
+    private SessionUpdateResponseDTO toSessionUpdateResponse(Session session)
+    {
+        return new SessionUpdateResponseDTO(
+                session.getId(),
+                session.getBook().getId(),
+                session.getDurationSeconds(),
+                session.getStartPage(),
+                session.getEndPage(),
+                session.getPagesRead(),
+                session.getReflection(),
+                session.getStatus().name(),
+                session.getSessionDate(),
+                session.getCapturedWords().size()
+        );
     }
 }

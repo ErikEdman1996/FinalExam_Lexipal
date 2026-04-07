@@ -1,9 +1,11 @@
 package com.lexipal.core.controllers;
 
-import com.lexipal.core.dtos.SessionRequestDTO;
-import com.lexipal.core.dtos.SessionUpdateDTO;
-import com.lexipal.core.entities.Session;
-import com.lexipal.core.services.SessionService;
+import com.lexipal.core.dtos.requests.SessionCreateRequestDTO;
+import com.lexipal.core.dtos.requests.SessionUpdateRequestDTO;
+import com.lexipal.core.dtos.responses.SessionCreateResponseDTO;
+import com.lexipal.core.dtos.responses.SessionReadResponseDTO;
+import com.lexipal.core.dtos.responses.SessionUpdateResponseDTO;
+import com.lexipal.core.services.SessionServiceInterface;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,38 +20,38 @@ import java.util.List;
 @RequestMapping("/lexipal/api/v1/sessions")
 public class SessionController
 {
-    private final SessionService sessionService;
+    private final SessionServiceInterface sessionService;
 
     @Autowired
-    public SessionController(final SessionService sessionService)
+    public SessionController(final SessionServiceInterface sessionService)
     {
         this.sessionService = sessionService;
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Session> getSession(@PathVariable final Long id, @AuthenticationPrincipal Jwt jwt)
+    public ResponseEntity<SessionReadResponseDTO> getSession(@PathVariable final Long id, @AuthenticationPrincipal Jwt jwt)
     {
         String keycloakSub = jwt.getSubject();
 
-        Session session = sessionService.getSession(id, keycloakSub);
+        SessionReadResponseDTO session = sessionService.getSession(id, keycloakSub);
 
         return ResponseEntity.ok(session);
     }
 
     @GetMapping("/book/{bookId}")
-    public ResponseEntity<List<Session>> getSessions(@PathVariable final Long bookId, @AuthenticationPrincipal Jwt jwt)
+    public ResponseEntity<List<SessionReadResponseDTO>> getSessions(@PathVariable final Long bookId, @AuthenticationPrincipal Jwt jwt)
     {
         String keycloakSub = jwt.getSubject();
 
-        List<Session> sessions = sessionService.getSessionsByBook(bookId, keycloakSub);
+        List<SessionReadResponseDTO> sessions = sessionService.getSessionsByBook(bookId, keycloakSub);
 
         return ResponseEntity.ok(sessions);
     }
 
 
     @PostMapping
-    public ResponseEntity<Session> addSession(@Valid @RequestBody final SessionRequestDTO dto,
-                                              @AuthenticationPrincipal Jwt jwt)
+    public ResponseEntity<SessionCreateResponseDTO> addSession(@Valid @RequestBody final SessionCreateRequestDTO dto,
+                                                               @AuthenticationPrincipal Jwt jwt)
     {
         String keycloakSub = jwt.getSubject();
 
@@ -57,13 +59,13 @@ public class SessionController
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Session> updateSession(@PathVariable Long id,
-                                                 @Valid @RequestBody SessionUpdateDTO dto,
-                                                 @AuthenticationPrincipal Jwt jwt)
+    public ResponseEntity<SessionUpdateResponseDTO> updateSession(@PathVariable Long id,
+                                                                  @Valid @RequestBody SessionUpdateRequestDTO dto,
+                                                                  @AuthenticationPrincipal Jwt jwt)
     {
         String keycloakSub = jwt.getSubject();
 
-        Session updatesSession = sessionService.updateSession(id, dto, keycloakSub);
+        SessionUpdateResponseDTO updatesSession = sessionService.updateSession(id, dto, keycloakSub);
 
         return ResponseEntity.ok(updatesSession);
     }

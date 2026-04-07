@@ -1,81 +1,37 @@
-2026-04-06 18:01:58.559 [main] INFO  BookLogger - Retrieving book with id: 1
-2026-04-06 18:01:58.570 [main] ERROR BookLogger - Current user does not own book with id: 1
-2026-04-06 18:01:58.674 [main] INFO  BookLogger - Retrieving book with id: 2
-2026-04-06 18:01:58.675 [main] ERROR BookLogger - Current user does not own book with id: 2
-2026-04-06 18:01:58.687 [main] INFO  BookLogger - Retrieving book with id: 3
-2026-04-06 18:01:58.687 [main] ERROR BookLogger - Book not found with id: 3
-2026-04-06 18:01:58.780 [main] INFO  BookLogger - Creating a new book for user: 4
-2026-04-06 18:01:58.782 [main] INFO  BookLogger - Created new book with id: 4 for user: 4
-2026-04-06 18:01:58.806 [main] INFO  BookLogger - Creating a new book for user: 4
-2026-04-06 18:01:58.807 [main] INFO  BookLogger - Created new book with id: 5 for user: 4
-2026-04-06 18:01:58.823 [main] INFO  BookLogger - Creating a new book for user: 6
-2026-04-06 18:01:58.824 [main] INFO  BookLogger - Created new book with id: 6 for user: 6
-2026-04-06 18:01:58.871 [main] INFO  BookLogger - Retrieving book with id: 7
-2026-04-06 18:01:58.871 [main] INFO  BookLogger - Changing status to DELETED for book with id: 7
-2026-04-06 18:01:58.871 [main] INFO  BookLogger - Book with id: 7 marked as DELETED
-2026-04-06 18:01:58.884 [main] INFO  BookLogger - Retrieving book with id: 8
-2026-04-06 18:01:58.884 [main] ERROR BookLogger - Book not found with id: 8
-2026-04-06 18:01:58.899 [main] INFO  BookLogger - Retrieving all active books for user with id: 9
-2026-04-06 18:01:58.956 [main] INFO  BookLogger - Retrieving book with id: 11
-2026-04-06 18:01:58.957 [main] INFO  BookLogger - Updating book with id: 11
-2026-04-06 18:01:58.957 [main] INFO  BookLogger - Book updated with id: 11
-2026-04-06 18:01:58.970 [main] INFO  BookLogger - Retrieving book with id: 12
-2026-04-06 18:02:01.094 [main] INFO  BookLogger - Retrieving book with id: 7
-2026-04-06 18:02:01.125 [main] INFO  BookLogger - Retrieving book with id: 8
-2026-04-06 18:02:01.183 [main] INFO  BookLogger - Retrieving book with id: 11
-2026-04-06 18:10:19.483 [main] INFO  BookLogger - Retrieving book with id: 3
-2026-04-06 18:10:19.686 [main] INFO  BookLogger - Retrieving book with id: 7
-2026-04-06 18:10:19.744 [main] INFO  BookLogger - Retrieving book with id: 10
-2026-04-06 18:21:23.731 [main] INFO  BookLogger - Retrieving book with id: 1
-2026-04-06 18:21:23.739 [main] ERROR BookLogger - Current user does not own book with id: 1
-2026-04-06 18:21:23.867 [main] INFO  BookLogger - Retrieving book with id: 2
-2026-04-06 18:21:23.868 [main] ERROR BookLogger - Current user does not own book with id: 2
-2026-04-06 18:21:23.883 [main] INFO  BookLogger - Retrieving book with id: 3
-2026-04-06 18:21:23.884 [main] ERROR BookLogger - Book not found with id: 3
-2026-04-06 18:21:23.989 [main] INFO  BookLogger - Creating a new book for user: 4
-2026-04-06 18:21:23.991 [main] INFO  BookLogger - Created new book with id: 4 for user: 4
-2026-04-06 18:21:24.015 [main] INFO  BookLogger - Creating a new book for user: 4
-2026-04-06 18:21:24.017 [main] INFO  BookLogger - Created new book with id: 5 for user: 4
-2026-04-06 18:21:24.040 [main] INFO  BookLogger - Creating a new book for user: 6
-2026-04-06 18:21:24.041 [main] INFO  BookLogger - Created new book with id: 6 for user: 6
-2026-04-06 18:21:24.088 [main] INFO  BookLogger - Retrieving book with id: 7
-2026-04-06 18:21:24.088 [main] INFO  BookLogger - Changing status to DELETED for book with id: 7
-2026-04-06 18:21:24.088 [main] INFO  BookLogger - Book with id: 7 marked as DELETED
-2026-04-06 18:21:24.102 [main] INFO  BookLogger - Retrieving book with id: 8
-2026-04-06 18:21:24.103 [main] ERROR BookLogger - Book not found with id: 8
-2026-04-06 18:21:24.155 [main] INFO  BookLogger - Retrieving all active books for user with id: 10
-2026-04-06 18:21:24.222 [main] INFO  BookLogger - Retrieving book with id: 12
-2026-04-06 18:21:24.223 [main] INFO  BookLogger - Updating book with id: 12
-2026-04-06 18:21:24.223 [main] INFO  BookLogger - Book updated with id: 12
-2026-04-06 18:21:24.233 [main] INFO  BookLogger - Retrieving book with id: 13
-2026-04-06 18:21:26.102 [main] INFO  BookLogger - Retrieving book with id: 10
-2026-04-06 18:21:26.180 [main] INFO  BookLogger - Retrieving book with id: 14
-2026-04-06 18:21:26.239 [main] INFO  BookLogger - Retrieving book with id: 18
-2026-04-06 18:21:48.592 [main] INFO  BookLogger - Retrieving book with id: 1
-2026-04-06 18:21:48.600 [main] ERROR BookLogger - Current user does not own book with id: 1
-2026-04-06 18:21:48.747 [main] INFO  BookLogger - Retrieving book with id: 2
-2026-04-06 18:21:48.748 [main] ERROR BookLogger - Current user does not own book with id: 2
-2026-04-06 18:21:48.761 [main] INFO  BookLogger - Retrieving book with id: 3
-2026-04-06 18:21:48.762 [main] ERROR BookLogger - Book not found with id: 3
-2026-04-06 18:21:48.884 [main] INFO  BookLogger - Creating a new book for user: 4
-2026-04-06 18:21:48.886 [main] INFO  BookLogger - Created new book with id: 4 for user: 4
-2026-04-06 18:21:48.920 [main] INFO  BookLogger - Creating a new book for user: 4
-2026-04-06 18:21:48.922 [main] INFO  BookLogger - Created new book with id: 5 for user: 4
-2026-04-06 18:21:48.942 [main] INFO  BookLogger - Creating a new book for user: 6
-2026-04-06 18:21:48.944 [main] INFO  BookLogger - Created new book with id: 6 for user: 6
-2026-04-06 18:21:48.992 [main] INFO  BookLogger - Retrieving book with id: 7
-2026-04-06 18:21:48.992 [main] INFO  BookLogger - Changing status to DELETED for book with id: 7
-2026-04-06 18:21:48.992 [main] INFO  BookLogger - Book with id: 7 marked as DELETED
-2026-04-06 18:21:49.009 [main] INFO  BookLogger - Retrieving book with id: 8
-2026-04-06 18:21:49.009 [main] ERROR BookLogger - Book not found with id: 8
-2026-04-06 18:21:49.063 [main] INFO  BookLogger - Retrieving all active books for user with id: 10
-2026-04-06 18:21:49.137 [main] INFO  BookLogger - Retrieving book with id: 12
-2026-04-06 18:21:49.137 [main] INFO  BookLogger - Updating book with id: 12
-2026-04-06 18:21:49.137 [main] INFO  BookLogger - Book updated with id: 12
-2026-04-06 18:21:49.147 [main] INFO  BookLogger - Retrieving book with id: 13
-2026-04-06 18:21:51.228 [main] INFO  BookLogger - Retrieving book with id: 10
-2026-04-06 18:21:51.332 [main] INFO  BookLogger - Retrieving book with id: 14
-2026-04-06 18:21:51.404 [main] INFO  BookLogger - Retrieving book with id: 18
-2026-04-06 18:24:56.514 [main] INFO  BookLogger - Retrieving book with id: 3
-2026-04-06 18:24:56.595 [main] INFO  BookLogger - Retrieving book with id: 8
-2026-04-06 18:24:56.646 [main] INFO  BookLogger - Retrieving book with id: 12
+2026-04-07 10:10:28.319 [http-nio-8585-exec-3] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 10:10:28.354 [http-nio-8585-exec-4] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 10:10:45.134 [http-nio-8585-exec-6] INFO  BookLogger - Creating a new book for user: 1
+2026-04-07 10:10:45.137 [http-nio-8585-exec-6] INFO  BookLogger - Created new book with id: 1 for user: 1
+2026-04-07 10:10:47.168 [http-nio-8585-exec-1] INFO  BookLogger - Retrieving book with id: 1
+2026-04-07 10:10:47.190 [http-nio-8585-exec-1] INFO  BookLogger - Retrieving book with id: 1
+2026-04-07 10:10:53.644 [http-nio-8585-exec-6] INFO  BookLogger - Retrieving book with id: 1
+2026-04-07 10:16:53.016 [http-nio-8585-exec-6] INFO  BookLogger - Retrieving book with id: 1
+2026-04-07 10:18:31.839 [http-nio-8585-exec-1] INFO  BookLogger - Retrieving book with id: 1
+2026-04-07 10:37:05.384 [main] INFO  BookLogger - Retrieving book with id: 1
+2026-04-07 10:37:05.390 [main] ERROR BookLogger - Current user does not own book with id: 1
+2026-04-07 10:37:05.510 [main] INFO  BookLogger - Retrieving book with id: 2
+2026-04-07 10:37:05.512 [main] ERROR BookLogger - Current user does not own book with id: 2
+2026-04-07 10:37:05.521 [main] INFO  BookLogger - Retrieving book with id: 3
+2026-04-07 10:37:05.522 [main] ERROR BookLogger - Book not found with id: 3
+2026-04-07 10:37:05.606 [main] INFO  BookLogger - Creating a new book for user: 4
+2026-04-07 10:37:05.608 [main] INFO  BookLogger - Created new book with id: 4 for user: 4
+2026-04-07 10:37:05.618 [main] INFO  BookLogger - Creating a new book for user: 4
+2026-04-07 10:37:05.619 [main] INFO  BookLogger - Created new book with id: 5 for user: 4
+2026-04-07 10:37:05.630 [main] INFO  BookLogger - Creating a new book for user: 6
+2026-04-07 10:37:05.631 [main] INFO  BookLogger - Created new book with id: 6 for user: 6
+2026-04-07 10:37:05.673 [main] INFO  BookLogger - Retrieving book with id: 7
+2026-04-07 10:37:05.674 [main] INFO  BookLogger - Changing status to DELETED for book with id: 7
+2026-04-07 10:37:05.674 [main] INFO  BookLogger - Book with id: 7 marked as DELETED
+2026-04-07 10:37:05.683 [main] INFO  BookLogger - Retrieving book with id: 8
+2026-04-07 10:37:05.684 [main] ERROR BookLogger - Book not found with id: 8
+2026-04-07 10:37:05.713 [main] INFO  BookLogger - Retrieving all active books for user with id: 10
+2026-04-07 10:37:05.763 [main] INFO  BookLogger - Retrieving book with id: 12
+2026-04-07 10:37:05.763 [main] INFO  BookLogger - Updating book with id: 12
+2026-04-07 10:37:05.763 [main] INFO  BookLogger - Book updated with id: 12
+2026-04-07 10:37:05.773 [main] INFO  BookLogger - Retrieving book with id: 13
+2026-04-07 10:42:56.948 [main] INFO  BookLogger - Retrieving book with id: 3
+2026-04-07 10:42:57.205 [main] INFO  BookLogger - Retrieving book with id: 8
+2026-04-07 10:42:57.295 [main] INFO  BookLogger - Retrieving book with id: 12
+2026-04-07 10:43:38.655 [main] INFO  BookLogger - Retrieving book with id: 3
+2026-04-07 10:43:38.930 [main] INFO  BookLogger - Retrieving book with id: 8
+2026-04-07 10:43:39.021 [main] INFO  BookLogger - Retrieving book with id: 12

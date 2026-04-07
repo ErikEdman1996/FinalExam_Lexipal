@@ -1,6 +1,6 @@
 package com.lexipal.core.services;
 
-import com.lexipal.core.dtos.DictionaryAPIRequestDTO;
+import com.lexipal.core.dtos.requests.DictionaryAPIRequestDTO;
 import com.lexipal.core.entities.Word;
 import com.lexipal.core.exceptions.ExternalServiceException;
 import com.lexipal.core.exceptions.ResourceNotFoundException;

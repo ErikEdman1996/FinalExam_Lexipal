@@ -1,10 +1,10 @@
-package com.lexipal.core.dtos;
+package com.lexipal.core.dtos.requests;
 import com.lexipal.core.entities.Book;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-public class BookUpdateDTO
+public class BookUpdateRequestDTO
 {
     @Size(min = 1, max = 100, message = "Title must be between 1 and 100 characters")
     @Pattern(regexp = ".*\\S.*", message = "Title must not be blank")
@@ -22,12 +22,12 @@ public class BookUpdateDTO
 
     private Book.BookStatus status;
 
-    public BookUpdateDTO()
+    public BookUpdateRequestDTO()
     {
 
     }
 
-    public BookUpdateDTO(String title, String author, Integer readPages, Integer totalPages, Book.BookStatus status)
+    public BookUpdateRequestDTO(String title, String author, Integer readPages, Integer totalPages, Book.BookStatus status)
     {
         this.title = title;
         this.author = author;

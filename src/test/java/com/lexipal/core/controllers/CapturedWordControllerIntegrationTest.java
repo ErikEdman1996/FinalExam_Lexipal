@@ -3,8 +3,8 @@ package com.lexipal.core.controllers;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.lexipal.core.IntegrationTestBase;
-import com.lexipal.core.dtos.CaptureRequestDTO;
-import com.lexipal.core.dtos.DictionaryAPIRequestDTO;
+import com.lexipal.core.dtos.requests.CaptureCreateRequestDTO;
+import com.lexipal.core.dtos.requests.DictionaryAPIRequestDTO;
 import com.lexipal.core.entities.Book;
 import com.lexipal.core.entities.Session;
 import com.lexipal.core.entities.User;
@@ -135,7 +135,7 @@ class CapturedWordControllerIntegrationTest extends IntegrationTestBase
     @DisplayName("POST /capturedWords/{sessionId} creates a new captured word")
     void searchAndCapture_newWord_capturesAndReturnsNew() throws Exception
     {
-        CaptureRequestDTO request = new CaptureRequestDTO("ephemeral");
+        CaptureCreateRequestDTO request = new CaptureCreateRequestDTO("ephemeral");
 
         mockMvc.perform(post(BASE_URL + "/" + testSession.getId())
                         .with(jwtWithSub(USER_SUB))
@@ -150,7 +150,7 @@ class CapturedWordControllerIntegrationTest extends IntegrationTestBase
     @DisplayName("POST /capturedWords/{sessionId} rejects invalid request body")
     void searchAndCapture_invalidPayload_returnsBadRequest() throws Exception
     {
-        CaptureRequestDTO request = new CaptureRequestDTO(" ");
+        CaptureCreateRequestDTO request = new CaptureCreateRequestDTO(" ");
 
         mockMvc.perform(post(BASE_URL + "/" + testSession.getId())
                         .with(jwtWithSub(USER_SUB))
@@ -165,7 +165,7 @@ class CapturedWordControllerIntegrationTest extends IntegrationTestBase
     @DisplayName("POST /capturedWords/{sessionId} returns existing capture for duplicate word")
     void searchAndCapture_existingWord_returnsCached() throws Exception
     {
-        CaptureRequestDTO request = new CaptureRequestDTO("ephemeral");
+        CaptureCreateRequestDTO request = new CaptureCreateRequestDTO("ephemeral");
 
         mockMvc.perform(post(BASE_URL + "/" + testSession.getId())
                         .with(jwtWithSub(USER_SUB))
@@ -189,14 +189,14 @@ class CapturedWordControllerIntegrationTest extends IntegrationTestBase
         mockMvc.perform(post(BASE_URL + "/" + testSession.getId())
                         .with(jwtWithSub(USER_SUB))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new CaptureRequestDTO("ephemeral"))))
+                        .content(objectMapper.writeValueAsString(new CaptureCreateRequestDTO("ephemeral"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.newCapture").value(true));
 
         mockMvc.perform(post(BASE_URL + "/" + testSession.getId())
                         .with(jwtWithSub(USER_SUB))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new CaptureRequestDTO("serendipity"))))
+                        .content(objectMapper.writeValueAsString(new CaptureCreateRequestDTO("serendipity"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.newCapture").value(true));
 
@@ -207,7 +207,7 @@ class CapturedWordControllerIntegrationTest extends IntegrationTestBase
     @DisplayName("POST /capturedWords/{sessionId} returns error for another user's session")
     void searchAndCapture_otherUsersSession_throwsUnauthorized() throws Exception
     {
-        CaptureRequestDTO request = new CaptureRequestDTO("ephemeral");
+        CaptureCreateRequestDTO request = new CaptureCreateRequestDTO("ephemeral");
 
         User otherUser = new User();
         otherUser.setKeycloakSub(OTHER_USER_SUB);
@@ -224,7 +224,7 @@ class CapturedWordControllerIntegrationTest extends IntegrationTestBase
     @DisplayName("POST /capturedWords/{sessionId} returns 404 for non-existent session")
     void searchAndCapture_nonExistentSession_returns404() throws Exception
     {
-        CaptureRequestDTO request = new CaptureRequestDTO("ephemeral");
+        CaptureCreateRequestDTO request = new CaptureCreateRequestDTO("ephemeral");
 
         mockMvc.perform(post(BASE_URL + "/99999")
                         .with(jwtWithSub(USER_SUB))
@@ -237,7 +237,7 @@ class CapturedWordControllerIntegrationTest extends IntegrationTestBase
     @DisplayName("POST /capturedWords/{sessionId} returns 404 for non-existent user")
     void searchAndCapture_nonExistentUser_returns404() throws Exception
     {
-        CaptureRequestDTO request = new CaptureRequestDTO("ephemeral");
+        CaptureCreateRequestDTO request = new CaptureCreateRequestDTO("ephemeral");
 
         mockMvc.perform(post(BASE_URL + "/" + testSession.getId())
                         .with(jwtWithSub("non-existent-sub"))
@@ -256,7 +256,7 @@ class CapturedWordControllerIntegrationTest extends IntegrationTestBase
         mockMvc.perform(post(BASE_URL + "/" + testSession.getId())
                         .with(jwtWithSub(USER_SUB))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new CaptureRequestDTO("missingword"))))
+                        .content(objectMapper.writeValueAsString(new CaptureCreateRequestDTO("missingword"))))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.message", containsString("Word with lemma")));
@@ -272,7 +272,7 @@ class CapturedWordControllerIntegrationTest extends IntegrationTestBase
         mockMvc.perform(post(BASE_URL + "/" + testSession.getId())
                         .with(jwtWithSub(USER_SUB))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new CaptureRequestDTO("outage"))))
+                        .content(objectMapper.writeValueAsString(new CaptureCreateRequestDTO("outage"))))
                 .andExpect(status().isBadGateway())
                 .andExpect(jsonPath("$.status").value(502))
                 .andExpect(jsonPath("$.message").value("Dictionary service is unavailable for word: outage"));

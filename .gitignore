@@ -35,3 +35,9 @@ build/
 ### properties
 src/main/resources/application.properties
 src/main/resources/application-dev.properties
+
+### Logs ###
+logs/
+
+### Tests ###
+src/test/

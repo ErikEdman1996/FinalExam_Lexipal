@@ -1,76 +1,12 @@
-2026-04-06 18:08:32.949 [main] INFO  SessionLogger - Retrieving session with id: 2
-2026-04-06 18:08:32.960 [main] INFO  SessionLogger - Session found with id: 2
-2026-04-06 18:08:32.987 [main] INFO  SessionLogger - Adding word ephemeral to session with id: 2
-2026-04-06 18:08:33.036 [main] INFO  SessionLogger - Retrieving session with id: 2
-2026-04-06 18:08:33.036 [main] INFO  SessionLogger - Session found with id: 2
-2026-04-06 18:08:33.044 [main] INFO  SessionLogger - Adding word serendipity to session with id: 2
-2026-04-06 18:08:33.086 [main] INFO  SessionLogger - Retrieving session with id: 3
-2026-04-06 18:08:33.087 [main] INFO  SessionLogger - Session found with id: 3
-2026-04-06 18:08:33.100 [main] INFO  SessionLogger - Retrieving session with id: 99999
-2026-04-06 18:08:33.102 [main] ERROR SessionLogger - Session with id not found: 99999
-2026-04-06 18:08:33.115 [main] INFO  SessionLogger - Retrieving session with id: 5
-2026-04-06 18:08:33.115 [main] INFO  SessionLogger - Session found with id: 5
-2026-04-06 18:08:33.120 [main] INFO  SessionLogger - Adding word ephemeral to session with id: 5
-2026-04-06 18:08:33.125 [main] INFO  SessionLogger - Retrieving session with id: 5
-2026-04-06 18:08:33.126 [main] INFO  SessionLogger - Session found with id: 5
-2026-04-06 18:08:33.141 [main] INFO  SessionLogger - Retrieving session with id: 6
-2026-04-06 18:08:33.141 [main] INFO  SessionLogger - Session found with id: 6
-2026-04-06 18:08:33.146 [main] INFO  SessionLogger - Adding word ephemeral to session with id: 6
-2026-04-06 18:21:25.815 [main] INFO  SessionLogger - Retrieving session with id: 3
-2026-04-06 18:21:25.815 [main] INFO  SessionLogger - Session found with id: 3
-2026-04-06 18:21:25.839 [main] INFO  SessionLogger - Adding word ephemeral to session with id: 3
-2026-04-06 18:21:25.854 [main] INFO  SessionLogger - Retrieving session with id: 3
-2026-04-06 18:21:25.854 [main] INFO  SessionLogger - Session found with id: 3
-2026-04-06 18:21:25.867 [main] INFO  SessionLogger - Adding word serendipity to session with id: 3
-2026-04-06 18:21:25.949 [main] INFO  SessionLogger - Retrieving session with id: 4
-2026-04-06 18:21:25.949 [main] INFO  SessionLogger - Session found with id: 4
-2026-04-06 18:21:25.963 [main] INFO  SessionLogger - Retrieving session with id: 99999
-2026-04-06 18:21:25.966 [main] ERROR SessionLogger - Session with id not found: 99999
-2026-04-06 18:21:25.981 [main] INFO  SessionLogger - Retrieving session with id: 6
-2026-04-06 18:21:25.981 [main] INFO  SessionLogger - Session found with id: 6
-2026-04-06 18:21:25.988 [main] INFO  SessionLogger - Adding word ephemeral to session with id: 6
-2026-04-06 18:21:25.993 [main] INFO  SessionLogger - Retrieving session with id: 6
-2026-04-06 18:21:25.993 [main] INFO  SessionLogger - Session found with id: 6
-2026-04-06 18:21:26.014 [main] INFO  SessionLogger - Retrieving session with id: 7
-2026-04-06 18:21:26.015 [main] INFO  SessionLogger - Session found with id: 7
-2026-04-06 18:21:26.022 [main] INFO  SessionLogger - Adding word ephemeral to session with id: 7
-2026-04-06 18:21:50.910 [main] INFO  SessionLogger - Retrieving session with id: 3
-2026-04-06 18:21:50.911 [main] INFO  SessionLogger - Session found with id: 3
-2026-04-06 18:21:50.940 [main] INFO  SessionLogger - Adding word ephemeral to session with id: 3
-2026-04-06 18:21:50.960 [main] INFO  SessionLogger - Retrieving session with id: 3
-2026-04-06 18:21:50.960 [main] INFO  SessionLogger - Session found with id: 3
-2026-04-06 18:21:50.972 [main] INFO  SessionLogger - Adding word serendipity to session with id: 3
-2026-04-06 18:21:51.067 [main] INFO  SessionLogger - Retrieving session with id: 4
-2026-04-06 18:21:51.067 [main] INFO  SessionLogger - Session found with id: 4
-2026-04-06 18:21:51.085 [main] INFO  SessionLogger - Retrieving session with id: 99999
-2026-04-06 18:21:51.088 [main] ERROR SessionLogger - Session with id not found: 99999
-2026-04-06 18:21:51.105 [main] INFO  SessionLogger - Retrieving session with id: 6
-2026-04-06 18:21:51.105 [main] INFO  SessionLogger - Session found with id: 6
-2026-04-06 18:21:51.112 [main] INFO  SessionLogger - Adding word ephemeral to session with id: 6
-2026-04-06 18:21:51.119 [main] INFO  SessionLogger - Retrieving session with id: 6
-2026-04-06 18:21:51.120 [main] INFO  SessionLogger - Session found with id: 6
-2026-04-06 18:21:51.144 [main] INFO  SessionLogger - Retrieving session with id: 7
-2026-04-06 18:21:51.144 [main] INFO  SessionLogger - Session found with id: 7
-2026-04-06 18:21:51.154 [main] INFO  SessionLogger - Adding word ephemeral to session with id: 7
-2026-04-06 18:24:55.215 [main] INFO  SessionLogger - Retrieving session with id: 3
-2026-04-06 18:24:55.224 [main] INFO  SessionLogger - Session found with id: 3
-2026-04-06 18:24:55.249 [main] INFO  SessionLogger - Adding word ephemeral to session with id: 3
-2026-04-06 18:24:55.264 [main] INFO  SessionLogger - Retrieving session with id: 3
-2026-04-06 18:24:55.264 [main] INFO  SessionLogger - Session found with id: 3
-2026-04-06 18:24:55.272 [main] INFO  SessionLogger - Adding word serendipity to session with id: 3
-2026-04-06 18:24:55.306 [main] INFO  SessionLogger - Retrieving session with id: 4
-2026-04-06 18:24:55.307 [main] INFO  SessionLogger - Session found with id: 4
-2026-04-06 18:24:55.322 [main] INFO  SessionLogger - Retrieving session with id: 5
-2026-04-06 18:24:55.323 [main] INFO  SessionLogger - Session found with id: 5
-2026-04-06 18:24:55.341 [main] INFO  SessionLogger - Retrieving session with id: 99999
-2026-04-06 18:24:55.343 [main] ERROR SessionLogger - Session with id not found: 99999
-2026-04-06 18:24:55.378 [main] INFO  SessionLogger - Retrieving session with id: 7
-2026-04-06 18:24:55.378 [main] INFO  SessionLogger - Session found with id: 7
-2026-04-06 18:24:55.386 [main] INFO  SessionLogger - Adding word ephemeral to session with id: 7
-2026-04-06 18:24:55.394 [main] INFO  SessionLogger - Retrieving session with id: 7
-2026-04-06 18:24:55.394 [main] INFO  SessionLogger - Session found with id: 7
-2026-04-06 18:24:55.410 [main] INFO  SessionLogger - Retrieving session with id: 8
-2026-04-06 18:24:55.410 [main] INFO  SessionLogger - Session found with id: 8
-2026-04-06 18:24:55.432 [main] INFO  SessionLogger - Retrieving session with id: 9
-2026-04-06 18:24:55.432 [main] INFO  SessionLogger - Session found with id: 9
-2026-04-06 18:24:55.437 [main] INFO  SessionLogger - Adding word ephemeral to session with id: 9
+2026-04-07 10:11:30.761 [http-nio-8585-exec-7] INFO  SessionLogger - Retrieving session with id: 1
+2026-04-07 10:11:30.765 [http-nio-8585-exec-7] INFO  SessionLogger - Session found with id: 1
+2026-04-07 10:11:31.061 [http-nio-8585-exec-7] INFO  SessionLogger - Adding word castle to session with id: 1
+2026-04-07 10:12:12.857 [http-nio-8585-exec-1] INFO  SessionLogger - Retrieving session with id: 1
+2026-04-07 10:12:12.858 [http-nio-8585-exec-1] INFO  SessionLogger - Session found with id: 1
+2026-04-07 10:12:12.905 [http-nio-8585-exec-1] INFO  SessionLogger - Adding word knight to session with id: 1
+2026-04-07 10:17:08.141 [http-nio-8585-exec-7] INFO  SessionLogger - Retrieving session with id: 2
+2026-04-07 10:17:08.143 [http-nio-8585-exec-7] INFO  SessionLogger - Session found with id: 2
+2026-04-07 10:17:08.209 [http-nio-8585-exec-7] INFO  SessionLogger - Adding word sword to session with id: 2
+2026-04-07 10:17:24.493 [http-nio-8585-exec-10] INFO  SessionLogger - Retrieving session with id: 2
+2026-04-07 10:17:24.494 [http-nio-8585-exec-10] INFO  SessionLogger - Session found with id: 2
+2026-04-07 10:17:24.858 [http-nio-8585-exec-10] INFO  SessionLogger - Adding word breastplate to session with id: 2

@@ -1,7 +1,9 @@
 package com.lexipal.core.services;
-import com.lexipal.core.dtos.BookSummaryDTO;
-import com.lexipal.core.dtos.BookUpdateDTO;
-import com.lexipal.core.dtos.CreateBookRequest;
+import com.lexipal.core.dtos.responses.BookCreateResponseDTO;
+import com.lexipal.core.dtos.responses.BookReadResponseDTO;
+import com.lexipal.core.dtos.responses.BookUpdateResponseDTO;
+import com.lexipal.core.dtos.requests.BookUpdateRequestDTO;
+import com.lexipal.core.dtos.requests.BookCreateRequestDTO;
 import com.lexipal.core.entities.Book;
 import com.lexipal.core.entities.User;
 import com.lexipal.core.exceptions.ResourceNotFoundException;
@@ -39,7 +41,7 @@ public class BookService implements BookServiceInterface
 
     @Override
     @Transactional
-    public Book addBook(CreateBookRequest request, String keycloakSub)
+    public BookCreateResponseDTO addBook(BookCreateRequestDTO request, String keycloakSub)
     {
         userLogger.info("Retrieving user...");
         User user = userRepository.findByKeycloakSub(keycloakSub)
@@ -65,12 +67,12 @@ public class BookService implements BookServiceInterface
         Book savedBook = bookRepository.save(newBook);
         bookLogger.info("Created new book with id: {} for user: {}", savedBook.getId(), user.getId());
 
-        return savedBook;
+        return toBookCreateResponse(savedBook);
     }
 
     @Override
     @Transactional
-    public Book updateBook(Long bookId, BookUpdateDTO dto, String keycloakSub)
+    public BookUpdateResponseDTO updateBook(Long bookId, BookUpdateRequestDTO dto, String keycloakSub)
     {
         bookLogger.info("Retrieving book with id: {}", bookId);
         Book existingBook = bookRepository.findById(bookId).orElseThrow(()->
@@ -87,14 +89,14 @@ public class BookService implements BookServiceInterface
         }
 
         bookLogger.info("Updating book with id: {}", bookId);
-        if(dto.getTitle() != null) existingBook.setTitle(dto.getTitle());
-        if(dto.getAuthor() != null) existingBook.setAuthor(dto.getAuthor());
+        if(dto.getTitle() != null) existingBook.setTitle(dto.getTitle().trim());
+        if(dto.getAuthor() != null) existingBook.setAuthor(dto.getAuthor().trim());
         if(dto.getStatus() != null) existingBook.setStatus(dto.getStatus());
         if(dto.getReadPages() != null) existingBook.setReadPages(dto.getReadPages());
         if(dto.getTotalPages() != null) existingBook.setTotalPages(dto.getTotalPages());
 
         bookLogger.info("Book updated with id: {}", bookId);
-        return bookRepository.save(existingBook);
+        return toBookUpdateResponse(bookRepository.save(existingBook));
     }
 
     @Override
@@ -122,21 +124,23 @@ public class BookService implements BookServiceInterface
     }
 
     @Override
-    public Book getBookById(Long bookId, String keycloakSub)
+    public BookReadResponseDTO getBookById(Long bookId, String keycloakSub)
     {
         bookLogger.info("Retrieving book with id: {}", bookId);
-        return bookRepository.findById(bookId)
-                .filter(book -> book.getUser().getKeycloakSub().equals(keycloakSub))
-                .filter(book -> book.getStatus() != Book.BookStatus.DELETED)
+        Book book = bookRepository.findById(bookId)
+                .filter(foundBook -> foundBook.getUser().getKeycloakSub().equals(keycloakSub))
+                .filter(foundBook -> foundBook.getStatus() != Book.BookStatus.DELETED)
                 .orElseThrow(()->
                 {
                     bookLogger.error("Book not found with id: {}", bookId);
                     return new ResourceNotFoundException("Book", "id", bookId);
                 });
+
+        return toBookReadResponse(book);
     }
 
     @Override
-    public List<BookSummaryDTO> getAllBooksByUserSub(String keycloakSub)
+    public List<BookReadResponseDTO> getAllBooksByUserSub(String keycloakSub)
     {
         userLogger.info("Retrieving user...");
         User user = userRepository.findByKeycloakSub(keycloakSub)
@@ -153,16 +157,9 @@ public class BookService implements BookServiceInterface
 
         List<Book> activeBooks = bookRepository.findAllActiveBooks(keycloakSub);
 
-        return activeBooks.stream().map(book -> new BookSummaryDTO(
-                book.getId(),
-                book.getTitle(),
-                book.getAuthor(),
-                book.getReadPages(),
-                book.getTotalPages(),
-                calculateBookProgress(book),
-                book.getStatus().name(),
-                book.getSessions().size()
-        )).collect(Collectors.toList());
+        return activeBooks.stream()
+                .map(this::toBookReadResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -204,5 +201,50 @@ public class BookService implements BookServiceInterface
     {
         if (book.getTotalPages() == 0) return 0;
         return (double) book.getReadPages() / book.getTotalPages() * 100;
+    }
+
+    private BookCreateResponseDTO toBookCreateResponse(Book book)
+    {
+        return new BookCreateResponseDTO(
+                book.getId(),
+                book.getTitle(),
+                book.getAuthor(),
+                book.getReadPages(),
+                book.getTotalPages(),
+                calculateBookProgress(book),
+                book.getStatus().name(),
+                book.getSessions().size(),
+                book.getCreatedAt()
+        );
+    }
+
+    private BookReadResponseDTO toBookReadResponse(Book book)
+    {
+        return new BookReadResponseDTO(
+                book.getId(),
+                book.getTitle(),
+                book.getAuthor(),
+                book.getReadPages(),
+                book.getTotalPages(),
+                calculateBookProgress(book),
+                book.getStatus().name(),
+                book.getSessions().size(),
+                book.getCreatedAt()
+        );
+    }
+
+    private BookUpdateResponseDTO toBookUpdateResponse(Book book)
+    {
+        return new BookUpdateResponseDTO(
+                book.getId(),
+                book.getTitle(),
+                book.getAuthor(),
+                book.getReadPages(),
+                book.getTotalPages(),
+                calculateBookProgress(book),
+                book.getStatus().name(),
+                book.getSessions().size(),
+                book.getCreatedAt()
+        );
     }
 }

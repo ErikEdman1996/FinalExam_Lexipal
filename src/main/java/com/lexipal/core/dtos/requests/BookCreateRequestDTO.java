@@ -1,11 +1,11 @@
-package com.lexipal.core.dtos;
+package com.lexipal.core.dtos.requests;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public class CreateBookRequest
+public class BookCreateRequestDTO
 {
     @NotBlank(message = "Title is required")
     @Size(max = 100, message = "Title must be 100 characters or fewer")
@@ -19,12 +19,12 @@ public class CreateBookRequest
     @Min(value = 1, message = "Total pages must be at least 1")
     private Integer totalPages;
 
-    public CreateBookRequest()
+    public BookCreateRequestDTO()
     {
 
     }
 
-    public CreateBookRequest(String title, String author, Integer totalPages)
+    public BookCreateRequestDTO(String title, String author, Integer totalPages)
     {
         this.title = title;
         this.author = author;

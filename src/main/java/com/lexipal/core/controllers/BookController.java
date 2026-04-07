@@ -1,10 +1,11 @@
 package com.lexipal.core.controllers;
 
-import com.lexipal.core.dtos.BookSummaryDTO;
-import com.lexipal.core.dtos.BookUpdateDTO;
-import com.lexipal.core.dtos.CreateBookRequest;
-import com.lexipal.core.entities.Book;
-import com.lexipal.core.services.BookService;
+import com.lexipal.core.dtos.responses.BookCreateResponseDTO;
+import com.lexipal.core.dtos.responses.BookReadResponseDTO;
+import com.lexipal.core.dtos.responses.BookUpdateResponseDTO;
+import com.lexipal.core.dtos.requests.BookUpdateRequestDTO;
+import com.lexipal.core.dtos.requests.BookCreateRequestDTO;
+import com.lexipal.core.services.BookServiceInterface;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,51 +20,51 @@ import java.util.List;
 @RequestMapping("/lexipal/api/v1/books")
 public class BookController
 {
-    private final BookService bookService;
+    private final BookServiceInterface bookService;
 
     @Autowired
-    public BookController(final BookService bookService)
+    public BookController(final BookServiceInterface bookService)
     {
         this.bookService = bookService;
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Book> getBook(@PathVariable Long id,
-                                        @AuthenticationPrincipal Jwt jwt)
+    public ResponseEntity<BookReadResponseDTO> getBook(@PathVariable Long id,
+                                                       @AuthenticationPrincipal Jwt jwt)
     {
         String keycloakSub = jwt.getSubject();
 
-        Book book = bookService.getBookById(id, keycloakSub);
+        BookReadResponseDTO book = bookService.getBookById(id, keycloakSub);
 
         return ResponseEntity.ok(book);
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<BookSummaryDTO>> getAllBooks(@AuthenticationPrincipal Jwt jwt)
+    public ResponseEntity<List<BookReadResponseDTO>> getAllBooks(@AuthenticationPrincipal Jwt jwt)
     {
         String keycloakSub = jwt.getSubject();
 
-        List<BookSummaryDTO> activeBooks = bookService.getAllBooksByUserSub(keycloakSub);
+        List<BookReadResponseDTO> activeBooks = bookService.getAllBooksByUserSub(keycloakSub);
 
         return ResponseEntity.ok(activeBooks);
     }
 
     @PostMapping
-    public ResponseEntity<Book> addBook(@Valid @RequestBody CreateBookRequest request,
-                                        @AuthenticationPrincipal final Jwt jwt)
+    public ResponseEntity<BookCreateResponseDTO> addBook(@Valid @RequestBody BookCreateRequestDTO request,
+                                                         @AuthenticationPrincipal final Jwt jwt)
     {
         String keycloakSub =  jwt.getSubject();
         return ResponseEntity.status(HttpStatus.CREATED).body(bookService.addBook(request, keycloakSub));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Book> updateBook(@PathVariable Long id,
-                                           @Valid @RequestBody BookUpdateDTO dto,
-                                           @AuthenticationPrincipal final Jwt jwt)
+    public ResponseEntity<BookUpdateResponseDTO> updateBook(@PathVariable Long id,
+                                                            @Valid @RequestBody BookUpdateRequestDTO dto,
+                                                            @AuthenticationPrincipal final Jwt jwt)
     {
         String keycloakSub =  jwt.getSubject();
 
-        Book updatedBook = bookService.updateBook(id, dto, keycloakSub);
+        BookUpdateResponseDTO updatedBook = bookService.updateBook(id, dto, keycloakSub);
 
         return ResponseEntity.ok(updatedBook);
     }

@@ -1,6 +1,8 @@
-package com.lexipal.core.dtos;
+package com.lexipal.core.dtos.responses;
 
-public class BookSummaryDTO
+import java.time.LocalDateTime;
+
+public class BookReadResponseDTO
 {
     private long id;
     private String title;
@@ -10,13 +12,15 @@ public class BookSummaryDTO
     private double progressPercentage;
     private String status;
     private int sessionCount;
+    private LocalDateTime createdAt;
 
-    public BookSummaryDTO()
+    public BookReadResponseDTO()
     {
 
     }
 
-    public BookSummaryDTO(long id, String title, String author, Integer readPages, Integer totalPages, double progressPercentage, String status, int sessionCount)
+    public BookReadResponseDTO(long id, String title, String author, Integer readPages, Integer totalPages,
+                               double progressPercentage, String status, int sessionCount, LocalDateTime createdAt)
     {
         this.id = id;
         this.title = title;
@@ -26,6 +30,7 @@ public class BookSummaryDTO
         this.progressPercentage = progressPercentage;
         this.status = status;
         this.sessionCount = sessionCount;
+        this.createdAt = createdAt;
     }
 
     public long getId() {
@@ -90,5 +95,13 @@ public class BookSummaryDTO
 
     public void setSessionCount(int sessionCount) {
         this.sessionCount = sessionCount;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 }

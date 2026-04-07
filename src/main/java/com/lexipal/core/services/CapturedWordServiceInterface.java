@@ -1,9 +1,9 @@
 package com.lexipal.core.services;
 
-import com.lexipal.core.dtos.CaptureRequestDTO;
-import com.lexipal.core.dtos.CaptureResponseDTO;
+import com.lexipal.core.dtos.requests.CaptureCreateRequestDTO;
+import com.lexipal.core.dtos.responses.CaptureCreateResponseDTO;
 
 public interface CapturedWordServiceInterface
 {
-    CaptureResponseDTO performSearchAndCapture(Long sessionId, CaptureRequestDTO dto, String keycloakSub);
+    CaptureCreateResponseDTO performSearchAndCapture(Long sessionId, CaptureCreateRequestDTO dto, String keycloakSub);
 }

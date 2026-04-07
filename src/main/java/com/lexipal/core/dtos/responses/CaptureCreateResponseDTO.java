@@ -1,19 +1,19 @@
-package com.lexipal.core.dtos;
+package com.lexipal.core.dtos.responses;
 
 import com.lexipal.core.entities.CapturedWord;
 
-public class CaptureResponseDTO
+public class CaptureCreateResponseDTO
 {
     private CapturedWord capturedWord;
     private boolean isNewCapture;
     private String rarityTier;
 
-    public CaptureResponseDTO()
+    public CaptureCreateResponseDTO()
     {
 
     }
 
-    public CaptureResponseDTO(CapturedWord capturedWord, boolean isNewCapture)
+    public CaptureCreateResponseDTO(CapturedWord capturedWord, boolean isNewCapture)
     {
         this.capturedWord = capturedWord;
         this.isNewCapture = isNewCapture;

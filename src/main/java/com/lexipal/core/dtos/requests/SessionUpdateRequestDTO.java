@@ -1,10 +1,10 @@
-package com.lexipal.core.dtos;
+package com.lexipal.core.dtos.requests;
 
 import com.lexipal.core.entities.Session;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 
-public class SessionUpdateDTO
+public class SessionUpdateRequestDTO
 {
     @Min(value = 0, message = "End page must be zero or greater")
     private Integer endPage;
@@ -16,12 +16,12 @@ public class SessionUpdateDTO
     private String reflection;
     private Session.SessionStatus status;
 
-    public SessionUpdateDTO()
+    public SessionUpdateRequestDTO()
     {
 
     }
 
-    public SessionUpdateDTO(Integer endPage, Long durationSeconds, String reflection, Session.SessionStatus status)
+    public SessionUpdateRequestDTO(Integer endPage, Long durationSeconds, String reflection, Session.SessionStatus status)
     {
         this.endPage = endPage;
         this.durationSeconds = durationSeconds;

@@ -1,60 +1,12 @@
-2026-04-06 18:08:32.960 [main] INFO  CapturedWordLogger - Searching for captured word with lemma: ephemeral for user with id: 2
-2026-04-06 18:08:32.973 [main] INFO  CapturedWordLogger - Word not found with lemma: ephemeral, creating new word
-2026-04-06 18:08:32.985 [main] INFO  CapturedWordLogger - Created new word with lemma: ephemeral
-2026-04-06 18:08:33.036 [main] INFO  CapturedWordLogger - Searching for captured word with lemma: serendipity for user with id: 2
-2026-04-06 18:08:33.039 [main] INFO  CapturedWordLogger - Word not found with lemma: serendipity, creating new word
-2026-04-06 18:08:33.042 [main] INFO  CapturedWordLogger - Created new word with lemma: serendipity
-2026-04-06 18:08:33.115 [main] INFO  CapturedWordLogger - Searching for captured word with lemma: ephemeral for user with id: 6
-2026-04-06 18:08:33.117 [main] INFO  CapturedWordLogger - Word not found with lemma: ephemeral, creating new word
-2026-04-06 18:08:33.119 [main] INFO  CapturedWordLogger - Created new word with lemma: ephemeral
-2026-04-06 18:08:33.126 [main] INFO  CapturedWordLogger - Searching for captured word with lemma: ephemeral for user with id: 6
-2026-04-06 18:08:33.127 [main] INFO  CapturedWordLogger - Word found with lemma: ephemeral found, sending it back
-2026-04-06 18:08:33.141 [main] INFO  CapturedWordLogger - Searching for captured word with lemma: ephemeral for user with id: 7
-2026-04-06 18:08:33.143 [main] INFO  CapturedWordLogger - Word not found with lemma: ephemeral, creating new word
-2026-04-06 18:08:33.145 [main] INFO  CapturedWordLogger - Created new word with lemma: ephemeral
-2026-04-06 18:21:25.815 [main] INFO  CapturedWordLogger - Searching for captured word with lemma: ephemeral for user with id: 3
-2026-04-06 18:21:25.820 [main] INFO  CapturedWordLogger - Word not found with lemma: ephemeral, creating new word
-2026-04-06 18:21:25.836 [main] INFO  CapturedWordLogger - Created new word with lemma: ephemeral
-2026-04-06 18:21:25.854 [main] INFO  CapturedWordLogger - Searching for captured word with lemma: serendipity for user with id: 3
-2026-04-06 18:21:25.861 [main] INFO  CapturedWordLogger - Word not found with lemma: serendipity, creating new word
-2026-04-06 18:21:25.866 [main] INFO  CapturedWordLogger - Created new word with lemma: serendipity
-2026-04-06 18:21:25.981 [main] INFO  CapturedWordLogger - Searching for captured word with lemma: ephemeral for user with id: 7
-2026-04-06 18:21:25.983 [main] INFO  CapturedWordLogger - Word not found with lemma: ephemeral, creating new word
-2026-04-06 18:21:25.987 [main] INFO  CapturedWordLogger - Created new word with lemma: ephemeral
-2026-04-06 18:21:25.993 [main] INFO  CapturedWordLogger - Searching for captured word with lemma: ephemeral for user with id: 7
-2026-04-06 18:21:25.996 [main] INFO  CapturedWordLogger - Word found with lemma: ephemeral found, sending it back
-2026-04-06 18:21:26.015 [main] INFO  CapturedWordLogger - Searching for captured word with lemma: ephemeral for user with id: 8
-2026-04-06 18:21:26.017 [main] INFO  CapturedWordLogger - Word not found with lemma: ephemeral, creating new word
-2026-04-06 18:21:26.020 [main] INFO  CapturedWordLogger - Created new word with lemma: ephemeral
-2026-04-06 18:21:50.911 [main] INFO  CapturedWordLogger - Searching for captured word with lemma: ephemeral for user with id: 3
-2026-04-06 18:21:50.916 [main] INFO  CapturedWordLogger - Word not found with lemma: ephemeral, creating new word
-2026-04-06 18:21:50.936 [main] INFO  CapturedWordLogger - Created new word with lemma: ephemeral
-2026-04-06 18:21:50.960 [main] INFO  CapturedWordLogger - Searching for captured word with lemma: serendipity for user with id: 3
-2026-04-06 18:21:50.966 [main] INFO  CapturedWordLogger - Word not found with lemma: serendipity, creating new word
-2026-04-06 18:21:50.970 [main] INFO  CapturedWordLogger - Created new word with lemma: serendipity
-2026-04-06 18:21:51.106 [main] INFO  CapturedWordLogger - Searching for captured word with lemma: ephemeral for user with id: 7
-2026-04-06 18:21:51.108 [main] INFO  CapturedWordLogger - Word not found with lemma: ephemeral, creating new word
-2026-04-06 18:21:51.111 [main] INFO  CapturedWordLogger - Created new word with lemma: ephemeral
-2026-04-06 18:21:51.120 [main] INFO  CapturedWordLogger - Searching for captured word with lemma: ephemeral for user with id: 7
-2026-04-06 18:21:51.122 [main] INFO  CapturedWordLogger - Word found with lemma: ephemeral found, sending it back
-2026-04-06 18:21:51.144 [main] INFO  CapturedWordLogger - Searching for captured word with lemma: ephemeral for user with id: 8
-2026-04-06 18:21:51.148 [main] INFO  CapturedWordLogger - Word not found with lemma: ephemeral, creating new word
-2026-04-06 18:21:51.153 [main] INFO  CapturedWordLogger - Created new word with lemma: ephemeral
-2026-04-06 18:24:55.224 [main] INFO  CapturedWordLogger - Searching for captured word with lemma: ephemeral for user with id: 3
-2026-04-06 18:24:55.235 [main] INFO  CapturedWordLogger - Word not found with lemma: ephemeral, creating new word
-2026-04-06 18:24:55.246 [main] INFO  CapturedWordLogger - Created new word with lemma: ephemeral
-2026-04-06 18:24:55.264 [main] INFO  CapturedWordLogger - Searching for captured word with lemma: serendipity for user with id: 3
-2026-04-06 18:24:55.267 [main] INFO  CapturedWordLogger - Word not found with lemma: serendipity, creating new word
-2026-04-06 18:24:55.271 [main] INFO  CapturedWordLogger - Created new word with lemma: serendipity
-2026-04-06 18:24:55.323 [main] INFO  CapturedWordLogger - Searching for captured word with lemma: outage for user with id: 6
-2026-04-06 18:24:55.325 [main] INFO  CapturedWordLogger - Word not found with lemma: outage, creating new word
-2026-04-06 18:24:55.378 [main] INFO  CapturedWordLogger - Searching for captured word with lemma: ephemeral for user with id: 8
-2026-04-06 18:24:55.381 [main] INFO  CapturedWordLogger - Word not found with lemma: ephemeral, creating new word
-2026-04-06 18:24:55.385 [main] INFO  CapturedWordLogger - Created new word with lemma: ephemeral
-2026-04-06 18:24:55.394 [main] INFO  CapturedWordLogger - Searching for captured word with lemma: ephemeral for user with id: 8
-2026-04-06 18:24:55.395 [main] INFO  CapturedWordLogger - Word found with lemma: ephemeral found, sending it back
-2026-04-06 18:24:55.410 [main] INFO  CapturedWordLogger - Searching for captured word with lemma: missingword for user with id: 9
-2026-04-06 18:24:55.412 [main] INFO  CapturedWordLogger - Word not found with lemma: missingword, creating new word
-2026-04-06 18:24:55.432 [main] INFO  CapturedWordLogger - Searching for captured word with lemma: ephemeral for user with id: 10
-2026-04-06 18:24:55.434 [main] INFO  CapturedWordLogger - Word not found with lemma: ephemeral, creating new word
-2026-04-06 18:24:55.436 [main] INFO  CapturedWordLogger - Created new word with lemma: ephemeral
+2026-04-07 10:11:30.765 [http-nio-8585-exec-7] INFO  CapturedWordLogger - Searching for captured word with lemma: castle for user with id: 1
+2026-04-07 10:11:30.770 [http-nio-8585-exec-7] INFO  CapturedWordLogger - Word not found with lemma: castle, creating new word
+2026-04-07 10:11:31.059 [http-nio-8585-exec-7] INFO  CapturedWordLogger - Created new word with lemma: castle
+2026-04-07 10:12:12.858 [http-nio-8585-exec-1] INFO  CapturedWordLogger - Searching for captured word with lemma: knight for user with id: 1
+2026-04-07 10:12:12.860 [http-nio-8585-exec-1] INFO  CapturedWordLogger - Word not found with lemma: knight, creating new word
+2026-04-07 10:12:12.904 [http-nio-8585-exec-1] INFO  CapturedWordLogger - Created new word with lemma: knight
+2026-04-07 10:17:08.143 [http-nio-8585-exec-7] INFO  CapturedWordLogger - Searching for captured word with lemma: sword for user with id: 1
+2026-04-07 10:17:08.145 [http-nio-8585-exec-7] INFO  CapturedWordLogger - Word not found with lemma: sword, creating new word
+2026-04-07 10:17:08.207 [http-nio-8585-exec-7] INFO  CapturedWordLogger - Created new word with lemma: sword
+2026-04-07 10:17:24.494 [http-nio-8585-exec-10] INFO  CapturedWordLogger - Searching for captured word with lemma: breastplate for user with id: 1
+2026-04-07 10:17:24.496 [http-nio-8585-exec-10] INFO  CapturedWordLogger - Word not found with lemma: breastplate, creating new word
+2026-04-07 10:17:24.857 [http-nio-8585-exec-10] INFO  CapturedWordLogger - Created new word with lemma: breastplate

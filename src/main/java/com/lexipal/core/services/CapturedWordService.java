@@ -1,7 +1,7 @@
 package com.lexipal.core.services;
 
-import com.lexipal.core.dtos.CaptureRequestDTO;
-import com.lexipal.core.dtos.CaptureResponseDTO;
+import com.lexipal.core.dtos.requests.CaptureCreateRequestDTO;
+import com.lexipal.core.dtos.responses.CaptureCreateResponseDTO;
 import com.lexipal.core.entities.CapturedWord;
 import com.lexipal.core.entities.Session;
 import com.lexipal.core.entities.User;
@@ -45,7 +45,7 @@ public class CapturedWordService implements CapturedWordServiceInterface
 
     @Override
     @Transactional
-    public CaptureResponseDTO performSearchAndCapture(Long sessionId, CaptureRequestDTO dto, String keycloakSub)
+    public CaptureCreateResponseDTO performSearchAndCapture(Long sessionId, CaptureCreateRequestDTO dto, String keycloakSub)
     {
         userLogger.info("Retrieving user...");
         Optional<User> existingUser = userRepository.findByKeycloakSub(keycloakSub);
@@ -83,7 +83,7 @@ public class CapturedWordService implements CapturedWordServiceInterface
         if(existingWord.isPresent())
         {
             capturedWordLogger.info("Word found with lemma: {} found, sending it back", cleanLemma);
-            return new CaptureResponseDTO(existingWord.get(), false);
+            return new CaptureCreateResponseDTO(existingWord.get(), false);
         }
 
         capturedWordLogger.info("Word not found with lemma: {}, creating new word", cleanLemma);
@@ -106,6 +106,6 @@ public class CapturedWordService implements CapturedWordServiceInterface
         existingSession.get().getCapturedWords().add(newCapture);
         sessionRepository.save(existingSession.get());
 
-        return new CaptureResponseDTO(newCapture, true);
+        return new CaptureCreateResponseDTO(newCapture, true);
     }
 }

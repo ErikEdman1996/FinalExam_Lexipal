@@ -1,4 +1,4 @@
-package com.lexipal.core.dtos;
+package com.lexipal.core.dtos.requests;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.JsonNode;

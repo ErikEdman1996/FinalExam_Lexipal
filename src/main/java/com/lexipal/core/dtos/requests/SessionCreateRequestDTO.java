@@ -1,10 +1,10 @@
-package com.lexipal.core.dtos;
+package com.lexipal.core.dtos.requests;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-public class SessionRequestDTO
+public class SessionCreateRequestDTO
 {
     @NotNull(message = "Book id is required")
     private Long bookId;
@@ -24,12 +24,12 @@ public class SessionRequestDTO
     @Size(max = 2000, message = "Reflection must be 2000 characters or fewer")
     private String reflection;
 
-    public SessionRequestDTO()
+    public SessionCreateRequestDTO()
     {
 
     }
 
-    public SessionRequestDTO(Long bookId, Long durationSeconds, Integer startPage, Integer endPage, String reflection)
+    public SessionCreateRequestDTO(Long bookId, Long durationSeconds, Integer startPage, Integer endPage, String reflection)
     {
         this.bookId = bookId;
         this.durationSeconds = durationSeconds;

@@ -1,8 +1,8 @@
 package com.lexipal.core.controllers;
 
 import com.lexipal.core.IntegrationTestBase;
-import com.lexipal.core.dtos.BookUpdateDTO;
-import com.lexipal.core.dtos.CreateBookRequest;
+import com.lexipal.core.dtos.requests.BookUpdateRequestDTO;
+import com.lexipal.core.dtos.requests.BookCreateRequestDTO;
 import com.lexipal.core.entities.Book;
 import com.lexipal.core.entities.User;
 import com.lexipal.core.repositories.BookRepository;
@@ -58,7 +58,7 @@ class BookControllerIntegrationTest extends IntegrationTestBase
     void addBook_createsBookAndUser() throws Exception
     {
         String newSub = "brand-new-sub";
-        CreateBookRequest request = new CreateBookRequest("Clean Code", "Robert Martin", 431);
+        BookCreateRequestDTO request = new BookCreateRequestDTO("Clean Code", "Robert Martin", 431);
 
         mockMvc.perform(post(BASE_URL)
                         .with(jwtWithSub(newSub))
@@ -79,8 +79,8 @@ class BookControllerIntegrationTest extends IntegrationTestBase
     @DisplayName("POST /books — reuses existing user for the same sub")
     void addBook_existingUser_reusesUser() throws Exception
     {
-        CreateBookRequest req1 = new CreateBookRequest("Book One", "Author A", 100);
-        CreateBookRequest req2 = new CreateBookRequest("Book Two", "Author B", 200);
+        BookCreateRequestDTO req1 = new BookCreateRequestDTO("Book One", "Author A", 100);
+        BookCreateRequestDTO req2 = new BookCreateRequestDTO("Book Two", "Author B", 200);
 
         mockMvc.perform(post(BASE_URL)
                         .with(jwtWithSub(USER_SUB))
@@ -105,7 +105,7 @@ class BookControllerIntegrationTest extends IntegrationTestBase
     @DisplayName("POST /books - rejects invalid request body")
     void addBook_invalidPayload_returnsBadRequest() throws Exception
     {
-        CreateBookRequest request = new CreateBookRequest(" ", null, 0);
+        BookCreateRequestDTO request = new BookCreateRequestDTO(" ", null, 0);
 
         mockMvc.perform(post(BASE_URL)
                         .with(jwtWithSub(USER_SUB))
@@ -182,7 +182,7 @@ class BookControllerIntegrationTest extends IntegrationTestBase
     void updateBook_updatesFields() throws Exception
     {
         Book book = createBook("Old Title", "Old Author", 100, testUser);
-        BookUpdateDTO dto = new BookUpdateDTO("New Title", "New Author", null, 300, null);
+        BookUpdateRequestDTO dto = new BookUpdateRequestDTO("New Title", "New Author", null, 300, null);
 
         mockMvc.perform(put(BASE_URL + "/" + book.getId())
                         .with(jwtWithSub(USER_SUB))
@@ -199,7 +199,7 @@ class BookControllerIntegrationTest extends IntegrationTestBase
     void updateBook_otherUser_throwsUnauthorized() throws Exception
     {
         Book book = createBook("Someone's Book", "Author", 100, testUser);
-        BookUpdateDTO dto = new BookUpdateDTO("Hacked", null, null, null, null);
+        BookUpdateRequestDTO dto = new BookUpdateRequestDTO("Hacked", null, null, null, null);
 
         mockMvc.perform(put(BASE_URL + "/" + book.getId())
                         .with(jwtWithSub(OTHER_USER_SUB))
@@ -213,7 +213,7 @@ class BookControllerIntegrationTest extends IntegrationTestBase
     void updateBook_invalidPayload_returnsBadRequest() throws Exception
     {
         Book book = createBook("Old Title", "Old Author", 100, testUser);
-        BookUpdateDTO dto = new BookUpdateDTO("", " ", -1, 0, null);
+        BookUpdateRequestDTO dto = new BookUpdateRequestDTO("", " ", -1, 0, null);
 
         mockMvc.perform(put(BASE_URL + "/" + book.getId())
                         .with(jwtWithSub(USER_SUB))
