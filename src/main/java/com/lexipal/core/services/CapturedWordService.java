@@ -2,6 +2,7 @@ package com.lexipal.core.services;
 
 import com.lexipal.core.dtos.requests.CaptureCreateRequestDTO;
 import com.lexipal.core.dtos.responses.CaptureCreateResponseDTO;
+import com.lexipal.core.dtos.responses.CaptureReadResponseDTO;
 import com.lexipal.core.entities.CapturedWord;
 import com.lexipal.core.entities.Session;
 import com.lexipal.core.entities.User;
@@ -18,7 +19,9 @@ import org.springframework.stereotype.Service;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class CapturedWordService implements CapturedWordServiceInterface
@@ -107,5 +110,38 @@ public class CapturedWordService implements CapturedWordServiceInterface
         sessionRepository.save(existingSession.get());
 
         return new CaptureCreateResponseDTO(newCapture, true);
+    }
+
+    @Override
+    public List<CaptureReadResponseDTO> getAllWordsBySub(String keycloakSub)
+    {
+        userLogger.info("Retrieving user...");
+        User user = userRepository.findByKeycloakSub(keycloakSub)
+                .orElseGet(() -> {
+                    throw new ResourceNotFoundException("User", "sub", keycloakSub);
+                });
+
+        List<CapturedWord> words = capturedWordRepository.findAllBySub(user.getKeycloakSub());
+
+        return words.stream()
+                .map(this::toCaptureReadResponse)
+                .collect(Collectors.toList());
+    }
+
+    private CaptureReadResponseDTO toCaptureReadResponse(CapturedWord capturedWord)
+    {
+        return new CaptureReadResponseDTO(
+                capturedWord.getId(),
+                capturedWord.getWord().getId(),
+                capturedWord.getSession().getId(),
+                capturedWord.getWord().getLemma(),
+                capturedWord.getSpecificDefinition(),
+                capturedWord.getXpValue(),
+                capturedWord.getCapturedAt(),
+                capturedWord.getWord().getRarityScore(),
+                capturedWord.getWord().getSource(),
+                capturedWord.getWord().getDefinitions(),
+                capturedWord.getWord().getPhonetics()
+        );
     }
 }

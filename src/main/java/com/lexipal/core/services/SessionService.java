@@ -28,17 +28,20 @@ public class SessionService implements SessionServiceInterface
     final UserRepository userRepository;
     final BookRepository bookRepository;
     private final BookServiceInterface bookService;
+    private final DailyActivityServiceInterface dailyActivityService;
 
     @Autowired
     public SessionService(final SessionRepository sessionRepository,
                           final UserRepository userRepository,
                           final BookRepository bookRepository,
-                          final BookServiceInterface bookService)
+                          final BookServiceInterface bookService,
+                          final DailyActivityServiceInterface dailyActivityService)
     {
         this.sessionRepository = sessionRepository;
         this.userRepository = userRepository;
         this.bookRepository = bookRepository;
         this.bookService = bookService;
+        this.dailyActivityService = dailyActivityService;
     }
 
     @Override
@@ -80,6 +83,8 @@ public class SessionService implements SessionServiceInterface
     {
         Session existingSession = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Session", "id", sessionId));
+
+        boolean wasCompleted = existingSession.getStatus() == Session.SessionStatus.COMPLETED;
 
         if (!existingSession.getUser().getKeycloakSub().equals(keycloakSub))
         {
@@ -140,6 +145,11 @@ public class SessionService implements SessionServiceInterface
         Session updatedSession = sessionRepository.save(existingSession);
 
         bookService.syncBookProgress(updatedSession.getBook().getId());
+
+        if (!wasCompleted && updatedSession.getStatus() == Session.SessionStatus.COMPLETED)
+        {
+            dailyActivityService.recordSessionCompletedActivity(updatedSession);
+        }
 
         return toSessionUpdateResponse(updatedSession);
     }

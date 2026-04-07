@@ -54,6 +54,10 @@ public class Session
     @JsonManagedReference("session-capturedWords")
     private List<CapturedWord> capturedWords = new ArrayList<>();
 
+    @OneToMany(mappedBy = "session", cascade = CascadeType.ALL)
+    @JsonManagedReference("session-dailyActivities")
+    private List<DailyActivity> dailyActivities = new ArrayList<>();
+
     public Session()
     {
 
@@ -164,6 +168,14 @@ public class Session
 
     public void setCapturedWords(List<CapturedWord> capturedWords) {
         this.capturedWords = capturedWords;
+    }
+
+    public List<DailyActivity> getDailyActivities() {
+        return dailyActivities;
+    }
+
+    public void setDailyActivities(List<DailyActivity> dailyActivities) {
+        this.dailyActivities = dailyActivities;
     }
 
     public SessionStatus getStatus() {

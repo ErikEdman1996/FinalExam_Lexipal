@@ -10,3 +10,15 @@
 2026-04-07 10:17:24.494 [http-nio-8585-exec-10] INFO  CapturedWordLogger - Searching for captured word with lemma: breastplate for user with id: 1
 2026-04-07 10:17:24.496 [http-nio-8585-exec-10] INFO  CapturedWordLogger - Word not found with lemma: breastplate, creating new word
 2026-04-07 10:17:24.857 [http-nio-8585-exec-10] INFO  CapturedWordLogger - Created new word with lemma: breastplate
+2026-04-07 10:58:38.152 [http-nio-8585-exec-7] INFO  CapturedWordLogger - Searching for captured word with lemma: knight for user with id: 1
+2026-04-07 10:58:38.156 [http-nio-8585-exec-7] INFO  CapturedWordLogger - Word not found with lemma: knight, creating new word
+2026-04-07 10:58:38.434 [http-nio-8585-exec-7] INFO  CapturedWordLogger - Created new word with lemma: knight
+2026-04-07 10:58:47.031 [http-nio-8585-exec-10] INFO  CapturedWordLogger - Searching for captured word with lemma: breastplate for user with id: 1
+2026-04-07 10:58:47.034 [http-nio-8585-exec-10] INFO  CapturedWordLogger - Word not found with lemma: breastplate, creating new word
+2026-04-07 10:58:47.053 [http-nio-8585-exec-10] INFO  CapturedWordLogger - Created new word with lemma: breastplate
+2026-04-07 11:37:41.643 [http-nio-8585-exec-6] INFO  CapturedWordLogger - Searching for captured word with lemma: knight for user with id: 1
+2026-04-07 11:37:41.646 [http-nio-8585-exec-6] INFO  CapturedWordLogger - Word not found with lemma: knight, creating new word
+2026-04-07 11:37:41.970 [http-nio-8585-exec-6] INFO  CapturedWordLogger - Created new word with lemma: knight
+2026-04-07 11:38:01.055 [http-nio-8585-exec-8] INFO  CapturedWordLogger - Searching for captured word with lemma: castle for user with id: 1
+2026-04-07 11:38:01.057 [http-nio-8585-exec-8] INFO  CapturedWordLogger - Word not found with lemma: castle, creating new word
+2026-04-07 11:38:01.075 [http-nio-8585-exec-8] INFO  CapturedWordLogger - Created new word with lemma: castle

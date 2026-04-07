@@ -43,6 +43,14 @@ public class User
     @JsonManagedReference("user-capturedWords")
     private List<CapturedWord> capturedWords = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonManagedReference("user-dailyActivities")
+    private List<DailyActivity> dailyActivities = new ArrayList<>();
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonManagedReference("user-streakMetaData")
+    private StreakMetaData streakMetaData;
+
     public enum UserStatus
     {
         ACTIVE,
@@ -157,5 +165,21 @@ public class User
 
     public void setCapturedWords(List<CapturedWord> capturedWords) {
         this.capturedWords = capturedWords;
+    }
+
+    public List<DailyActivity> getDailyActivities() {
+        return dailyActivities;
+    }
+
+    public void setDailyActivities(List<DailyActivity> dailyActivities) {
+        this.dailyActivities = dailyActivities;
+    }
+
+    public StreakMetaData getStreakMetaData() {
+        return streakMetaData;
+    }
+
+    public void setStreakMetaData(StreakMetaData streakMetaData) {
+        this.streakMetaData = streakMetaData;
     }
 }

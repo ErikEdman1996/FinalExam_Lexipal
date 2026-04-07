@@ -35,3 +35,91 @@
 2026-04-07 10:43:38.655 [main] INFO  BookLogger - Retrieving book with id: 3
 2026-04-07 10:43:38.930 [main] INFO  BookLogger - Retrieving book with id: 8
 2026-04-07 10:43:39.021 [main] INFO  BookLogger - Retrieving book with id: 12
+2026-04-07 10:57:27.840 [http-nio-8585-exec-3] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 10:57:27.878 [http-nio-8585-exec-4] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 10:57:43.509 [http-nio-8585-exec-6] INFO  BookLogger - Creating a new book for user: 1
+2026-04-07 10:57:43.512 [http-nio-8585-exec-6] INFO  BookLogger - Created new book with id: 1 for user: 1
+2026-04-07 10:57:57.743 [http-nio-8585-exec-3] INFO  BookLogger - Retrieving book with id: 1
+2026-04-07 10:57:57.743 [http-nio-8585-exec-1] INFO  BookLogger - Retrieving book with id: 1
+2026-04-07 10:58:01.908 [http-nio-8585-exec-6] INFO  BookLogger - Retrieving book with id: 1
+2026-04-07 10:59:33.371 [http-nio-8585-exec-5] INFO  BookLogger - Retrieving book with id: 1
+2026-04-07 10:59:33.409 [http-nio-8585-exec-10] INFO  BookLogger - Retrieving book with id: 1
+2026-04-07 10:59:33.410 [http-nio-8585-exec-3] INFO  BookLogger - Retrieving book with id: 1
+2026-04-07 11:00:00.150 [http-nio-8585-exec-6] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 11:00:00.151 [http-nio-8585-exec-8] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 11:00:05.553 [http-nio-8585-exec-2] INFO  BookLogger - Retrieving book with id: 1
+2026-04-07 11:00:05.561 [http-nio-8585-exec-1] INFO  BookLogger - Retrieving book with id: 1
+2026-04-07 11:01:17.426 [http-nio-8585-exec-4] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 11:01:17.426 [http-nio-8585-exec-2] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 11:01:50.364 [http-nio-8585-exec-7] INFO  BookLogger - Retrieving book with id: 1
+2026-04-07 11:01:50.364 [http-nio-8585-exec-6] INFO  BookLogger - Retrieving book with id: 1
+2026-04-07 11:02:06.324 [http-nio-8585-exec-5] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 11:02:06.324 [http-nio-8585-exec-1] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 11:34:27.403 [http-nio-8585-exec-3] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 11:34:27.440 [http-nio-8585-exec-4] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 11:34:55.374 [http-nio-8585-exec-9] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 11:34:55.383 [http-nio-8585-exec-10] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 11:37:09.777 [http-nio-8585-exec-4] INFO  BookLogger - Creating a new book for user: 1
+2026-04-07 11:37:09.780 [http-nio-8585-exec-4] INFO  BookLogger - Created new book with id: 1 for user: 1
+2026-04-07 11:37:22.169 [http-nio-8585-exec-9] INFO  BookLogger - Retrieving book with id: 1
+2026-04-07 11:37:22.198 [http-nio-8585-exec-1] INFO  BookLogger - Retrieving book with id: 1
+2026-04-07 11:37:23.223 [http-nio-8585-exec-4] INFO  BookLogger - Retrieving book with id: 1
+2026-04-07 11:38:54.160 [http-nio-8585-exec-2] INFO  BookLogger - Retrieving book with id: 1
+2026-04-07 11:38:54.201 [http-nio-8585-exec-3] INFO  BookLogger - Retrieving book with id: 1
+2026-04-07 11:38:54.210 [http-nio-8585-exec-5] INFO  BookLogger - Retrieving book with id: 1
+2026-04-07 11:39:00.076 [http-nio-8585-exec-8] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 11:39:00.085 [http-nio-8585-exec-9] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 11:40:19.681 [http-nio-8585-exec-4] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 11:40:19.690 [http-nio-8585-exec-5] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 11:40:27.157 [http-nio-8585-exec-9] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 11:40:27.165 [http-nio-8585-exec-9] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 11:40:37.267 [http-nio-8585-exec-10] INFO  BookLogger - Retrieving book with id: 1
+2026-04-07 11:40:37.276 [http-nio-8585-exec-2] INFO  BookLogger - Retrieving book with id: 1
+2026-04-07 11:40:42.820 [http-nio-8585-exec-4] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 11:40:42.830 [http-nio-8585-exec-5] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 11:41:02.676 [http-nio-8585-exec-7] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 11:41:02.684 [http-nio-8585-exec-9] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 11:42:32.945 [http-nio-8585-exec-4] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 11:42:32.945 [http-nio-8585-exec-3] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 11:42:35.362 [http-nio-8585-exec-10] INFO  BookLogger - Retrieving book with id: 1
+2026-04-07 11:42:35.362 [http-nio-8585-exec-2] INFO  BookLogger - Retrieving book with id: 1
+2026-04-07 11:42:45.912 [http-nio-8585-exec-3] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 11:42:45.922 [http-nio-8585-exec-4] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 11:42:49.658 [http-nio-8585-exec-6] INFO  BookLogger - Retrieving book with id: 1
+2026-04-07 11:42:49.666 [http-nio-8585-exec-7] INFO  BookLogger - Retrieving book with id: 1
+2026-04-07 11:42:51.183 [http-nio-8585-exec-2] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 11:42:51.195 [http-nio-8585-exec-2] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 11:42:59.254 [http-nio-8585-exec-3] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 11:42:59.263 [http-nio-8585-exec-4] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 11:43:19.413 [http-nio-8585-exec-7] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 11:43:19.422 [http-nio-8585-exec-8] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 13:53:55.259 [http-nio-8585-exec-7] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 13:53:55.283 [http-nio-8585-exec-8] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 13:54:23.060 [http-nio-8585-exec-3] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 13:54:23.071 [http-nio-8585-exec-3] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 13:54:26.393 [http-nio-8585-exec-7] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 13:54:26.403 [http-nio-8585-exec-8] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 13:54:27.047 [http-nio-8585-exec-3] INFO  BookLogger - Retrieving book with id: 1
+2026-04-07 13:54:27.064 [http-nio-8585-exec-6] INFO  BookLogger - Retrieving book with id: 1
+2026-04-07 13:54:28.119 [http-nio-8585-exec-8] INFO  BookLogger - Retrieving book with id: 1
+2026-04-07 13:55:22.758 [http-nio-8585-exec-9] INFO  BookLogger - Retrieving book with id: 1
+2026-04-07 13:55:22.807 [http-nio-8585-exec-1] INFO  BookLogger - Retrieving book with id: 1
+2026-04-07 13:55:22.816 [http-nio-8585-exec-3] INFO  BookLogger - Retrieving book with id: 1
+2026-04-07 13:55:31.532 [http-nio-8585-exec-5] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 13:55:31.539 [http-nio-8585-exec-7] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 13:55:57.062 [http-nio-8585-exec-2] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 13:55:57.071 [http-nio-8585-exec-3] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 13:55:59.083 [http-nio-8585-exec-5] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 13:55:59.091 [http-nio-8585-exec-7] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 13:56:01.238 [http-nio-8585-exec-2] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 13:56:01.245 [http-nio-8585-exec-3] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 14:02:23.101 [http-nio-8585-exec-10] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 14:02:23.109 [http-nio-8585-exec-10] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 14:02:27.176 [http-nio-8585-exec-5] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 14:02:27.185 [http-nio-8585-exec-5] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 14:02:27.918 [http-nio-8585-exec-7] INFO  BookLogger - Retrieving book with id: 1
+2026-04-07 14:02:27.926 [http-nio-8585-exec-9] INFO  BookLogger - Retrieving book with id: 1
+2026-04-07 14:02:48.076 [http-nio-8585-exec-1] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 14:02:48.084 [http-nio-8585-exec-2] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 14:02:51.629 [http-nio-8585-exec-6] INFO  BookLogger - Retrieving all active books for user with id: 1
+2026-04-07 14:02:51.636 [http-nio-8585-exec-5] INFO  BookLogger - Retrieving all active books for user with id: 1
