@@ -17,11 +17,10 @@ import java.time.LocalDate;
 @Service
 public class StreakMetaDataService implements StreakMetaDataServiceInterface
 {
+    private static final Logger logger = LogManager.getLogger(StreakMetaDataService.class);
+
     private final StreakMetaDataRepository streakMetaDataRepository;
     private final UserRepository userRepository;
-
-    private static final Logger userLogger = LogManager.getLogger("UserLogger");
-    private static final Logger streakLogger = LogManager.getLogger("StreakMetaDataLogger");
 
     @Autowired
     public StreakMetaDataService(final StreakMetaDataRepository streakMetaDataRepository,
@@ -71,11 +70,13 @@ public class StreakMetaDataService implements StreakMetaDataServiceInterface
             streakMetaData.setLongestStreak(Math.max(1, streakMetaData.getLongestStreak()));
             streakMetaData.setLastActivityDate(activityDate);
             streakMetaDataRepository.save(streakMetaData);
+            logger.info("Initialized streak tracking for user {} on {}", user.getId(), activityDate);
             return;
         }
 
         if (activityDate.isBefore(lastActivityDate) || activityDate.isEqual(lastActivityDate))
         {
+            logger.info("Ignored streak update for user {} because activity date {} is not after {}", user.getId(), activityDate, lastActivityDate);
             return;
         }
 
@@ -91,17 +92,17 @@ public class StreakMetaDataService implements StreakMetaDataServiceInterface
         streakMetaData.setLongestStreak(Math.max(streakMetaData.getLongestStreak(), streakMetaData.getCurrentStreak()));
         streakMetaData.setLastActivityDate(activityDate);
         streakMetaDataRepository.save(streakMetaData);
+        logger.info("Recorded streak activity for user {} on {}; current streak {}, longest streak {}", user.getId(), activityDate, streakMetaData.getCurrentStreak(), streakMetaData.getLongestStreak());
     }
 
     private User getOrCreateUser(String keycloakSub)
     {
         return userRepository.findByKeycloakSub(keycloakSub)
                 .orElseGet(() -> {
-                    userLogger.info("User not found, creating new user...");
                     User newUser = new User();
                     newUser.setKeycloakSub(keycloakSub);
                     User savedUser = userRepository.save(newUser);
-                    userLogger.info("Created new user with id: {}", savedUser.getId());
+                    logger.info("Created user {} while working with streak metadata", savedUser.getId());
                     return savedUser;
                 });
     }
@@ -114,8 +115,6 @@ public class StreakMetaDataService implements StreakMetaDataServiceInterface
 
     private StreakMetaData createStreakMetaData(User user, StreakMetaDataCreateRequestDTO dto)
     {
-        streakLogger.info("Creating streak metadata for user with id: {}", user.getId());
-
         StreakMetaData streakMetaData = new StreakMetaData();
         streakMetaData.setUser(user);
         streakMetaData.setCurrentStreak(dto != null && dto.getCurrentStreak() != null ? dto.getCurrentStreak() : 0);
@@ -125,6 +124,7 @@ public class StreakMetaDataService implements StreakMetaDataServiceInterface
         StreakMetaData savedStreak = streakMetaDataRepository.save(streakMetaData);
         user.setStreakMetaData(savedStreak);
         userRepository.save(user);
+        logger.info("Created streak metadata {} for user {}", savedStreak.getId(), user.getId());
 
         return savedStreak;
     }

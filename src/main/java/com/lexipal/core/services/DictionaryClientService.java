@@ -3,6 +3,8 @@ package com.lexipal.core.services;
 import com.lexipal.core.dtos.requests.DictionaryAPIRequestDTO;
 import com.lexipal.core.exceptions.ExternalServiceException;
 import com.lexipal.core.exceptions.ResourceNotFoundException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -13,6 +15,8 @@ import java.util.List;
 @Service
 public class DictionaryClientService
 {
+    private static final Logger logger = LogManager.getLogger(DictionaryClientService.class);
+
     final private RestClient restClient;
 
     public DictionaryClientService(final RestClient.Builder clientBuilder)
@@ -25,8 +29,7 @@ public class DictionaryClientService
     public DictionaryAPIRequestDTO fetchWordFromApi(String word)
     {
         try {
-            // The API returns an array: [ { "word": "...", ... } ]
-            // We use ParameterizedTypeReference to handle the List wrapper safely
+            logger.info("Fetching word '{}' from dictionary API", word);
             List<DictionaryAPIRequestDTO> response = restClient.get()
                     .uri("/{word}", word)
                     .retrieve()
@@ -36,13 +39,16 @@ public class DictionaryClientService
                     .body(new ParameterizedTypeReference<List<DictionaryAPIRequestDTO>>() {});
 
             if (response != null && !response.isEmpty()) {
+                logger.info("Received dictionary API response for word '{}'", word);
                 return response.get(0);
             }
 
+            logger.warn("Dictionary API returned an empty response for word '{}'", word);
             return null;
         } catch (ResourceNotFoundException ex) {
             throw ex;
         } catch (RestClientException ex) {
+            logger.error("Dictionary API request failed for word '{}'", word, ex);
             throw new ExternalServiceException("Dictionary service is unavailable for word: " + word, ex);
         }
     }

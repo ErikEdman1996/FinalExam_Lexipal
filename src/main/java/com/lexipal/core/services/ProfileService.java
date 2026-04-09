@@ -22,11 +22,10 @@ import java.util.List;
 public class ProfileService implements ProfileServiceInterface
 {
     private static final int RECENT_ACTIVITY_LIMIT = 10;
+    private static final Logger logger = LogManager.getLogger(ProfileService.class);
 
     private final UserRepository userRepository;
     private final StreakMetaDataServiceInterface streakMetaDataService;
-
-    private static final Logger userLogger = LogManager.getLogger("UserLogger");
 
     @Autowired
     public ProfileService(final UserRepository userRepository,
@@ -42,11 +41,10 @@ public class ProfileService implements ProfileServiceInterface
     {
         User user = userRepository.findByKeycloakSub(keycloakSub)
                 .orElseGet(() -> {
-                    userLogger.info("User not found, creating new user...");
                     User newUser = new User();
                     newUser.setKeycloakSub(keycloakSub);
                     User savedUser = userRepository.save(newUser);
-                    userLogger.info("Created new user with id: {}", savedUser.getId());
+                    logger.info("Created user {} while building profile", savedUser.getId());
                     return savedUser;
                 });
 

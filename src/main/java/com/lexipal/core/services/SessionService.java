@@ -14,6 +14,8 @@ import com.lexipal.core.repositories.BookRepository;
 import com.lexipal.core.repositories.SessionRepository;
 import com.lexipal.core.repositories.UserRepository;
 import jakarta.transaction.Transactional;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +25,7 @@ import java.util.stream.Collectors;
 @Service
 public class SessionService implements SessionServiceInterface
 {
+    private static final Logger logger = LogManager.getLogger(SessionService.class);
 
     final SessionRepository sessionRepository;
     final UserRepository userRepository;
@@ -57,6 +60,7 @@ public class SessionService implements SessionServiceInterface
 
         if(!book.getUser().getId().equals(user.getId()))
         {
+            logger.warn("User {} attempted to create a session for book {} they do not own", user.getId(), bookId);
             throw new UnauthorizedActionException("This book does belong to you.");
         }
 
@@ -73,6 +77,7 @@ public class SessionService implements SessionServiceInterface
         Session savedSession = sessionRepository.save(session);
 
         bookService.syncBookProgress(book.getId());
+        logger.info("Created session {} for book {} and user {}", savedSession.getId(), book.getId(), user.getId());
 
         return toSessionCreateResponse(savedSession);
     }
@@ -88,6 +93,7 @@ public class SessionService implements SessionServiceInterface
 
         if (!existingSession.getUser().getKeycloakSub().equals(keycloakSub))
         {
+            logger.warn("User {} attempted to update session {} they do not own", existingSession.getUser().getId(), sessionId);
             throw new UnauthorizedActionException("This session does not belong to you.");
         }
 
@@ -151,6 +157,8 @@ public class SessionService implements SessionServiceInterface
             dailyActivityService.recordSessionCompletedActivity(updatedSession);
         }
 
+        logger.info("Updated session {} with status {}", updatedSession.getId(), updatedSession.getStatus());
+
         return toSessionUpdateResponse(updatedSession);
     }
 
@@ -179,6 +187,7 @@ public class SessionService implements SessionServiceInterface
 
         if(!book.getUser().getKeycloakSub().equals(keycloakSub))
         {
+            logger.warn("User {} attempted to list sessions for book {} they do not own", book.getUser().getId(), bookId);
             throw new UnauthorizedActionException("This book does not belong to you.");
         }
 

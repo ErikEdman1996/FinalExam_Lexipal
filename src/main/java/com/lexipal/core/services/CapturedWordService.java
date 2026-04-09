@@ -26,14 +26,12 @@ import java.util.stream.Collectors;
 @Service
 public class CapturedWordService implements CapturedWordServiceInterface
 {
+    private static final Logger logger = LogManager.getLogger(CapturedWordService.class);
+
     private final CapturedWordRepository capturedWordRepository;
     private final WordService wordService;
     private final UserRepository userRepository;
     private final SessionRepository sessionRepository;
-
-    private final static Logger capturedWordLogger = LogManager.getLogger("CapturedWordLogger");
-    private final static Logger userLogger = LogManager.getLogger("UserLogger");
-    private final static Logger sessionLogger = LogManager.getLogger("SessionLogger");
 
     @Autowired
     public CapturedWordService(final CapturedWordRepository capturedWordRepository,
@@ -50,46 +48,38 @@ public class CapturedWordService implements CapturedWordServiceInterface
     @Transactional
     public CaptureCreateResponseDTO performSearchAndCapture(Long sessionId, CaptureCreateRequestDTO dto, String keycloakSub)
     {
-        userLogger.info("Retrieving user...");
         Optional<User> existingUser = userRepository.findByKeycloakSub(keycloakSub);
 
         if(existingUser.isEmpty())
         {
-            userLogger.error("User not found");
+            logger.warn("User was not found while capturing lemma {}", dto.getLemma());
             throw new ResourceNotFoundException("User", "sub", keycloakSub);
         }
 
-        userLogger.info("User found with id: {}", existingUser.get().getId());
-
-        sessionLogger.info("Retrieving session with id: {}", sessionId);
         Optional<Session> existingSession = sessionRepository.findById(sessionId);
 
         if(existingSession.isEmpty())
         {
-            sessionLogger.error("Session with id not found: {}", sessionId);
+            logger.warn("Session {} was not found while capturing lemma {} for user {}", sessionId, dto.getLemma(), existingUser.get().getId());
             throw new ResourceNotFoundException("Session", "id", sessionId);
         }
 
-        sessionLogger.info("Session found with id: {}", existingSession.get().getId());
-
         if(!existingSession.get().getUser().getKeycloakSub().equals(keycloakSub))
         {
-            userLogger.error("This session does not belong to you.");
+            logger.warn("User {} attempted to capture a word in session {} they do not own", existingUser.get().getId(), sessionId);
             throw new UnauthorizedActionException("This session does not belong to you.");
         }
 
         String cleanLemma = dto.getLemma().toLowerCase().trim();
 
-        capturedWordLogger.info("Searching for captured word with lemma: {} for user with id: {}", cleanLemma, existingUser.get().getId());
         Optional<CapturedWord> existingWord = capturedWordRepository.findByUser_IdAndWord_Lemma(existingUser.get().getId(), cleanLemma);
 
         if(existingWord.isPresent())
         {
-            capturedWordLogger.info("Word found with lemma: {} found, sending it back", cleanLemma);
+            logger.info("Returned existing captured word for lemma '{}' for user {}", cleanLemma, existingUser.get().getId());
             return new CaptureCreateResponseDTO(existingWord.get(), false);
         }
 
-        capturedWordLogger.info("Word not found with lemma: {}, creating new word", cleanLemma);
         Word globalWord = wordService.saveWordFromApi(cleanLemma);
 
         CapturedWord newCapture = new CapturedWord();
@@ -98,16 +88,12 @@ public class CapturedWordService implements CapturedWordServiceInterface
         newCapture.setSession(existingSession.get());
         newCapture.setXpValue(10);
 
-        capturedWordLogger.info("Created new word with lemma: {}", cleanLemma);
         capturedWordRepository.save(newCapture);
-
-        userLogger.info("Adding word {} to user with id: {}", cleanLemma, existingUser.get().getId());
         existingUser.get().getCapturedWords().add(newCapture);
         userRepository.save(existingUser.get());
-
-        sessionLogger.info("Adding word {} to session with id: {}", cleanLemma, existingSession.get().getId());
         existingSession.get().getCapturedWords().add(newCapture);
         sessionRepository.save(existingSession.get());
+        logger.info("Captured new word '{}' in session {} for user {}", cleanLemma, existingSession.get().getId(), existingUser.get().getId());
 
         return new CaptureCreateResponseDTO(newCapture, true);
     }
@@ -115,9 +101,9 @@ public class CapturedWordService implements CapturedWordServiceInterface
     @Override
     public List<CaptureReadResponseDTO> getAllWordsBySub(String keycloakSub)
     {
-        userLogger.info("Retrieving user...");
         User user = userRepository.findByKeycloakSub(keycloakSub)
                 .orElseGet(() -> {
+                    logger.warn("User was not found while listing captured words");
                     throw new ResourceNotFoundException("User", "sub", keycloakSub);
                 });
 

@@ -23,14 +23,12 @@ import java.util.stream.Collectors;
 public class DailyActivityService implements DailyActivityServiceInterface
 {
     private static final int SESSION_COMPLETION_XP = 25;
+    private static final Logger logger = LogManager.getLogger(DailyActivityService.class);
 
     private final DailyActivityRepository dailyActivityRepository;
     private final UserRepository userRepository;
     private final SessionRepository sessionRepository;
     private final StreakMetaDataServiceInterface streakMetaDataService;
-
-    private static final Logger dailyActivityLogger = LogManager.getLogger("DailyActivityLogger");
-    private static final Logger userLogger = LogManager.getLogger("UserLogger");
 
     @Autowired
     public DailyActivityService(final DailyActivityRepository dailyActivityRepository,
@@ -50,11 +48,10 @@ public class DailyActivityService implements DailyActivityServiceInterface
     {
         User user = userRepository.findByKeycloakSub(keycloakSub)
                 .orElseGet(() -> {
-                    userLogger.info("User not found, creating new user...");
                     User newUser = new User();
                     newUser.setKeycloakSub(keycloakSub);
                     User savedUser = userRepository.save(newUser);
-                    userLogger.info("Created new user with id: {}", savedUser.getId());
+                    logger.info("Created user {} while creating daily activity", savedUser.getId());
                     return savedUser;
                 });
 
@@ -66,6 +63,7 @@ public class DailyActivityService implements DailyActivityServiceInterface
 
             if (!session.getUser().getId().equals(user.getId()))
             {
+                logger.warn("User {} attempted to create daily activity for session {} they do not own", user.getId(), dto.getSessionId());
                 throw new UnauthorizedActionException("This session does not belong to you.");
             }
         }
@@ -83,6 +81,7 @@ public class DailyActivityService implements DailyActivityServiceInterface
 
             if (existingActivity != null)
             {
+                logger.info("Reused existing daily activity {} for session {} and activity type {}", existingActivity.getId(), session.getId(), dto.getActivityType());
                 return toDailyActivityReadResponse(existingActivity);
             }
         }
@@ -103,7 +102,7 @@ public class DailyActivityService implements DailyActivityServiceInterface
         }
 
         streakMetaDataService.recordActivity(user, savedActivity.getActivityDate());
-        dailyActivityLogger.info("Created daily activity with id: {} for user with id: {}", savedActivity.getId(), user.getId());
+        logger.info("Created daily activity {} of type {} for user {}", savedActivity.getId(), savedActivity.getActivityType(), user.getId());
 
         return toDailyActivityReadResponse(savedActivity);
     }
@@ -132,11 +131,10 @@ public class DailyActivityService implements DailyActivityServiceInterface
     {
         userRepository.findByKeycloakSub(keycloakSub)
                 .orElseGet(() -> {
-                    userLogger.info("User not found, creating new user...");
                     User newUser = new User();
                     newUser.setKeycloakSub(keycloakSub);
                     User savedUser = userRepository.save(newUser);
-                    userLogger.info("Created new user with id: {}", savedUser.getId());
+                    logger.info("Created user {} while listing daily activities", savedUser.getId());
                     return savedUser;
                 });
 

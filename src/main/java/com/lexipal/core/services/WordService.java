@@ -6,64 +6,76 @@ import com.lexipal.core.exceptions.ExternalServiceException;
 import com.lexipal.core.exceptions.ResourceNotFoundException;
 import com.lexipal.core.repositories.WordRepository;
 import jakarta.transaction.Transactional;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
 public class WordService implements WordServiceInterface
 {
+    private static final Logger logger = LogManager.getLogger(WordService.class);
+
     private final WordRepository wordRepository;
     private final DictionaryClientService client;
+    private final WordFrequencyService wordFrequencyService;
 
     @Autowired
     public WordService(final WordRepository wordRepository,
-                       final DictionaryClientService client)
+                       final DictionaryClientService client,
+                       final WordFrequencyService wordFrequencyService)
     {
         this.wordRepository = wordRepository;
         this.client = client;
+        this.wordFrequencyService = wordFrequencyService;
     }
 
     @Override
     @Transactional
+    @Cacheable(
+            cacheNames = "words",
+            key = "#lemma == null ? null : #lemma.trim().toLowerCase()",
+            condition = "#lemma != null && !#lemma.isBlank()",
+            sync = true
+    )
     public Word saveWordFromApi(String lemma)
     {
-        // 1. Check if we already have this word in our database to avoid duplicates
-        return wordRepository.findByLemma(lemma).orElseGet(() -> {
+        String normalizedLemma = normalizeLemma(lemma);
 
-            // 2. Fetch the data from the external Dictionary API
-            DictionaryAPIRequestDTO dto = client.fetchWordFromApi(lemma);
+        return wordRepository.findByLemma(normalizedLemma).orElseGet(() -> {
+            DictionaryAPIRequestDTO dto = client.fetchWordFromApi(normalizedLemma);
 
             if (dto == null) {
-                throw new ExternalServiceException("Could not retrieve word data for: " + lemma);
+                throw new ExternalServiceException("Could not retrieve word data for: " + normalizedLemma);
             }
 
             if (dto.getWord() == null || dto.getWord().isBlank()) {
-                throw new ResourceNotFoundException("Word", "lemma", lemma);
+                throw new ResourceNotFoundException("Word", "lemma", normalizedLemma);
             }
 
-            // 3. Map the DTO to our Entity
             Word newWord = new Word();
             newWord.setLemma(dto.getWord().toLowerCase());
             newWord.setSource("Free Dictionary API");
 
-            // Setting the JSONB fields directly from the DTO's JsonNodes
             newWord.setDefinitions(dto.getMeanings());
             newWord.setPhonetics(dto.getPhonetics());
 
-            // 4. Calculate Rarity (Example logic for your Exam Project)
-            // You could base this on word length or a lookup table later
-            newWord.setRarityScore(calculateRarity(dto.getWord()));
+            newWord.setRarityScore(wordFrequencyService.resolveRarityScore(newWord.getLemma()));
 
-            // 5. Save and return
-            return wordRepository.save(newWord);
+            Word savedWord = wordRepository.save(newWord);
+            logger.info("Saved new word '{}' with id {}", savedWord.getLemma(), savedWord.getId());
+            return savedWord;
         });
     }
 
-    private Double calculateRarity(String word) {
-        // Simple placeholder logic for your "Pokemon-style" rarity
-        // In a real app, you might check this against a frequency list
-        if (word.length() > 10) return 0.85; // Rare
-        if (word.length() > 7) return 0.50;  // Uncommon
-        return 0.15; // Common
+    private String normalizeLemma(String lemma)
+    {
+        if (lemma == null || lemma.isBlank())
+        {
+            throw new IllegalArgumentException("Lemma cannot be null or blank.");
+        }
+
+        return lemma.trim().toLowerCase();
     }
 }

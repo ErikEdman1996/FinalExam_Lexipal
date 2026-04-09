@@ -22,12 +22,11 @@ import java.util.stream.Collectors;
 @Service
 public class BookService implements BookServiceInterface
 {
+    private static final Logger logger = LogManager.getLogger(BookService.class);
+
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
     private final SessionRepository sessionRepository;
-
-    private static final Logger bookLogger = LogManager.getLogger("BookLogger");
-    private static final Logger userLogger = LogManager.getLogger("UserLogger");
 
     @Autowired
     public BookService(final BookRepository bookRepository,
@@ -43,18 +42,15 @@ public class BookService implements BookServiceInterface
     @Transactional
     public BookCreateResponseDTO addBook(BookCreateRequestDTO request, String keycloakSub)
     {
-        userLogger.info("Retrieving user...");
         User user = userRepository.findByKeycloakSub(keycloakSub)
                 .orElseGet(() -> {
-                    userLogger.info("User not found, creating new user...");
                     User newUser = new User();
                     newUser.setKeycloakSub(keycloakSub);
                     User savedUser = userRepository.save(newUser);
-                    userLogger.info("Created new user with id: {}", savedUser.getId());
+                    logger.info("Created user {} while adding a book", savedUser.getId());
                     return savedUser;
                 });
 
-        bookLogger.info("Creating a new book for user: {}", user.getId());
         Book newBook = new Book();
 
         newBook.setTitle(request.getTitle().trim());
@@ -65,7 +61,7 @@ public class BookService implements BookServiceInterface
         user.getBooks().add(newBook);
 
         Book savedBook = bookRepository.save(newBook);
-        bookLogger.info("Created new book with id: {} for user: {}", savedBook.getId(), user.getId());
+        logger.info("Created book {} for user {}", savedBook.getId(), user.getId());
 
         return toBookCreateResponse(savedBook);
     }
@@ -74,65 +70,60 @@ public class BookService implements BookServiceInterface
     @Transactional
     public BookUpdateResponseDTO updateBook(Long bookId, BookUpdateRequestDTO dto, String keycloakSub)
     {
-        bookLogger.info("Retrieving book with id: {}", bookId);
         Book existingBook = bookRepository.findById(bookId).orElseThrow(()->
         {
-            bookLogger.error("Book not found with id: {}", bookId);
+            logger.warn("Book {} was not found during update", bookId);
             return new ResourceNotFoundException("Book", "id", bookId);
         });
 
 
         if(!existingBook.getUser().getKeycloakSub().equals(keycloakSub))
         {
-            bookLogger.error("Current user does not own book with id: {}", bookId);
+            logger.warn("User {} attempted to update book {} they do not own", existingBook.getUser().getId(), bookId);
             throw new UnauthorizedActionException("You do not own this book");
         }
 
-        bookLogger.info("Updating book with id: {}", bookId);
         if(dto.getTitle() != null) existingBook.setTitle(dto.getTitle().trim());
         if(dto.getAuthor() != null) existingBook.setAuthor(dto.getAuthor().trim());
         if(dto.getStatus() != null) existingBook.setStatus(dto.getStatus());
         if(dto.getReadPages() != null) existingBook.setReadPages(dto.getReadPages());
         if(dto.getTotalPages() != null) existingBook.setTotalPages(dto.getTotalPages());
 
-        bookLogger.info("Book updated with id: {}", bookId);
-        return toBookUpdateResponse(bookRepository.save(existingBook));
+        Book updatedBook = bookRepository.save(existingBook);
+        logger.info("Updated book {} for user {}", bookId, updatedBook.getUser().getId());
+        return toBookUpdateResponse(updatedBook);
     }
 
     @Override
     @Transactional
     public void deleteBook(Long bookId, String keycloakSub)
     {
-        bookLogger.info("Retrieving book with id: {}", bookId);
         Book existingBook = bookRepository.findById(bookId).orElseThrow(()->
         {
-            bookLogger.error("Book not found with id: {}", bookId);
+            logger.warn("Book {} was not found during delete", bookId);
             return new ResourceNotFoundException("Book", "id", bookId);
         });
 
         if(!existingBook.getUser().getKeycloakSub().equals(keycloakSub))
         {
-            bookLogger.error("Current user does not own book with id: {}", bookId);
+            logger.warn("User {} attempted to delete book {} they do not own", existingBook.getUser().getId(), bookId);
             throw new UnauthorizedActionException("You do not own this book");
         }
 
-        bookLogger.info("Changing status to DELETED for book with id: {}", bookId);
         existingBook.setStatus(Book.BookStatus.DELETED);
-
-        bookLogger.info("Book with id: {} marked as DELETED", bookId);
         bookRepository.save(existingBook);
+        logger.info("Marked book {} as deleted", bookId);
     }
 
     @Override
     public BookReadResponseDTO getBookById(Long bookId, String keycloakSub)
     {
-        bookLogger.info("Retrieving book with id: {}", bookId);
         Book book = bookRepository.findById(bookId)
                 .filter(foundBook -> foundBook.getUser().getKeycloakSub().equals(keycloakSub))
                 .filter(foundBook -> foundBook.getStatus() != Book.BookStatus.DELETED)
                 .orElseThrow(()->
                 {
-                    bookLogger.error("Book not found with id: {}", bookId);
+                    logger.warn("Book {} was not found or was inaccessible", bookId);
                     return new ResourceNotFoundException("Book", "id", bookId);
                 });
 
@@ -142,18 +133,14 @@ public class BookService implements BookServiceInterface
     @Override
     public List<BookReadResponseDTO> getAllBooksByUserSub(String keycloakSub)
     {
-        userLogger.info("Retrieving user...");
         User user = userRepository.findByKeycloakSub(keycloakSub)
                 .orElseGet(() -> {
-                    userLogger.info("User not found, creating new user...");
                     User newUser = new User();
                     newUser.setKeycloakSub(keycloakSub);
                     User savedUser = userRepository.save(newUser);
-                    userLogger.info("Created new user with id: {}", savedUser.getId());
+                    logger.info("Created user {} while listing books", savedUser.getId());
                     return savedUser;
                 });
-
-        bookLogger.info("Retrieving all active books for user with id: {}", user.getId());
 
         List<Book> activeBooks = bookRepository.findAllActiveBooks(keycloakSub);
 
@@ -165,10 +152,9 @@ public class BookService implements BookServiceInterface
     @Override
     public void syncBookProgress(Long bookId)
     {
-        bookLogger.info("Retrieving book with id: {}", bookId);
         Book book = bookRepository.findById(bookId).orElseThrow(()->
         {
-            bookLogger.error("Book not found with id: {}", bookId);
+            logger.warn("Book {} was not found while syncing progress", bookId);
             return new ResourceNotFoundException("Book", "id", bookId);
         });
 
@@ -183,6 +169,7 @@ public class BookService implements BookServiceInterface
 
         if (book.getStatus() == Book.BookStatus.DELETED || book.getStatus() == Book.BookStatus.ARCHIVED) {
             bookRepository.save(book);
+            logger.info("Synced read progress for book {} without changing status because it is {}", bookId, book.getStatus());
             return;
         }
 
@@ -194,6 +181,7 @@ public class BookService implements BookServiceInterface
         }
 
         bookRepository.save(book);
+        logger.info("Synced book {} progress to {} pages with status {}", bookId, book.getReadPages(), book.getStatus());
     }
 
     @Override
