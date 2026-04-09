@@ -7,12 +7,12 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(
-        name = "captured_words",
+        name = "codex_entries",
         uniqueConstraints = {
-                @UniqueConstraint(name = "uk_captured_word_user_word", columnNames = {"user_id", "word_id"})
+                @UniqueConstraint(name = "uk_codex_entry_user_word", columnNames = {"user_id", "word_id"})
         }
 )
-public class CapturedWord
+public class CodexEntry
 {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,39 +27,37 @@ public class CapturedWord
 
     private Integer xpValue;
 
-    private LocalDateTime capturedAt;
+    private LocalDateTime createdAt;
+
+    @Column(name = "source_session_id")
+    private Long sourceSessionId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    @JsonBackReference("user-capturedWords")
+    @JsonBackReference("user-codexEntries")
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "session_id", nullable = false)
-    @JsonBackReference("session-capturedWords")
-    private Session session;
-
-    public CapturedWord()
+    public CodexEntry()
     {
 
     }
 
-    @PrePersist
-    protected void onCreate()
-    {
-        this.capturedAt = LocalDateTime.now();
-    }
-
-    public CapturedWord(Long id, Word word, String specificDefinition, Integer xpValue,
-                        LocalDateTime capturedAt, User user, Session session)
+    public CodexEntry(Long id, Word word, String specificDefinition, Integer xpValue,
+                      LocalDateTime createdAt, Long sourceSessionId, User user)
     {
         this.id = id;
         this.word = word;
         this.specificDefinition = specificDefinition;
         this.xpValue = xpValue;
-        this.capturedAt = capturedAt;
+        this.createdAt = createdAt;
+        this.sourceSessionId = sourceSessionId;
         this.user = user;
-        this.session = session;
+    }
+
+    @PrePersist
+    protected void onCreate()
+    {
+        this.createdAt = LocalDateTime.now();
     }
 
     public Long getId() {
@@ -94,12 +92,20 @@ public class CapturedWord
         this.xpValue = xpValue;
     }
 
-    public LocalDateTime getCapturedAt() {
-        return capturedAt;
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
-    public void setCapturedAt(LocalDateTime capturedAt) {
-        this.capturedAt = capturedAt;
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Long getSourceSessionId() {
+        return sourceSessionId;
+    }
+
+    public void setSourceSessionId(Long sourceSessionId) {
+        this.sourceSessionId = sourceSessionId;
     }
 
     public User getUser() {
@@ -108,13 +114,5 @@ public class CapturedWord
 
     public void setUser(User user) {
         this.user = user;
-    }
-
-    public Session getSession() {
-        return session;
-    }
-
-    public void setSession(Session session) {
-        this.session = session;
     }
 }

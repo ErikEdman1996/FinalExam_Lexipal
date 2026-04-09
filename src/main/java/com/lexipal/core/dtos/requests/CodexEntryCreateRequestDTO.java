@@ -3,18 +3,18 @@ package com.lexipal.core.dtos.requests;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public class CaptureCreateRequestDTO
+public class CodexEntryCreateRequestDTO
 {
     @NotBlank(message = "Lemma is required")
     @Size(max = 100, message = "Lemma must be 100 characters or fewer")
     private String lemma;
 
-    public CaptureCreateRequestDTO()
+    public CodexEntryCreateRequestDTO()
     {
 
     }
 
-    public CaptureCreateRequestDTO(String lemma)
+    public CodexEntryCreateRequestDTO(String lemma)
     {
         this.lemma = lemma;
     }

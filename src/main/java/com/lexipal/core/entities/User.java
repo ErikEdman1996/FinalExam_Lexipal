@@ -1,7 +1,9 @@
 package com.lexipal.core.entities;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,8 +42,8 @@ public class User
     private List<Session> sessions = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    @JsonManagedReference("user-capturedWords")
-    private List<CapturedWord> capturedWords = new ArrayList<>();
+    @JsonManagedReference("user-codexEntries")
+    private List<CodexEntry> codexEntries = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonManagedReference("user-dailyActivities")
@@ -65,7 +67,8 @@ public class User
 
     public User(String keycloakSub, LocalDateTime createdAt, UserStatus status,
                 Integer totalPagesRead, Integer totalBooksRead, List<Book> books, List<Session> sessions,
-                List<CapturedWord> capturedWords) {
+                List<CodexEntry> codexEntries)
+    {
         this.keycloakSub = keycloakSub;
         this.createdAt = createdAt;
         this.status = status;
@@ -73,7 +76,7 @@ public class User
         this.totalBooksRead = totalBooksRead;
         this.books = books;
         this.sessions = sessions;
-        this.capturedWords = capturedWords;
+        this.codexEntries = codexEntries;
     }
 
     @PrePersist
@@ -159,12 +162,12 @@ public class User
         this.sessions = sessions;
     }
 
-    public List<CapturedWord> getCapturedWords() {
-        return capturedWords;
+    public List<CodexEntry> getCodexEntries() {
+        return codexEntries;
     }
 
-    public void setCapturedWords(List<CapturedWord> capturedWords) {
-        this.capturedWords = capturedWords;
+    public void setCodexEntries(List<CodexEntry> codexEntries) {
+        this.codexEntries = codexEntries;
     }
 
     public List<DailyActivity> getDailyActivities() {

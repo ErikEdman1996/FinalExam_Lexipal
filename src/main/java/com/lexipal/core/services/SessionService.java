@@ -208,7 +208,7 @@ public class SessionService implements SessionServiceInterface
                 session.getReflection(),
                 session.getStatus().name(),
                 session.getSessionDate(),
-                session.getCapturedWords().size()
+                session.getCapturedWordCount()
         );
     }
 
@@ -224,7 +224,7 @@ public class SessionService implements SessionServiceInterface
                 session.getReflection(),
                 session.getStatus().name(),
                 session.getSessionDate(),
-                session.getCapturedWords().size()
+                session.getCapturedWordCount()
         );
     }
 
@@ -240,7 +240,7 @@ public class SessionService implements SessionServiceInterface
                 session.getReflection(),
                 session.getStatus().name(),
                 session.getSessionDate(),
-                session.getCapturedWords().size()
+                session.getCapturedWordCount()
         );
     }
 }

@@ -83,7 +83,7 @@ public class ProfileService implements ProfileServiceInterface
                 .filter(session -> session.getStatus() == Session.SessionStatus.COMPLETED)
                 .count();
 
-        int totalCapturedWords = user.getCapturedWords().size();
+        int totalCapturedWords = user.getCodexEntries().size();
 
         int totalXpEarned = user.getDailyActivities().stream()
                 .map(DailyActivity::getXpEarned)

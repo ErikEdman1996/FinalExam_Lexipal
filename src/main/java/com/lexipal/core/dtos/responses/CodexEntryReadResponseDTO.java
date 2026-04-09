@@ -4,37 +4,37 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import java.time.LocalDateTime;
 
-public class CaptureReadResponseDTO
+public class CodexEntryReadResponseDTO
 {
     private Long id;
     private Long wordId;
-    private Long sessionId;
+    private Long sourceSessionId;
     private String lemma;
     private String specificDefinition;
     private Integer xpValue;
-    private LocalDateTime capturedAt;
+    private LocalDateTime createdAt;
     private Double rarityScore;
     private String rarityTier;
     private String source;
     private JsonNode definitions;
     private JsonNode phonetics;
 
-    public CaptureReadResponseDTO()
+    public CodexEntryReadResponseDTO()
     {
 
     }
 
-    public CaptureReadResponseDTO(Long id, Long wordId, Long sessionId, String lemma, String specificDefinition,
-                                  Integer xpValue, LocalDateTime capturedAt, Double rarityScore, String source,
-                                  JsonNode definitions, JsonNode phonetics)
+    public CodexEntryReadResponseDTO(Long id, Long wordId, Long sourceSessionId, String lemma, String specificDefinition,
+                                     Integer xpValue, LocalDateTime createdAt, Double rarityScore, String source,
+                                     JsonNode definitions, JsonNode phonetics)
     {
         this.id = id;
         this.wordId = wordId;
-        this.sessionId = sessionId;
+        this.sourceSessionId = sourceSessionId;
         this.lemma = lemma;
         this.specificDefinition = specificDefinition;
         this.xpValue = xpValue;
-        this.capturedAt = capturedAt;
+        this.createdAt = createdAt;
         this.rarityScore = rarityScore;
         this.rarityTier = determineTier(rarityScore);
         this.source = source;
@@ -66,12 +66,12 @@ public class CaptureReadResponseDTO
         this.wordId = wordId;
     }
 
-    public Long getSessionId() {
-        return sessionId;
+    public Long getSourceSessionId() {
+        return sourceSessionId;
     }
 
-    public void setSessionId(Long sessionId) {
-        this.sessionId = sessionId;
+    public void setSourceSessionId(Long sourceSessionId) {
+        this.sourceSessionId = sourceSessionId;
     }
 
     public String getLemma() {
@@ -98,12 +98,12 @@ public class CaptureReadResponseDTO
         this.xpValue = xpValue;
     }
 
-    public LocalDateTime getCapturedAt() {
-        return capturedAt;
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
-    public void setCapturedAt(LocalDateTime capturedAt) {
-        this.capturedAt = capturedAt;
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 
     public Double getRarityScore() {

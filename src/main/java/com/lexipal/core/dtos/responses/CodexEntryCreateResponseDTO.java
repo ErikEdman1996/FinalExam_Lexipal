@@ -1,29 +1,29 @@
 package com.lexipal.core.dtos.responses;
 
-public class CaptureCreateResponseDTO
+public class CodexEntryCreateResponseDTO
 {
-    private CaptureReadResponseDTO capturedWord;
+    private CodexEntryReadResponseDTO codexEntry;
     private boolean isNewCapture;
     private String rarityTier;
 
-    public CaptureCreateResponseDTO()
+    public CodexEntryCreateResponseDTO()
     {
 
     }
 
-    public CaptureCreateResponseDTO(CaptureReadResponseDTO capturedWord, boolean isNewCapture)
+    public CodexEntryCreateResponseDTO(CodexEntryReadResponseDTO codexEntry, boolean isNewCapture)
     {
-        this.capturedWord = capturedWord;
+        this.codexEntry = codexEntry;
         this.isNewCapture = isNewCapture;
-        this.rarityTier = capturedWord.getRarityTier();
+        this.rarityTier = codexEntry.getRarityTier();
     }
 
-    public CaptureReadResponseDTO getCapturedWord() {
-        return capturedWord;
+    public CodexEntryReadResponseDTO getCodexEntry() {
+        return codexEntry;
     }
 
-    public void setCapturedWord(CaptureReadResponseDTO capturedWord) {
-        this.capturedWord = capturedWord;
+    public void setCodexEntry(CodexEntryReadResponseDTO codexEntry) {
+        this.codexEntry = codexEntry;
     }
 
     public boolean isNewCapture() {

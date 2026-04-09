@@ -50,9 +50,8 @@ public class Session
     @JsonBackReference(value = "book-sessions")
     private Book book;
 
-    @OneToMany(mappedBy = "session", cascade = CascadeType.ALL)
-    @JsonManagedReference("session-capturedWords")
-    private List<CapturedWord> capturedWords = new ArrayList<>();
+    @Column(nullable = false)
+    private Integer capturedWordCount;
 
     @OneToMany(mappedBy = "session", cascade = CascadeType.ALL)
     @JsonManagedReference("session-dailyActivities")
@@ -64,7 +63,8 @@ public class Session
     }
 
     public Session(Long durationSeconds, Integer startPage, Integer endPage, Integer pagesRead,
-                   String reflection, SessionStatus status, LocalDateTime sessionDate, User user, Book book, List<CapturedWord> capturedWords)
+                   String reflection, SessionStatus status, LocalDateTime sessionDate, User user, Book book,
+                   Integer capturedWordCount)
     {
         this.durationSeconds = durationSeconds;
         this.startPage = startPage;
@@ -75,7 +75,7 @@ public class Session
         this.sessionDate = sessionDate;
         this.user = user;
         this.book = book;
-        this.capturedWords = capturedWords;
+        this.capturedWordCount = capturedWordCount;
     }
 
     @PrePersist
@@ -84,9 +84,14 @@ public class Session
         this.sessionDate = LocalDateTime.now();
         this.status = SessionStatus.IN_PROGRESS;
 
-        if(this.startPage != null && this.endPage != null)
+        if (this.startPage != null && this.endPage != null)
         {
             this.pagesRead = Math.max(0, this.endPage - this.startPage);
+        }
+
+        if (this.capturedWordCount == null)
+        {
+            this.capturedWordCount = 0;
         }
     }
 
@@ -162,12 +167,12 @@ public class Session
         this.user = user;
     }
 
-    public List<CapturedWord> getCapturedWords() {
-        return capturedWords;
+    public Integer getCapturedWordCount() {
+        return capturedWordCount;
     }
 
-    public void setCapturedWords(List<CapturedWord> capturedWords) {
-        this.capturedWords = capturedWords;
+    public void setCapturedWordCount(Integer capturedWordCount) {
+        this.capturedWordCount = capturedWordCount;
     }
 
     public List<DailyActivity> getDailyActivities() {
