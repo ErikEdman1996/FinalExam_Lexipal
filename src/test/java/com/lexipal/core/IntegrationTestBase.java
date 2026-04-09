@@ -2,8 +2,11 @@ package com.lexipal.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lexipal.core.config.TestSecurityConfig;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
@@ -29,6 +32,20 @@ public abstract class IntegrationTestBase
 
     @Autowired
     protected ObjectMapper objectMapper;
+
+    @Autowired
+    protected CacheManager cacheManager;
+
+    @BeforeEach
+    void clearCaches()
+    {
+        Cache wordsCache = cacheManager.getCache("words");
+
+        if (wordsCache != null)
+        {
+            wordsCache.clear();
+        }
+    }
 
     /**
      * Creates a mock JWT RequestPostProcessor with the given Keycloak subject.

@@ -1,10 +1,8 @@
 package com.lexipal.core.dtos.responses;
 
-import com.lexipal.core.entities.CapturedWord;
-
 public class CaptureCreateResponseDTO
 {
-    private CapturedWord capturedWord;
+    private CaptureReadResponseDTO capturedWord;
     private boolean isNewCapture;
     private String rarityTier;
 
@@ -13,25 +11,18 @@ public class CaptureCreateResponseDTO
 
     }
 
-    public CaptureCreateResponseDTO(CapturedWord capturedWord, boolean isNewCapture)
+    public CaptureCreateResponseDTO(CaptureReadResponseDTO capturedWord, boolean isNewCapture)
     {
         this.capturedWord = capturedWord;
         this.isNewCapture = isNewCapture;
-        this.rarityTier = determineTier(capturedWord.getWord().getRarityScore());
+        this.rarityTier = capturedWord.getRarityTier();
     }
 
-    private String determineTier(Double score)
-    {
-        if (score >= 0.9) return "MYTHIC";  // Purple/Gold borders
-        if (score >= 0.7) return "RARE";    // Blue borders
-        return "COMMON";                    // Standard borders
-    }
-
-    public CapturedWord getCapturedWord() {
+    public CaptureReadResponseDTO getCapturedWord() {
         return capturedWord;
     }
 
-    public void setCapturedWord(CapturedWord capturedWord) {
+    public void setCapturedWord(CaptureReadResponseDTO capturedWord) {
         this.capturedWord = capturedWord;
     }
 

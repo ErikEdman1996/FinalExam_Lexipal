@@ -77,7 +77,7 @@ public class CapturedWordService implements CapturedWordServiceInterface
         if(existingWord.isPresent())
         {
             logger.info("Returned existing captured word for lemma '{}' for user {}", cleanLemma, existingUser.get().getId());
-            return new CaptureCreateResponseDTO(existingWord.get(), false);
+            return new CaptureCreateResponseDTO(toCaptureReadResponse(existingWord.get()), false);
         }
 
         Word globalWord = wordService.saveWordFromApi(cleanLemma);
@@ -95,7 +95,7 @@ public class CapturedWordService implements CapturedWordServiceInterface
         sessionRepository.save(existingSession.get());
         logger.info("Captured new word '{}' in session {} for user {}", cleanLemma, existingSession.get().getId(), existingUser.get().getId());
 
-        return new CaptureCreateResponseDTO(newCapture, true);
+        return new CaptureCreateResponseDTO(toCaptureReadResponse(newCapture), true);
     }
 
     @Override

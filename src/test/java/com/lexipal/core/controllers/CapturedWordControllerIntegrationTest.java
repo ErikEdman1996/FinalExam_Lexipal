@@ -179,7 +179,9 @@ class CapturedWordControllerIntegrationTest extends IntegrationTestBase
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.newCapture").value(false));
+                .andExpect(jsonPath("$.newCapture").value(false))
+                .andExpect(jsonPath("$.capturedWord.lemma").value("ephemeral"))
+                .andExpect(jsonPath("$.capturedWord.wordId").isNumber());
     }
 
     @Test
