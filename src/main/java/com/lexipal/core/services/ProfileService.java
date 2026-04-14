@@ -8,6 +8,7 @@ import com.lexipal.core.entities.Book;
 import com.lexipal.core.entities.DailyActivity;
 import com.lexipal.core.entities.Session;
 import com.lexipal.core.entities.User;
+import com.lexipal.core.repositories.SessionRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,13 +23,19 @@ public class ProfileService implements ProfileServiceInterface
 
     private final UserServiceInterface userService;
     private final StreakMetaDataServiceInterface streakMetaDataService;
+    private final XpService xpService;
+    private final SessionRepository sessionRepository;
 
     @Autowired
     public ProfileService(final UserServiceInterface userService,
-                          final StreakMetaDataServiceInterface streakMetaDataService)
+                          final StreakMetaDataServiceInterface streakMetaDataService,
+                          final XpService xpService,
+                          final SessionRepository sessionRepository)
     {
         this.userService = userService;
         this.streakMetaDataService = streakMetaDataService;
+        this.xpService = xpService;
+        this.sessionRepository = sessionRepository;
     }
 
     @Override
@@ -57,7 +64,15 @@ public class ProfileService implements ProfileServiceInterface
 
     private ProfileStatsResponseDTO buildStats(User user)
     {
-        int totalPagesRead = user.getSessions().stream()
+        List<Session> userSessions = sessionRepository.findByUser_Id(user.getId());
+
+        long totalMinutesRead = userSessions.stream()
+                .map(Session::getDurationSeconds)
+                .filter(durationSeconds -> durationSeconds != null && durationSeconds > 0)
+                .mapToLong(Long::longValue)
+                .sum() / 60;
+
+        int totalPagesRead = userSessions.stream()
                 .filter(session -> session.getStatus() == Session.SessionStatus.COMPLETED)
                 .map(Session::getPagesRead)
                 .filter(pagesRead -> pagesRead != null && pagesRead > 0)
@@ -68,19 +83,16 @@ public class ProfileService implements ProfileServiceInterface
                 .filter(book -> book.getStatus() == Book.BookStatus.COMPLETE)
                 .count();
 
-        int totalSessionsCompleted = (int) user.getSessions().stream()
+        int totalSessionsCompleted = (int) userSessions.stream()
                 .filter(session -> session.getStatus() == Session.SessionStatus.COMPLETED)
                 .count();
 
         int totalCapturedWords = user.getCodexEntries().size();
 
-        int totalXpEarned = user.getDailyActivities().stream()
-                .map(DailyActivity::getXpEarned)
-                .filter(xp -> xp != null && xp > 0)
-                .mapToInt(Integer::intValue)
-                .sum();
+        int totalXpEarned = xpService.getCurrentTotalXp(user);
 
         return new ProfileStatsResponseDTO(
+                totalMinutesRead,
                 totalPagesRead,
                 totalBooksRead,
                 totalSessionsCompleted,

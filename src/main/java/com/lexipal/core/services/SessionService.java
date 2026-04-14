@@ -5,6 +5,7 @@ import com.lexipal.core.dtos.requests.SessionUpdateRequestDTO;
 import com.lexipal.core.dtos.responses.SessionCreateResponseDTO;
 import com.lexipal.core.dtos.responses.SessionReadResponseDTO;
 import com.lexipal.core.dtos.responses.SessionUpdateResponseDTO;
+import com.lexipal.core.dtos.responses.XpUpdateResponseDTO;
 import com.lexipal.core.entities.Book;
 import com.lexipal.core.entities.Session;
 import com.lexipal.core.entities.User;
@@ -31,19 +32,22 @@ public class SessionService implements SessionServiceInterface
     private final BookServiceInterface bookService;
     private final DailyActivityServiceInterface dailyActivityService;
     private final UserServiceInterface userService;
+    private final XpService xpService;
 
     @Autowired
     public SessionService(final SessionRepository sessionRepository,
                           final BookRepository bookRepository,
                           final BookServiceInterface bookService,
                           final DailyActivityServiceInterface dailyActivityService,
-                          final UserServiceInterface userService)
+                          final UserServiceInterface userService,
+                          final XpService xpService)
     {
         this.sessionRepository = sessionRepository;
         this.bookRepository = bookRepository;
         this.bookService = bookService;
         this.dailyActivityService = dailyActivityService;
         this.userService = userService;
+        this.xpService = xpService;
     }
 
     @Override
@@ -77,7 +81,7 @@ public class SessionService implements SessionServiceInterface
         bookService.syncBookProgress(book.getId());
         logger.info("Created session {} for book {} and user {}", savedSession.getId(), book.getId(), user.getId());
 
-        return toSessionCreateResponse(savedSession);
+        return toSessionCreateResponse(savedSession, null);
     }
 
     @Override
@@ -150,14 +154,16 @@ public class SessionService implements SessionServiceInterface
 
         bookService.syncBookProgress(updatedSession.getBook().getId());
 
+        XpUpdateResponseDTO xpUpdate = null;
         if (!wasCompleted && updatedSession.getStatus() == Session.SessionStatus.COMPLETED)
         {
             dailyActivityService.recordSessionCompletedActivity(updatedSession);
+            xpUpdate = xpService.awardXp(updatedSession.getUser(), 25);
         }
 
         logger.info("Updated session {} with status {}", updatedSession.getId(), updatedSession.getStatus());
 
-        return toSessionUpdateResponse(updatedSession);
+        return toSessionUpdateResponse(updatedSession, xpUpdate);
     }
 
     private void validateBookCanAcceptSessionChanges(Book book)
@@ -194,7 +200,7 @@ public class SessionService implements SessionServiceInterface
                 .collect(Collectors.toList());
     }
 
-    private SessionCreateResponseDTO toSessionCreateResponse(Session session)
+    private SessionCreateResponseDTO toSessionCreateResponse(Session session, XpUpdateResponseDTO xpUpdate)
     {
         return new SessionCreateResponseDTO(
                 session.getId(),
@@ -206,7 +212,8 @@ public class SessionService implements SessionServiceInterface
                 session.getReflection(),
                 session.getStatus().name(),
                 session.getSessionDate(),
-                session.getCapturedWordCount()
+                session.getCapturedWordCount(),
+                xpUpdate
         );
     }
 
@@ -226,7 +233,7 @@ public class SessionService implements SessionServiceInterface
         );
     }
 
-    private SessionUpdateResponseDTO toSessionUpdateResponse(Session session)
+    private SessionUpdateResponseDTO toSessionUpdateResponse(Session session, XpUpdateResponseDTO xpUpdate)
     {
         return new SessionUpdateResponseDTO(
                 session.getId(),
@@ -238,7 +245,8 @@ public class SessionService implements SessionServiceInterface
                 session.getReflection(),
                 session.getStatus().name(),
                 session.getSessionDate(),
-                session.getCapturedWordCount()
+                session.getCapturedWordCount(),
+                xpUpdate
         );
     }
 }

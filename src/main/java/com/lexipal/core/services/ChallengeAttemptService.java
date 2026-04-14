@@ -28,19 +28,22 @@ public class ChallengeAttemptService implements ChallengeAttemptServiceInterface
     private final CodexEntryRepository codexEntryRepository;
     private final WordRepository wordRepository;
     private final UserServiceInterface userService;
+    private final XpService xpService;
 
     @Autowired
     public ChallengeAttemptService(final ChallengeAttemptRepository challengeAttemptRepository,
                                    final ChallengeRepository challengeRepository,
                                    final CodexEntryRepository codexEntryRepository,
                                    final WordRepository wordRepository,
-                                   final UserServiceInterface userService)
+                                   final UserServiceInterface userService,
+                                   final XpService xpService)
     {
         this.challengeAttemptRepository = challengeAttemptRepository;
         this.challengeRepository = challengeRepository;
         this.codexEntryRepository = codexEntryRepository;
         this.wordRepository = wordRepository;
         this.userService = userService;
+        this.xpService = xpService;
     }
 
     @Override
@@ -87,7 +90,7 @@ public class ChallengeAttemptService implements ChallengeAttemptServiceInterface
         user.getChallengeAttempts().add(savedAttempt);
         challenge.getAttempts().add(savedAttempt);
 
-        return toChallengeAttemptReadResponse(savedAttempt);
+        return toChallengeAttemptReadResponse(savedAttempt, xpService.awardXp(user, savedAttempt.getXpAwarded()));
     }
 
     @Override
@@ -131,6 +134,12 @@ public class ChallengeAttemptService implements ChallengeAttemptServiceInterface
 
     private ChallengeAttemptReadResponseDTO toChallengeAttemptReadResponse(ChallengeAttempt attempt)
     {
+        return toChallengeAttemptReadResponse(attempt, null);
+    }
+
+    private ChallengeAttemptReadResponseDTO toChallengeAttemptReadResponse(ChallengeAttempt attempt,
+                                                                           com.lexipal.core.dtos.responses.XpUpdateResponseDTO xpUpdate)
+    {
         CodexEntry codexEntry = attempt.getCodexEntry();
         Word sourceWord = codexEntry != null ? codexEntry.getWord() : attempt.getWord();
         String definitionPreview = codexEntry != null && codexEntry.getSpecificDefinition() != null
@@ -148,7 +157,8 @@ public class ChallengeAttemptService implements ChallengeAttemptServiceInterface
                 codexEntry != null ? codexEntry.getId() : null,
                 attempt.getWord() != null ? attempt.getWord().getId() : null,
                 sourceWord != null ? sourceWord.getLemma() : null,
-                definitionPreview
+                definitionPreview,
+                xpUpdate
         );
     }
 
@@ -166,6 +176,20 @@ public class ChallengeAttemptService implements ChallengeAttemptServiceInterface
             JsonNode first = definitions.get(0);
             if (first != null)
             {
+                JsonNode sensesNode = first.get("senses");
+                if (sensesNode != null && sensesNode.isArray() && !sensesNode.isEmpty())
+                {
+                    JsonNode firstSense = sensesNode.get(0);
+                    if (firstSense != null)
+                    {
+                        JsonNode definitionNode = firstSense.get("definition");
+                        if (definitionNode != null && definitionNode.isTextual())
+                        {
+                            return definitionNode.asText();
+                        }
+                    }
+                }
+
                 if (first.isTextual())
                 {
                     return first.asText();

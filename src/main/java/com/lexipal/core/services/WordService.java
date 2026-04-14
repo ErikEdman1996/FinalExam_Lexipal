@@ -1,6 +1,9 @@
 package com.lexipal.core.services;
 
 import com.lexipal.core.dtos.requests.DictionaryAPIRequestDTO;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.lexipal.core.entities.Word;
 import com.lexipal.core.exceptions.ExternalServiceException;
 import com.lexipal.core.exceptions.ResourceNotFoundException;
@@ -58,8 +61,8 @@ public class WordService implements WordServiceInterface
             newWord.setLemma(dto.getWord().toLowerCase());
             newWord.setSource("Free Dictionary API");
 
-            newWord.setDefinitions(dto.getMeanings());
-            newWord.setPhonetics(dto.getPhonetics());
+            newWord.setDefinitions(dto.getEntries());
+            newWord.setPhonetics(extractPronunciations(dto.getEntries()));
 
             newWord.setRarityScore(wordFrequencyService.resolveRarityScore(newWord.getLemma()));
 
@@ -77,5 +80,29 @@ public class WordService implements WordServiceInterface
         }
 
         return lemma.trim().toLowerCase();
+    }
+
+    private JsonNode extractPronunciations(JsonNode entries)
+    {
+        ArrayNode pronunciations = JsonNodeFactory.instance.arrayNode();
+
+        if (entries == null || !entries.isArray())
+        {
+            return pronunciations;
+        }
+
+        for (JsonNode entry : entries)
+        {
+            JsonNode entryPronunciations = entry.get("pronunciations");
+            if (entryPronunciations != null && entryPronunciations.isArray())
+            {
+                for (JsonNode pronunciation : entryPronunciations)
+                {
+                    pronunciations.add(pronunciation);
+                }
+            }
+        }
+
+        return pronunciations;
     }
 }

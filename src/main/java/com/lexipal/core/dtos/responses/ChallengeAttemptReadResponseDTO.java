@@ -15,6 +15,7 @@ public class ChallengeAttemptReadResponseDTO
     private Long wordId;
     private String lemma;
     private String definitionPreview;
+    private XpUpdateResponseDTO xpUpdate;
 
     public ChallengeAttemptReadResponseDTO()
     {
@@ -23,7 +24,8 @@ public class ChallengeAttemptReadResponseDTO
 
     public ChallengeAttemptReadResponseDTO(Long id, String userAnswer, String result, Integer xpAwarded,
                                            LocalDateTime attemptedAt, Long challengeId, String challengeType,
-                                           Long codexEntryId, Long wordId, String lemma, String definitionPreview)
+                                           Long codexEntryId, Long wordId, String lemma, String definitionPreview,
+                                           XpUpdateResponseDTO xpUpdate)
     {
         this.id = id;
         this.userAnswer = userAnswer;
@@ -36,6 +38,7 @@ public class ChallengeAttemptReadResponseDTO
         this.wordId = wordId;
         this.lemma = lemma;
         this.definitionPreview = definitionPreview;
+        this.xpUpdate = xpUpdate;
     }
 
     public Long getId()
@@ -146,5 +149,15 @@ public class ChallengeAttemptReadResponseDTO
     public void setDefinitionPreview(String definitionPreview)
     {
         this.definitionPreview = definitionPreview;
+    }
+
+    public XpUpdateResponseDTO getXpUpdate()
+    {
+        return xpUpdate;
+    }
+
+    public void setXpUpdate(XpUpdateResponseDTO xpUpdate)
+    {
+        this.xpUpdate = xpUpdate;
     }
 }

@@ -33,6 +33,9 @@ public class User
     @Column
     private Integer totalBooksRead;
 
+    @Column
+    private Integer totalXp;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonManagedReference("user-books")
     private List<Book> books = new ArrayList<>();
@@ -90,6 +93,7 @@ public class User
         this.status = UserStatus.ACTIVE;
         this.totalPagesRead = 0;
         this.totalBooksRead = 0;
+        this.totalXp = 0;
     }
 
     public Long getId()
@@ -148,6 +152,16 @@ public class User
     public void setTotalBooksRead(Integer totalBooksRead)
     {
         this.totalBooksRead = totalBooksRead;
+    }
+
+    public Integer getTotalXp()
+    {
+        return totalXp;
+    }
+
+    public void setTotalXp(Integer totalXp)
+    {
+        this.totalXp = totalXp;
     }
 
     public List<Book> getBooks() {

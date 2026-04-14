@@ -14,6 +14,7 @@ public class SessionUpdateResponseDTO
     private String status;
     private LocalDateTime sessionDate;
     private int capturedWordCount;
+    private XpUpdateResponseDTO xpUpdate;
 
     public SessionUpdateResponseDTO()
     {
@@ -22,7 +23,7 @@ public class SessionUpdateResponseDTO
 
     public SessionUpdateResponseDTO(Long id, Long bookId, Long durationSeconds, Integer startPage, Integer endPage,
                                     Integer pagesRead, String reflection, String status, LocalDateTime sessionDate,
-                                    int capturedWordCount)
+                                    int capturedWordCount, XpUpdateResponseDTO xpUpdate)
     {
         this.id = id;
         this.bookId = bookId;
@@ -34,6 +35,7 @@ public class SessionUpdateResponseDTO
         this.status = status;
         this.sessionDate = sessionDate;
         this.capturedWordCount = capturedWordCount;
+        this.xpUpdate = xpUpdate;
     }
 
     public Long getId() {
@@ -114,5 +116,15 @@ public class SessionUpdateResponseDTO
 
     public void setCapturedWordCount(int capturedWordCount) {
         this.capturedWordCount = capturedWordCount;
+    }
+
+    public XpUpdateResponseDTO getXpUpdate()
+    {
+        return xpUpdate;
+    }
+
+    public void setXpUpdate(XpUpdateResponseDTO xpUpdate)
+    {
+        this.xpUpdate = xpUpdate;
     }
 }

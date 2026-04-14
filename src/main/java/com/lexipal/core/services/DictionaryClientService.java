@@ -5,12 +5,9 @@ import com.lexipal.core.exceptions.ExternalServiceException;
 import com.lexipal.core.exceptions.ResourceNotFoundException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
-
-import java.util.List;
 
 @Service
 public class DictionaryClientService
@@ -22,25 +19,28 @@ public class DictionaryClientService
     public DictionaryClientService(final RestClient.Builder clientBuilder)
     {
         restClient = clientBuilder
-                .baseUrl("https://api.dictionaryapi.dev/api/v2/entries/en/")
+                .baseUrl("https://freedictionaryapi.com/api/v1")
                 .build();
     }
 
     public DictionaryAPIRequestDTO fetchWordFromApi(String word)
     {
         try {
-            logger.info("Fetching word '{}' from dictionary API", word);
-            List<DictionaryAPIRequestDTO> response = restClient.get()
-                    .uri("/{word}", word)
+            logger.info("Fetching word '{}' from Free Dictionary API", word);
+            DictionaryAPIRequestDTO response = restClient.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/entries/{language}/{word}")
+                            .queryParam("translations", false)
+                            .build("en", word))
                     .retrieve()
                     .onStatus(status -> status.value() == 404, (request, res) -> {
                         throw new ResourceNotFoundException("Word", "lemma", word);
                     })
-                    .body(new ParameterizedTypeReference<List<DictionaryAPIRequestDTO>>() {});
+                    .body(DictionaryAPIRequestDTO.class);
 
-            if (response != null && !response.isEmpty()) {
+            if (response != null) {
                 logger.info("Received dictionary API response for word '{}'", word);
-                return response.get(0);
+                return response;
             }
 
             logger.warn("Dictionary API returned an empty response for word '{}'", word);
@@ -48,7 +48,7 @@ public class DictionaryClientService
         } catch (ResourceNotFoundException ex) {
             throw ex;
         } catch (RestClientException ex) {
-            logger.error("Dictionary API request failed for word '{}'", word, ex);
+            logger.error("Free Dictionary API request failed for word '{}'", word, ex);
             throw new ExternalServiceException("Dictionary service is unavailable for word: " + word, ex);
         }
     }

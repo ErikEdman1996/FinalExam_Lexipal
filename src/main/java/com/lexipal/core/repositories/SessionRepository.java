@@ -15,4 +15,6 @@ public interface SessionRepository extends JpaRepository<Session, Long>
     Integer findMaxEndPageByBookId(@Param("bookId") Long bookId);
 
     List<Session> findByBookIdOrderBySessionDateDesc(Long bookId);
+
+    List<Session> findByUser_Id(Long userId);
 }

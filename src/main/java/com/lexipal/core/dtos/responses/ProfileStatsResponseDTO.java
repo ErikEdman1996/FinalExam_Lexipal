@@ -2,6 +2,7 @@ package com.lexipal.core.dtos.responses;
 
 public class ProfileStatsResponseDTO
 {
+    private Long totalMinutesRead;
     private Integer totalPagesRead;
     private Integer totalBooksRead;
     private Integer totalSessionsCompleted;
@@ -13,14 +14,23 @@ public class ProfileStatsResponseDTO
 
     }
 
-    public ProfileStatsResponseDTO(Integer totalPagesRead, Integer totalBooksRead, Integer totalSessionsCompleted,
+    public ProfileStatsResponseDTO(Long totalMinutesRead, Integer totalPagesRead, Integer totalBooksRead, Integer totalSessionsCompleted,
                                    Integer totalCapturedWords, Integer totalXpEarned)
     {
+        this.totalMinutesRead = totalMinutesRead;
         this.totalPagesRead = totalPagesRead;
         this.totalBooksRead = totalBooksRead;
         this.totalSessionsCompleted = totalSessionsCompleted;
         this.totalCapturedWords = totalCapturedWords;
         this.totalXpEarned = totalXpEarned;
+    }
+
+    public Long getTotalMinutesRead() {
+        return totalMinutesRead;
+    }
+
+    public void setTotalMinutesRead(Long totalMinutesRead) {
+        this.totalMinutesRead = totalMinutesRead;
     }
 
     public Integer getTotalPagesRead() {

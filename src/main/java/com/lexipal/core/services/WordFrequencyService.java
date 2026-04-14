@@ -48,7 +48,7 @@ public class WordFrequencyService
 
         if (rank == null)
         {
-            return RARE_RARITY;
+            return UNCOMMON_RARITY;
         }
 
         if (maxTrackedRank <= 1)

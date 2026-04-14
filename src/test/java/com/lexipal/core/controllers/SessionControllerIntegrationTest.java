@@ -259,7 +259,10 @@ class SessionControllerIntegrationTest extends IntegrationTestBase
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("COMPLETED"));
+                .andExpect(jsonPath("$.status").value("COMPLETED"))
+                .andExpect(jsonPath("$.xpUpdate.xpAwarded").value(25))
+                .andExpect(jsonPath("$.xpUpdate.previousTotalXp").value(0))
+                .andExpect(jsonPath("$.xpUpdate.newTotalXp").value(25));
     }
 
     @Test

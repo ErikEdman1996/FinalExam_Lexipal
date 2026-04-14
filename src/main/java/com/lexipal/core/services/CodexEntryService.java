@@ -24,22 +24,29 @@ import java.util.stream.Collectors;
 public class CodexEntryService implements CodexEntryServiceInterface
 {
     private static final Logger logger = LogManager.getLogger(CodexEntryService.class);
+    private static final int COMMON_CAPTURE_XP = 10;
+    private static final int UNCOMMON_CAPTURE_XP = 20;
+    private static final int RARE_CAPTURE_XP = 30;
+    private static final int MYTHIC_CAPTURE_XP = 50;
 
     private final CodexEntryRepository codexEntryRepository;
     private final WordService wordService;
     private final SessionRepository sessionRepository;
     private final UserServiceInterface userService;
+    private final XpService xpService;
 
     @Autowired
     public CodexEntryService(final CodexEntryRepository codexEntryRepository,
                              final WordService wordService,
                              final SessionRepository sessionRepository,
-                             final UserServiceInterface userService)
+                             final UserServiceInterface userService,
+                             final XpService xpService)
     {
         this.codexEntryRepository = codexEntryRepository;
         this.wordService = wordService;
         this.sessionRepository = sessionRepository;
         this.userService = userService;
+        this.xpService = xpService;
     }
 
     @Override
@@ -67,7 +74,11 @@ public class CodexEntryService implements CodexEntryServiceInterface
         if (existingEntry.isPresent())
         {
             logger.info("Returned existing codex entry for lemma '{}' for user {}", cleanLemma, user.getId());
-            return new CodexEntryCreateResponseDTO(toCodexEntryReadResponse(existingEntry.get()), false);
+            return new CodexEntryCreateResponseDTO(
+                    toCodexEntryReadResponse(existingEntry.get()),
+                    false,
+                    xpService.buildZeroAwardUpdate(user)
+            );
         }
 
         Word globalWord = wordService.saveWordFromApi(cleanLemma);
@@ -76,7 +87,7 @@ public class CodexEntryService implements CodexEntryServiceInterface
         newCodexEntry.setWord(globalWord);
         newCodexEntry.setUser(user);
         newCodexEntry.setSourceSessionId(session.getId());
-        newCodexEntry.setXpValue(10);
+        newCodexEntry.setXpValue(resolveCaptureXp(globalWord));
 
         codexEntryRepository.save(newCodexEntry);
         user.getCodexEntries().add(newCodexEntry);
@@ -86,7 +97,11 @@ public class CodexEntryService implements CodexEntryServiceInterface
 
         logger.info("Added new codex entry '{}' from session {} for user {}", cleanLemma, session.getId(), user.getId());
 
-        return new CodexEntryCreateResponseDTO(toCodexEntryReadResponse(newCodexEntry), true);
+        return new CodexEntryCreateResponseDTO(
+                toCodexEntryReadResponse(newCodexEntry),
+                true,
+                xpService.awardXp(user, newCodexEntry.getXpValue())
+        );
     }
 
     @Override
@@ -116,5 +131,32 @@ public class CodexEntryService implements CodexEntryServiceInterface
                 codexEntry.getWord().getDefinitions(),
                 codexEntry.getWord().getPhonetics()
         );
+    }
+
+    private int resolveCaptureXp(Word word)
+    {
+        Double rarityScore = word.getRarityScore();
+
+        if (rarityScore == null)
+        {
+            return COMMON_CAPTURE_XP;
+        }
+
+        if (rarityScore >= 0.9)
+        {
+            return MYTHIC_CAPTURE_XP;
+        }
+
+        if (rarityScore >= 0.7)
+        {
+            return RARE_CAPTURE_XP;
+        }
+
+        if (rarityScore >= 0.5)
+        {
+            return UNCOMMON_CAPTURE_XP;
+        }
+
+        return COMMON_CAPTURE_XP;
     }
 }

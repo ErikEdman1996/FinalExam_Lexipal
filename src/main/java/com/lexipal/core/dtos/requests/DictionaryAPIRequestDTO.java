@@ -8,11 +8,8 @@ public class DictionaryAPIRequestDTO
 {
 
     private String word;
-    private String phonetic;
-
-    private JsonNode phonetics;
-    private JsonNode meanings;
-    private String origin;
+    private JsonNode entries;
+    private JsonNode source;
 
     public DictionaryAPIRequestDTO()
     {
@@ -30,43 +27,23 @@ public class DictionaryAPIRequestDTO
         this.word = word;
     }
 
-    public String getPhonetic()
+    public JsonNode getEntries()
     {
-        return phonetic;
+        return entries;
     }
 
-    public void setPhonetic(String phonetic)
+    public void setEntries(JsonNode entries)
     {
-        this.phonetic = phonetic;
+        this.entries = entries;
     }
 
-    public JsonNode getPhonetics()
+    public JsonNode getSource()
     {
-        return phonetics;
+        return source;
     }
 
-    public void setPhonetics(JsonNode phonetics)
+    public void setSource(JsonNode source)
     {
-        this.phonetics = phonetics;
-    }
-
-    public JsonNode getMeanings()
-    {
-        return meanings;
-    }
-
-    public void setMeanings(JsonNode meanings)
-    {
-        this.meanings = meanings;
-    }
-
-    public String getOrigin()
-    {
-        return origin;
-    }
-
-    public void setOrigin(String origin)
-    {
-        this.origin = origin;
+        this.source = source;
     }
 }
