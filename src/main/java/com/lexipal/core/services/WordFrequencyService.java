@@ -19,10 +19,12 @@ public class WordFrequencyService
 
     private static final String WORD_FREQUENCY_RESOURCE = "word-frequency.csv";
     private static final double COMMON_RARITY = 0.30;
+    private static final double UNCOMMON_RARITY = 0.55;
     private static final double RARE_RARITY = 0.75;
     private static final double MYTHIC_RARITY = 0.95;
 
-    private static final double COMMON_BUCKET_CUTOFF = 0.70;
+    private static final double COMMON_BUCKET_CUTOFF = 0.50;
+    private static final double UNCOMMON_BUCKET_CUTOFF = 0.80;
     private static final double RARE_BUCKET_CUTOFF = 0.95;
 
     private final Map<String, Integer> lemmaRanks;
@@ -59,6 +61,11 @@ public class WordFrequencyService
         if (normalizedRank < COMMON_BUCKET_CUTOFF)
         {
             return COMMON_RARITY;
+        }
+
+        if (normalizedRank < UNCOMMON_BUCKET_CUTOFF)
+        {
+            return UNCOMMON_RARITY;
         }
 
         if (normalizedRank < RARE_BUCKET_CUTOFF)

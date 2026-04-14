@@ -47,6 +47,7 @@ public class CodexEntryReadResponseDTO
         if (score == null) return "COMMON";
         if (score >= 0.9) return "MYTHIC";
         if (score >= 0.7) return "RARE";
+        if (score >= 0.5) return "UNCOMMON";
         return "COMMON";
     }
 
