@@ -10,7 +10,6 @@ import com.lexipal.core.exceptions.ResourceNotFoundException;
 import com.lexipal.core.exceptions.UnauthorizedActionException;
 import com.lexipal.core.repositories.BookRepository;
 import com.lexipal.core.repositories.SessionRepository;
-import com.lexipal.core.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -25,31 +24,24 @@ public class BookService implements BookServiceInterface
     private static final Logger logger = LogManager.getLogger(BookService.class);
 
     private final BookRepository bookRepository;
-    private final UserRepository userRepository;
     private final SessionRepository sessionRepository;
+    private final UserServiceInterface userService;
 
     @Autowired
     public BookService(final BookRepository bookRepository,
-                       final UserRepository userRepository,
-                       final SessionRepository sessionRepository)
+                       final SessionRepository sessionRepository,
+                       final UserServiceInterface userService)
     {
         this.bookRepository = bookRepository;
-        this.userRepository = userRepository;
         this.sessionRepository = sessionRepository;
+        this.userService = userService;
     }
 
     @Override
     @Transactional
     public BookCreateResponseDTO addBook(BookCreateRequestDTO request, String keycloakSub)
     {
-        User user = userRepository.findByKeycloakSub(keycloakSub)
-                .orElseGet(() -> {
-                    User newUser = new User();
-                    newUser.setKeycloakSub(keycloakSub);
-                    User savedUser = userRepository.save(newUser);
-                    logger.info("Created user {} while adding a book", savedUser.getId());
-                    return savedUser;
-                });
+        User user = userService.getOrCreateUser(keycloakSub);
 
         Book newBook = new Book();
 
@@ -133,14 +125,7 @@ public class BookService implements BookServiceInterface
     @Override
     public List<BookReadResponseDTO> getAllBooksByUserSub(String keycloakSub)
     {
-        User user = userRepository.findByKeycloakSub(keycloakSub)
-                .orElseGet(() -> {
-                    User newUser = new User();
-                    newUser.setKeycloakSub(keycloakSub);
-                    User savedUser = userRepository.save(newUser);
-                    logger.info("Created user {} while listing books", savedUser.getId());
-                    return savedUser;
-                });
+        userService.getOrCreateUser(keycloakSub);
 
         List<Book> activeBooks = bookRepository.findAllActiveBooks(keycloakSub);
 

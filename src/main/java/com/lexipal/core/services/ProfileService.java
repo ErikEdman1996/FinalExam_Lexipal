@@ -8,10 +8,7 @@ import com.lexipal.core.entities.Book;
 import com.lexipal.core.entities.DailyActivity;
 import com.lexipal.core.entities.Session;
 import com.lexipal.core.entities.User;
-import com.lexipal.core.repositories.UserRepository;
 import jakarta.transaction.Transactional;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,16 +19,15 @@ import java.util.List;
 public class ProfileService implements ProfileServiceInterface
 {
     private static final int RECENT_ACTIVITY_LIMIT = 10;
-    private static final Logger logger = LogManager.getLogger(ProfileService.class);
 
-    private final UserRepository userRepository;
+    private final UserServiceInterface userService;
     private final StreakMetaDataServiceInterface streakMetaDataService;
 
     @Autowired
-    public ProfileService(final UserRepository userRepository,
+    public ProfileService(final UserServiceInterface userService,
                           final StreakMetaDataServiceInterface streakMetaDataService)
     {
-        this.userRepository = userRepository;
+        this.userService = userService;
         this.streakMetaDataService = streakMetaDataService;
     }
 
@@ -39,14 +35,7 @@ public class ProfileService implements ProfileServiceInterface
     @Transactional
     public ProfileReadResponseDTO getMyProfile(String keycloakSub)
     {
-        User user = userRepository.findByKeycloakSub(keycloakSub)
-                .orElseGet(() -> {
-                    User newUser = new User();
-                    newUser.setKeycloakSub(keycloakSub);
-                    User savedUser = userRepository.save(newUser);
-                    logger.info("Created user {} while building profile", savedUser.getId());
-                    return savedUser;
-                });
+        User user = userService.getOrCreateUser(keycloakSub);
 
         ProfileStatsResponseDTO stats = buildStats(user);
         StreakMetaDataReadResponseDTO streak = streakMetaDataService.getStreakMetaData(keycloakSub);

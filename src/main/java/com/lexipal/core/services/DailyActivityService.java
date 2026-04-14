@@ -9,7 +9,6 @@ import com.lexipal.core.exceptions.ResourceNotFoundException;
 import com.lexipal.core.exceptions.UnauthorizedActionException;
 import com.lexipal.core.repositories.DailyActivityRepository;
 import com.lexipal.core.repositories.SessionRepository;
-import com.lexipal.core.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -26,34 +25,27 @@ public class DailyActivityService implements DailyActivityServiceInterface
     private static final Logger logger = LogManager.getLogger(DailyActivityService.class);
 
     private final DailyActivityRepository dailyActivityRepository;
-    private final UserRepository userRepository;
     private final SessionRepository sessionRepository;
     private final StreakMetaDataServiceInterface streakMetaDataService;
+    private final UserServiceInterface userService;
 
     @Autowired
     public DailyActivityService(final DailyActivityRepository dailyActivityRepository,
-                                final UserRepository userRepository,
                                 final SessionRepository sessionRepository,
-                                final StreakMetaDataServiceInterface streakMetaDataService)
+                                final StreakMetaDataServiceInterface streakMetaDataService,
+                                final UserServiceInterface userService)
     {
         this.dailyActivityRepository = dailyActivityRepository;
-        this.userRepository = userRepository;
         this.sessionRepository = sessionRepository;
         this.streakMetaDataService = streakMetaDataService;
+        this.userService = userService;
     }
 
     @Override
     @Transactional
     public DailyActivityReadResponseDTO createDailyActivity(DailyActivityCreateRequestDTO dto, String keycloakSub)
     {
-        User user = userRepository.findByKeycloakSub(keycloakSub)
-                .orElseGet(() -> {
-                    User newUser = new User();
-                    newUser.setKeycloakSub(keycloakSub);
-                    User savedUser = userRepository.save(newUser);
-                    logger.info("Created user {} while creating daily activity", savedUser.getId());
-                    return savedUser;
-                });
+        User user = userService.getOrCreateUser(keycloakSub);
 
         Session session = null;
         if (dto.getSessionId() != null)
@@ -129,14 +121,7 @@ public class DailyActivityService implements DailyActivityServiceInterface
     @Override
     public List<DailyActivityReadResponseDTO> getDailyActivitiesByUser(String keycloakSub)
     {
-        userRepository.findByKeycloakSub(keycloakSub)
-                .orElseGet(() -> {
-                    User newUser = new User();
-                    newUser.setKeycloakSub(keycloakSub);
-                    User savedUser = userRepository.save(newUser);
-                    logger.info("Created user {} while listing daily activities", savedUser.getId());
-                    return savedUser;
-                });
+        userService.getOrCreateUser(keycloakSub);
 
         return dailyActivityRepository.findByUser_KeycloakSubOrderByActivityDateDesc(keycloakSub).stream()
                 .map(this::toDailyActivityReadResponse)

@@ -5,7 +5,6 @@ import com.lexipal.core.dtos.responses.StreakMetaDataReadResponseDTO;
 import com.lexipal.core.entities.StreakMetaData;
 import com.lexipal.core.entities.User;
 import com.lexipal.core.repositories.StreakMetaDataRepository;
-import com.lexipal.core.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,21 +19,21 @@ public class StreakMetaDataService implements StreakMetaDataServiceInterface
     private static final Logger logger = LogManager.getLogger(StreakMetaDataService.class);
 
     private final StreakMetaDataRepository streakMetaDataRepository;
-    private final UserRepository userRepository;
+    private final UserServiceInterface userService;
 
     @Autowired
     public StreakMetaDataService(final StreakMetaDataRepository streakMetaDataRepository,
-                                 final UserRepository userRepository)
+                                 final UserServiceInterface userService)
     {
         this.streakMetaDataRepository = streakMetaDataRepository;
-        this.userRepository = userRepository;
+        this.userService = userService;
     }
 
     @Override
     @Transactional
     public StreakMetaDataReadResponseDTO initializeStreakMetaData(StreakMetaDataCreateRequestDTO dto, String keycloakSub)
     {
-        User user = getOrCreateUser(keycloakSub);
+        User user = userService.getOrCreateUser(keycloakSub);
 
         StreakMetaData streakMetaData = streakMetaDataRepository.findByUser_Id(user.getId())
                 .orElseGet(() -> createStreakMetaData(user, dto));
@@ -46,7 +45,7 @@ public class StreakMetaDataService implements StreakMetaDataServiceInterface
     @Transactional
     public StreakMetaDataReadResponseDTO getStreakMetaData(String keycloakSub)
     {
-        User user = getOrCreateUser(keycloakSub);
+        User user = userService.getOrCreateUser(keycloakSub);
         StreakMetaData streakMetaData = ensureStreakMetaData(user);
 
         return toStreakMetaDataReadResponse(streakMetaData);
@@ -95,18 +94,6 @@ public class StreakMetaDataService implements StreakMetaDataServiceInterface
         logger.info("Recorded streak activity for user {} on {}; current streak {}, longest streak {}", user.getId(), activityDate, streakMetaData.getCurrentStreak(), streakMetaData.getLongestStreak());
     }
 
-    private User getOrCreateUser(String keycloakSub)
-    {
-        return userRepository.findByKeycloakSub(keycloakSub)
-                .orElseGet(() -> {
-                    User newUser = new User();
-                    newUser.setKeycloakSub(keycloakSub);
-                    User savedUser = userRepository.save(newUser);
-                    logger.info("Created user {} while working with streak metadata", savedUser.getId());
-                    return savedUser;
-                });
-    }
-
     private StreakMetaData ensureStreakMetaData(User user)
     {
         return streakMetaDataRepository.findByUser_Id(user.getId())
@@ -123,7 +110,6 @@ public class StreakMetaDataService implements StreakMetaDataServiceInterface
 
         StreakMetaData savedStreak = streakMetaDataRepository.save(streakMetaData);
         user.setStreakMetaData(savedStreak);
-        userRepository.save(user);
         logger.info("Created streak metadata {} for user {}", savedStreak.getId(), user.getId());
 
         return savedStreak;

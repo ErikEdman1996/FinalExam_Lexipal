@@ -12,7 +12,6 @@ import com.lexipal.core.exceptions.ResourceNotFoundException;
 import com.lexipal.core.exceptions.UnauthorizedActionException;
 import com.lexipal.core.repositories.BookRepository;
 import com.lexipal.core.repositories.SessionRepository;
-import com.lexipal.core.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -28,31 +27,30 @@ public class SessionService implements SessionServiceInterface
     private static final Logger logger = LogManager.getLogger(SessionService.class);
 
     final SessionRepository sessionRepository;
-    final UserRepository userRepository;
     final BookRepository bookRepository;
     private final BookServiceInterface bookService;
     private final DailyActivityServiceInterface dailyActivityService;
+    private final UserServiceInterface userService;
 
     @Autowired
     public SessionService(final SessionRepository sessionRepository,
-                          final UserRepository userRepository,
                           final BookRepository bookRepository,
                           final BookServiceInterface bookService,
-                          final DailyActivityServiceInterface dailyActivityService)
+                          final DailyActivityServiceInterface dailyActivityService,
+                          final UserServiceInterface userService)
     {
         this.sessionRepository = sessionRepository;
-        this.userRepository = userRepository;
         this.bookRepository = bookRepository;
         this.bookService = bookService;
         this.dailyActivityService = dailyActivityService;
+        this.userService = userService;
     }
 
     @Override
     @Transactional
     public SessionCreateResponseDTO addSession(SessionCreateRequestDTO dto, String keycloakSub)
     {
-        User user = userRepository.findByKeycloakSub(keycloakSub)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "sub", keycloakSub));
+        User user = userService.getRequiredUser(keycloakSub);
 
         Long bookId = dto.getBookId();
 

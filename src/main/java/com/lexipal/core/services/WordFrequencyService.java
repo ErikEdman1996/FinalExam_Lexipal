@@ -46,7 +46,7 @@ public class WordFrequencyService
 
         if (rank == null)
         {
-            return MYTHIC_RARITY;
+            return RARE_RARITY;
         }
 
         if (maxTrackedRank <= 1)
