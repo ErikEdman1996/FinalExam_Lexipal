@@ -28,6 +28,13 @@ public class CodexEntryReadResponseDTO
                                      Integer xpValue, LocalDateTime createdAt, Double rarityScore, String source,
                                      JsonNode definitions, JsonNode phonetics)
     {
+        this(id, wordId, sourceSessionId, lemma, specificDefinition, xpValue, createdAt, rarityScore, null, source, definitions, phonetics);
+    }
+
+    public CodexEntryReadResponseDTO(Long id, Long wordId, Long sourceSessionId, String lemma, String specificDefinition,
+                                     Integer xpValue, LocalDateTime createdAt, Double rarityScore, String rarityTier,
+                                     String source, JsonNode definitions, JsonNode phonetics)
+    {
         this.id = id;
         this.wordId = wordId;
         this.sourceSessionId = sourceSessionId;
@@ -36,7 +43,7 @@ public class CodexEntryReadResponseDTO
         this.xpValue = xpValue;
         this.createdAt = createdAt;
         this.rarityScore = rarityScore;
-        this.rarityTier = determineTier(rarityScore);
+        this.rarityTier = rarityTier != null ? normalizeTier(rarityTier) : determineTier(rarityScore);
         this.source = source;
         this.definitions = definitions;
         this.phonetics = phonetics;
@@ -44,11 +51,16 @@ public class CodexEntryReadResponseDTO
 
     private String determineTier(Double score)
     {
-        if (score == null) return "COMMON";
-        if (score >= 0.9) return "MYTHIC";
-        if (score >= 0.7) return "RARE";
-        if (score >= 0.5) return "UNCOMMON";
-        return "COMMON";
+        if (score == null) return "common";
+        if (score >= 0.9) return "mythic";
+        if (score >= 0.7) return "rare";
+        if (score >= 0.5) return "uncommon";
+        return "common";
+    }
+
+    private String normalizeTier(String rarityTier)
+    {
+        return rarityTier.trim().toLowerCase();
     }
 
     public Long getId() {
@@ -121,7 +133,7 @@ public class CodexEntryReadResponseDTO
     }
 
     public void setRarityTier(String rarityTier) {
-        this.rarityTier = rarityTier;
+        this.rarityTier = normalizeTier(rarityTier);
     }
 
     public String getSource() {

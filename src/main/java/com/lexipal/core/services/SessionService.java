@@ -1,5 +1,6 @@
 package com.lexipal.core.services;
 
+import com.lexipal.core.dtos.requests.SessionCompleteRequestDTO;
 import com.lexipal.core.dtos.requests.SessionCreateRequestDTO;
 import com.lexipal.core.dtos.requests.SessionUpdateRequestDTO;
 import com.lexipal.core.dtos.responses.SessionCreateResponseDTO;
@@ -19,6 +20,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -68,6 +70,15 @@ public class SessionService implements SessionServiceInterface
 
         validateBookCanAcceptSessionChanges(book);
 
+        sessionRepository.findFirstByBookIdAndUser_IdAndStatusOrderBySessionDateDesc(
+                        bookId,
+                        user.getId(),
+                        Session.SessionStatus.IN_PROGRESS
+                )
+                .ifPresent(session -> {
+                    throw new IllegalArgumentException("You already have an active session for this book.");
+                });
+
         Session session = new Session();
         session.setUser(user);
         session.setBook(book);
@@ -78,7 +89,6 @@ public class SessionService implements SessionServiceInterface
 
         Session savedSession = sessionRepository.save(session);
 
-        bookService.syncBookProgress(book.getId());
         logger.info("Created session {} for book {} and user {}", savedSession.getId(), book.getId(), user.getId());
 
         return toSessionCreateResponse(savedSession, null);
@@ -91,8 +101,6 @@ public class SessionService implements SessionServiceInterface
         Session existingSession = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Session", "id", sessionId));
 
-        boolean wasCompleted = existingSession.getStatus() == Session.SessionStatus.COMPLETED;
-
         if (!existingSession.getUser().getKeycloakSub().equals(keycloakSub))
         {
             logger.warn("User {} attempted to update session {} they do not own", existingSession.getUser().getId(), sessionId);
@@ -100,6 +108,16 @@ public class SessionService implements SessionServiceInterface
         }
 
         validateBookCanAcceptSessionChanges(existingSession.getBook());
+
+        if (existingSession.getStatus() == Session.SessionStatus.COMPLETED)
+        {
+            throw new IllegalArgumentException("Completed sessions cannot be edited.");
+        }
+
+        if (dto.getStatus() != null)
+        {
+            throw new IllegalArgumentException("Use the complete endpoint to finish a session.");
+        }
 
         if (dto.getDurationSeconds() != null)
         {
@@ -123,45 +141,50 @@ public class SessionService implements SessionServiceInterface
             existingSession.setReflection(dto.getReflection().trim());
         }
 
-        if (dto.getStatus() != null && dto.getStatus() == Session.SessionStatus.COMPLETED)
+        updatePagesRead(existingSession);
+
+        Session updatedSession = sessionRepository.save(existingSession);
+
+        logger.info("Updated session {} with status {}", updatedSession.getId(), updatedSession.getStatus());
+
+        return toSessionUpdateResponse(updatedSession, null);
+    }
+
+    @Override
+    @Transactional
+    public SessionUpdateResponseDTO completeSession(Long sessionId, SessionCompleteRequestDTO dto, String keycloakSub)
+    {
+        Session existingSession = sessionRepository.findById(sessionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Session", "id", sessionId));
+
+        if (!existingSession.getUser().getKeycloakSub().equals(keycloakSub))
         {
-            existingSession.setStatus(dto.getStatus());
+            logger.warn("User {} attempted to complete session {} they do not own", existingSession.getUser().getId(), sessionId);
+            throw new UnauthorizedActionException("This session does not belong to you.");
         }
 
-        Integer startPage = existingSession.getStartPage();
-        Integer endPage = existingSession.getEndPage();
+        validateBookCanAcceptSessionChanges(existingSession.getBook());
 
-        if (startPage != null && endPage != null)
+        if (existingSession.getStatus() == Session.SessionStatus.COMPLETED)
         {
-            existingSession.setPagesRead(Math.max(0, endPage - startPage));
-        }
-        else
-        {
-            existingSession.setPagesRead(0);
+            throw new IllegalArgumentException("Session is already completed.");
         }
 
-        // Optional guard: auto-complete if all completion fields exist
-        if (existingSession.getEndPage() != null
-                && existingSession.getDurationSeconds() != null
-                && existingSession.getDurationSeconds() > 0
-                && existingSession.getReflection() != null
-                && !existingSession.getReflection().isBlank())
-        {
-            existingSession.setStatus(Session.SessionStatus.COMPLETED);
-        }
+        applyCompletionFields(existingSession, dto);
+        validateCompletionReady(existingSession);
+
+        existingSession.setStatus(Session.SessionStatus.COMPLETED);
+        existingSession.setCompletedAt(LocalDateTime.now());
+        updatePagesRead(existingSession);
 
         Session updatedSession = sessionRepository.save(existingSession);
 
         bookService.syncBookProgress(updatedSession.getBook().getId());
 
-        XpUpdateResponseDTO xpUpdate = null;
-        if (!wasCompleted && updatedSession.getStatus() == Session.SessionStatus.COMPLETED)
-        {
-            dailyActivityService.recordSessionCompletedActivity(updatedSession);
-            xpUpdate = xpService.awardXp(updatedSession.getUser(), 25);
-        }
+        dailyActivityService.recordSessionCompletedActivity(updatedSession);
+        XpUpdateResponseDTO xpUpdate = xpService.awardXp(updatedSession.getUser(), 25);
 
-        logger.info("Updated session {} with status {}", updatedSession.getId(), updatedSession.getStatus());
+        logger.info("Completed session {} for user {}", updatedSession.getId(), updatedSession.getUser().getId());
 
         return toSessionUpdateResponse(updatedSession, xpUpdate);
     }
@@ -185,6 +208,29 @@ public class SessionService implements SessionServiceInterface
     }
 
     @Override
+    public SessionReadResponseDTO getActiveSessionByBook(Long bookId, String keycloakSub)
+    {
+        User user = userService.getRequiredUser(keycloakSub);
+
+        Book book = bookRepository.findById(bookId).orElseThrow(()->new ResourceNotFoundException("Book", "id", bookId));
+
+        if(!book.getUser().getKeycloakSub().equals(keycloakSub))
+        {
+            logger.warn("User {} attempted to fetch the active session for book {} they do not own", user.getId(), bookId);
+            throw new UnauthorizedActionException("This book does not belong to you.");
+        }
+
+        Session session = sessionRepository.findFirstByBookIdAndUser_IdAndStatusOrderBySessionDateDesc(
+                        bookId,
+                        user.getId(),
+                        Session.SessionStatus.IN_PROGRESS
+                )
+                .orElse(null);
+
+        return session == null ? null : toSessionReadResponse(session);
+    }
+
+    @Override
     public List<SessionReadResponseDTO> getSessionsByBook(Long bookId, String keycloakSub)
     {
         Book book = bookRepository.findById(bookId).orElseThrow(()->new ResourceNotFoundException("Book", "id", bookId));
@@ -195,7 +241,10 @@ public class SessionService implements SessionServiceInterface
             throw new UnauthorizedActionException("This book does not belong to you.");
         }
 
-        return sessionRepository.findByBookIdOrderBySessionDateDesc(bookId).stream()
+        return sessionRepository.findByBookIdAndStatusOrderByCompletedAtDescSessionDateDesc(
+                        bookId,
+                        Session.SessionStatus.COMPLETED
+                ).stream()
                 .map(this::toSessionReadResponse)
                 .collect(Collectors.toList());
     }
@@ -212,6 +261,7 @@ public class SessionService implements SessionServiceInterface
                 session.getReflection(),
                 session.getStatus().name(),
                 session.getSessionDate(),
+                session.getCompletedAt(),
                 session.getCapturedWordCount(),
                 xpUpdate
         );
@@ -229,6 +279,7 @@ public class SessionService implements SessionServiceInterface
                 session.getReflection(),
                 session.getStatus().name(),
                 session.getSessionDate(),
+                session.getCompletedAt(),
                 session.getCapturedWordCount()
         );
     }
@@ -245,8 +296,70 @@ public class SessionService implements SessionServiceInterface
                 session.getReflection(),
                 session.getStatus().name(),
                 session.getSessionDate(),
+                session.getCompletedAt(),
                 session.getCapturedWordCount(),
                 xpUpdate
         );
+    }
+
+    private void applyCompletionFields(Session session, SessionCompleteRequestDTO dto)
+    {
+        if (dto.getDurationSeconds() != null)
+        {
+            session.setDurationSeconds(dto.getDurationSeconds());
+        }
+
+        if (dto.getEndPage() != null)
+        {
+            if (session.getStartPage() != null && dto.getEndPage() < session.getStartPage())
+            {
+                throw new IllegalArgumentException("endPage cannot be less than startPage.");
+            }
+
+            session.setEndPage(dto.getEndPage());
+        }
+
+        if (dto.getReflection() != null)
+        {
+            session.setReflection(dto.getReflection().trim());
+        }
+    }
+
+    private void updatePagesRead(Session session)
+    {
+        Integer startPage = session.getStartPage();
+        Integer endPage = session.getEndPage();
+
+        if (startPage != null && endPage != null)
+        {
+            session.setPagesRead(Math.max(0, endPage - startPage));
+        }
+        else
+        {
+            session.setPagesRead(0);
+        }
+    }
+
+    private void validateCompletionReady(Session session)
+    {
+        if (session.getEndPage() == null)
+        {
+            throw new IllegalArgumentException("endPage is required to complete a session.");
+        }
+
+        if (session.getDurationSeconds() == null || session.getDurationSeconds() <= 0)
+        {
+            throw new IllegalArgumentException("durationSeconds must be greater than zero to complete a session.");
+        }
+
+        if (session.getReflection() == null || session.getReflection().isBlank())
+        {
+            throw new IllegalArgumentException("reflection is required to complete a session.");
+        }
+
+        if (session.getEndPage() < session.getStartPage())
+        {
+            throw new IllegalArgumentException("endPage cannot be less than startPage.");
+        }
     }
 }

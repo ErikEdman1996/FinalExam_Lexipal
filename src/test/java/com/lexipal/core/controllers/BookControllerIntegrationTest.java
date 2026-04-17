@@ -1,11 +1,13 @@
 package com.lexipal.core.controllers;
 
 import com.lexipal.core.IntegrationTestBase;
-import com.lexipal.core.dtos.requests.BookUpdateRequestDTO;
 import com.lexipal.core.dtos.requests.BookCreateRequestDTO;
+import com.lexipal.core.dtos.requests.BookUpdateRequestDTO;
 import com.lexipal.core.entities.Book;
+import com.lexipal.core.entities.Session;
 import com.lexipal.core.entities.User;
 import com.lexipal.core.repositories.BookRepository;
+import com.lexipal.core.repositories.SessionRepository;
 import com.lexipal.core.repositories.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -13,9 +15,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
-import static org.hamcrest.Matchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import java.time.LocalDateTime;
+
+import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class BookControllerIntegrationTest extends IntegrationTestBase
 {
@@ -24,6 +32,9 @@ class BookControllerIntegrationTest extends IntegrationTestBase
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private SessionRepository sessionRepository;
 
     private static final String BASE_URL = "/lexipal/api/v1/books";
     private static final String USER_SUB = "keycloak-sub-user-1";
@@ -39,8 +50,6 @@ class BookControllerIntegrationTest extends IntegrationTestBase
         testUser = userRepository.save(testUser);
     }
 
-    // ─── Helper ───────────────────────────────────────────────────
-
     private Book createBook(String title, String author, int totalPages, User owner)
     {
         Book book = new Book();
@@ -51,10 +60,29 @@ class BookControllerIntegrationTest extends IntegrationTestBase
         return bookRepository.save(book);
     }
 
-    // ─── POST /books ──────────────────────────────────────────────
+    private Session createDraftSession(Book book, int startPage, Integer endPage, Long durationSeconds)
+    {
+        Session session = new Session();
+        session.setUser(book.getUser());
+        session.setBook(book);
+        session.setStartPage(startPage);
+        session.setEndPage(endPage);
+        session.setDurationSeconds(durationSeconds);
+        return sessionRepository.save(session);
+    }
+
+    private Session createCompletedSession(Book book, int startPage, int endPage, long durationSeconds)
+    {
+        Session session = createDraftSession(book, startPage, endPage, durationSeconds);
+        session.setReflection("Finished session");
+        session.setStatus(Session.SessionStatus.COMPLETED);
+        session.setCompletedAt(LocalDateTime.now());
+        session.setPagesRead(Math.max(0, endPage - startPage));
+        return sessionRepository.save(session);
+    }
 
     @Test
-    @DisplayName("POST /books — creates book and auto-creates user when user doesn't exist")
+    @DisplayName("POST /books creates a book and auto-creates the user")
     void addBook_createsBookAndUser() throws Exception
     {
         String newSub = "brand-new-sub";
@@ -69,14 +97,14 @@ class BookControllerIntegrationTest extends IntegrationTestBase
                 .andExpect(jsonPath("$.author").value("Robert Martin"))
                 .andExpect(jsonPath("$.totalPages").value(431))
                 .andExpect(jsonPath("$.readPages").value(0))
-                .andExpect(jsonPath("$.status").value("ACTIVE"));
+                .andExpect(jsonPath("$.status").value("ACTIVE"))
+                .andExpect(jsonPath("$.sessionCount").value(0));
 
-        // Verify user was auto-created
         assert userRepository.findByKeycloakSub(newSub).isPresent();
     }
 
     @Test
-    @DisplayName("POST /books — reuses existing user for the same sub")
+    @DisplayName("POST /books reuses an existing user for the same sub")
     void addBook_existingUser_reusesUser() throws Exception
     {
         BookCreateRequestDTO req1 = new BookCreateRequestDTO("Book One", "Author A", 100);
@@ -94,7 +122,6 @@ class BookControllerIntegrationTest extends IntegrationTestBase
                         .content(objectMapper.writeValueAsString(req2)))
                 .andExpect(status().isCreated());
 
-        // Only one user should exist for this sub
         long userCount = userRepository.findAll().stream()
                 .filter(u -> u.getKeycloakSub().equals(USER_SUB))
                 .count();
@@ -102,7 +129,7 @@ class BookControllerIntegrationTest extends IntegrationTestBase
     }
 
     @Test
-    @DisplayName("POST /books - rejects invalid request body")
+    @DisplayName("POST /books rejects invalid request body")
     void addBook_invalidPayload_returnsBadRequest() throws Exception
     {
         BookCreateRequestDTO request = new BookCreateRequestDTO(" ", null, 0);
@@ -118,10 +145,8 @@ class BookControllerIntegrationTest extends IntegrationTestBase
                 .andExpect(jsonPath("$.errors.totalPages").exists());
     }
 
-    // ─── GET /books/{id} ──────────────────────────────────────────
-
     @Test
-    @DisplayName("GET /books/{id} — returns own book")
+    @DisplayName("GET /books/{id} returns own book")
     void getBook_returnsOwnBook() throws Exception
     {
         Book book = createBook("1984", "George Orwell", 328, testUser);
@@ -130,11 +155,26 @@ class BookControllerIntegrationTest extends IntegrationTestBase
                         .with(jwtWithSub(USER_SUB)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("1984"))
-                .andExpect(jsonPath("$.author").value("George Orwell"));
+                .andExpect(jsonPath("$.author").value("George Orwell"))
+                .andExpect(jsonPath("$.sessionCount").value(0));
     }
 
     @Test
-    @DisplayName("GET /books/{id} — returns 404 for another user's book")
+    @DisplayName("GET /books/{id} counts completed sessions only")
+    void getBook_countsCompletedSessionsOnly() throws Exception
+    {
+        Book book = createBook("1984", "George Orwell", 328, testUser);
+        createDraftSession(book, 1, 20, 600L);
+        createCompletedSession(book, 21, 40, 900L);
+
+        mockMvc.perform(get(BASE_URL + "/" + book.getId())
+                        .with(jwtWithSub(USER_SUB)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sessionCount").value(1));
+    }
+
+    @Test
+    @DisplayName("GET /books/{id} returns 404 for another user's book")
     void getBook_otherUsersBook_returns404() throws Exception
     {
         Book book = createBook("Secret Book", "Author", 100, testUser);
@@ -145,7 +185,7 @@ class BookControllerIntegrationTest extends IntegrationTestBase
     }
 
     @Test
-    @DisplayName("GET /books/{id} — returns 404 for deleted book")
+    @DisplayName("GET /books/{id} returns 404 for deleted book")
     void getBook_deletedBook_returns404() throws Exception
     {
         Book book = createBook("Old Book", "Author", 100, testUser);
@@ -157,10 +197,8 @@ class BookControllerIntegrationTest extends IntegrationTestBase
                 .andExpect(status().isNotFound());
     }
 
-    // ─── GET /books/all ───────────────────────────────────────────
-
     @Test
-    @DisplayName("GET /books/all — returns only active books for the user")
+    @DisplayName("GET /books/all returns only active books for the user")
     void getAllBooks_returnsOnlyActiveBooks() throws Exception
     {
         createBook("Active Book", "Author", 200, testUser);
@@ -175,13 +213,28 @@ class BookControllerIntegrationTest extends IntegrationTestBase
                 .andExpect(jsonPath("$[0].title").value("Active Book"));
     }
 
-    // ─── PUT /books/{id} ──────────────────────────────────────────
+    @Test
+    @DisplayName("GET /books/all returns completed-only session counts")
+    void getAllBooks_usesCompletedSessionCounts() throws Exception
+    {
+        Book book = createBook("Active Book", "Author", 200, testUser);
+        createDraftSession(book, 1, 20, 600L);
+        createCompletedSession(book, 21, 40, 900L);
+
+        mockMvc.perform(get(BASE_URL + "/all")
+                        .with(jwtWithSub(USER_SUB)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].sessionCount").value(1));
+    }
 
     @Test
-    @DisplayName("PUT /books/{id} — updates book fields")
+    @DisplayName("PUT /books/{id} updates book fields")
     void updateBook_updatesFields() throws Exception
     {
         Book book = createBook("Old Title", "Old Author", 100, testUser);
+        createDraftSession(book, 1, 20, 600L);
+        createCompletedSession(book, 21, 40, 900L);
         BookUpdateRequestDTO dto = new BookUpdateRequestDTO("New Title", "New Author", null, 300, null);
 
         mockMvc.perform(put(BASE_URL + "/" + book.getId())
@@ -191,11 +244,12 @@ class BookControllerIntegrationTest extends IntegrationTestBase
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("New Title"))
                 .andExpect(jsonPath("$.author").value("New Author"))
-                .andExpect(jsonPath("$.totalPages").value(300));
+                .andExpect(jsonPath("$.totalPages").value(300))
+                .andExpect(jsonPath("$.sessionCount").value(1));
     }
 
     @Test
-    @DisplayName("PUT /books/{id} — returns error when updating another user's book")
+    @DisplayName("PUT /books/{id} returns error when updating another user's book")
     void updateBook_otherUser_throwsUnauthorized() throws Exception
     {
         Book book = createBook("Someone's Book", "Author", 100, testUser);
@@ -209,7 +263,7 @@ class BookControllerIntegrationTest extends IntegrationTestBase
     }
 
     @Test
-    @DisplayName("PUT /books/{id} - rejects invalid update payload")
+    @DisplayName("PUT /books/{id} rejects invalid update payload")
     void updateBook_invalidPayload_returnsBadRequest() throws Exception
     {
         Book book = createBook("Old Title", "Old Author", 100, testUser);
@@ -227,10 +281,8 @@ class BookControllerIntegrationTest extends IntegrationTestBase
                 .andExpect(jsonPath("$.errors.totalPages").exists());
     }
 
-    // ─── DELETE /books/{id} ───────────────────────────────────────
-
     @Test
-    @DisplayName("DELETE /books/{id} — soft-deletes by setting status to DELETED")
+    @DisplayName("DELETE /books/{id} soft-deletes by setting status to DELETED")
     void deleteBook_setsStatusDeleted() throws Exception
     {
         Book book = createBook("To Delete", "Author", 100, testUser);
@@ -239,13 +291,12 @@ class BookControllerIntegrationTest extends IntegrationTestBase
                         .with(jwtWithSub(USER_SUB)))
                 .andExpect(status().isNoContent());
 
-        // Verify the book is soft-deleted
         Book deletedBook = bookRepository.findById(book.getId()).orElseThrow();
         assert deletedBook.getStatus() == Book.BookStatus.DELETED;
     }
 
     @Test
-    @DisplayName("DELETE /books/{id} — returns error when deleting another user's book")
+    @DisplayName("DELETE /books/{id} returns error when deleting another user's book")
     void deleteBook_otherUser_throwsUnauthorized() throws Exception
     {
         Book book = createBook("Not Yours", "Author", 100, testUser);
@@ -255,10 +306,8 @@ class BookControllerIntegrationTest extends IntegrationTestBase
                 .andExpect(status().isForbidden());
     }
 
-    // ─── Security ─────────────────────────────────────────────────
-
     @Test
-    @DisplayName("GET /books/all — returns 401 without JWT")
+    @DisplayName("GET /books/all returns 401 without JWT")
     void unauthenticatedRequest_returns401() throws Exception
     {
         mockMvc.perform(get(BASE_URL + "/all"))

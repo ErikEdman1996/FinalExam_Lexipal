@@ -143,8 +143,10 @@ public class BookService implements BookServiceInterface
             return new ResourceNotFoundException("Book", "id", bookId);
         });
 
-        // Find the highest endPage across all sessions
-        Integer furthestPage = sessionRepository.findMaxEndPageByBookId(bookId);
+        Integer furthestPage = sessionRepository.findMaxEndPageByBookIdAndStatus(
+                bookId,
+                com.lexipal.core.entities.Session.SessionStatus.COMPLETED
+        );
 
         if (furthestPage == null) {
             book.setReadPages(0);
@@ -186,7 +188,7 @@ public class BookService implements BookServiceInterface
                 book.getTotalPages(),
                 calculateBookProgress(book),
                 book.getStatus().name(),
-                book.getSessions().size(),
+                getCompletedSessionCount(book),
                 book.getCreatedAt()
         );
     }
@@ -201,7 +203,7 @@ public class BookService implements BookServiceInterface
                 book.getTotalPages(),
                 calculateBookProgress(book),
                 book.getStatus().name(),
-                book.getSessions().size(),
+                getCompletedSessionCount(book),
                 book.getCreatedAt()
         );
     }
@@ -216,8 +218,16 @@ public class BookService implements BookServiceInterface
                 book.getTotalPages(),
                 calculateBookProgress(book),
                 book.getStatus().name(),
-                book.getSessions().size(),
+                getCompletedSessionCount(book),
                 book.getCreatedAt()
         );
+    }
+
+    private int getCompletedSessionCount(Book book)
+    {
+        return Math.toIntExact(sessionRepository.countByBookIdAndStatus(
+                book.getId(),
+                com.lexipal.core.entities.Session.SessionStatus.COMPLETED
+        ));
     }
 }

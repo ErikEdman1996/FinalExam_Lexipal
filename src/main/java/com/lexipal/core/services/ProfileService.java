@@ -64,16 +64,18 @@ public class ProfileService implements ProfileServiceInterface
 
     private ProfileStatsResponseDTO buildStats(User user)
     {
-        List<Session> userSessions = sessionRepository.findByUser_Id(user.getId());
+        List<Session> completedSessions = sessionRepository.findByUser_IdAndStatus(
+                user.getId(),
+                Session.SessionStatus.COMPLETED
+        );
 
-        long totalMinutesRead = userSessions.stream()
+        long totalMinutesRead = completedSessions.stream()
                 .map(Session::getDurationSeconds)
                 .filter(durationSeconds -> durationSeconds != null && durationSeconds > 0)
                 .mapToLong(Long::longValue)
                 .sum() / 60;
 
-        int totalPagesRead = userSessions.stream()
-                .filter(session -> session.getStatus() == Session.SessionStatus.COMPLETED)
+        int totalPagesRead = completedSessions.stream()
                 .map(Session::getPagesRead)
                 .filter(pagesRead -> pagesRead != null && pagesRead > 0)
                 .mapToInt(Integer::intValue)
@@ -83,8 +85,7 @@ public class ProfileService implements ProfileServiceInterface
                 .filter(book -> book.getStatus() == Book.BookStatus.COMPLETE)
                 .count();
 
-        int totalSessionsCompleted = (int) userSessions.stream()
-                .filter(session -> session.getStatus() == Session.SessionStatus.COMPLETED)
+        int totalSessionsCompleted = (int) completedSessions.stream()
                 .count();
 
         int totalCapturedWords = user.getCodexEntries().size();

@@ -1,6 +1,7 @@
 package com.lexipal.core.controllers;
 
 import com.lexipal.core.IntegrationTestBase;
+import com.lexipal.core.dtos.requests.SessionCompleteRequestDTO;
 import com.lexipal.core.dtos.requests.SessionCreateRequestDTO;
 import com.lexipal.core.dtos.requests.SessionUpdateRequestDTO;
 import com.lexipal.core.entities.Book;
@@ -15,9 +16,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
-import static org.hamcrest.Matchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import java.time.LocalDateTime;
+
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.nullValue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class SessionControllerIntegrationTest extends IntegrationTestBase
 {
@@ -57,9 +65,7 @@ class SessionControllerIntegrationTest extends IntegrationTestBase
         testBook = bookRepository.save(testBook);
     }
 
-    // ─── Helper ───────────────────────────────────────────────────
-
-    private Session createSession(User user, Book book, int startPage, int endPage, long duration)
+    private Session createDraftSession(User user, Book book, int startPage, Integer endPage, Long duration)
     {
         Session session = new Session();
         session.setUser(user);
@@ -70,13 +76,21 @@ class SessionControllerIntegrationTest extends IntegrationTestBase
         return sessionRepository.save(session);
     }
 
-    // ─── POST /sessions ───────────────────────────────────────────
+    private Session createCompletedSession(User user, Book book, int startPage, int endPage, long duration)
+    {
+        Session session = createDraftSession(user, book, startPage, endPage, duration);
+        session.setReflection("Finished session");
+        session.setStatus(Session.SessionStatus.COMPLETED);
+        session.setCompletedAt(LocalDateTime.now());
+        session.setPagesRead(Math.max(0, endPage - startPage));
+        return sessionRepository.save(session);
+    }
 
     @Test
-    @DisplayName("POST /sessions — creates session and syncs book progress")
-    void addSession_createsSession() throws Exception
+    @DisplayName("POST /sessions creates a draft without syncing book progress")
+    void addSession_createsDraft() throws Exception
     {
-        SessionCreateRequestDTO dto = new SessionCreateRequestDTO(testBook.getId(), 1800L, 1, 50, "Great reading!");
+        SessionCreateRequestDTO dto = new SessionCreateRequestDTO(testBook.getId(), null, 1, null, null);
 
         mockMvc.perform(post(BASE_URL)
                         .with(jwtWithSub(USER_SUB))
@@ -84,20 +98,36 @@ class SessionControllerIntegrationTest extends IntegrationTestBase
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.startPage").value(1))
-                .andExpect(jsonPath("$.endPage").value(50))
-                .andExpect(jsonPath("$.durationSeconds").value(1800))
-                .andExpect(jsonPath("$.status").value("IN_PROGRESS"));
+                .andExpect(jsonPath("$.endPage").value(nullValue()))
+                .andExpect(jsonPath("$.durationSeconds").value(nullValue()))
+                .andExpect(jsonPath("$.status").value("IN_PROGRESS"))
+                .andExpect(jsonPath("$.completedAt").value(nullValue()));
 
-        // Verify book progress was synced
         Book updatedBook = bookRepository.findById(testBook.getId()).orElseThrow();
-        assert updatedBook.getReadPages() == 50;
+        assert updatedBook.getReadPages() == 0;
     }
 
     @Test
-    @DisplayName("POST /sessions — returns error when book belongs to another user")
+    @DisplayName("POST /sessions rejects a second active draft for the same book")
+    void addSession_secondDraft_returnsBadRequest() throws Exception
+    {
+        createDraftSession(testUser, testBook, 1, null, null);
+
+        SessionCreateRequestDTO dto = new SessionCreateRequestDTO(testBook.getId(), null, 10, null, null);
+
+        mockMvc.perform(post(BASE_URL)
+                        .with(jwtWithSub(USER_SUB))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("You already have an active session for this book."));
+    }
+
+    @Test
+    @DisplayName("POST /sessions returns error when book belongs to another user")
     void addSession_otherUsersBook_throwsUnauthorized() throws Exception
     {
-        SessionCreateRequestDTO dto = new SessionCreateRequestDTO(testBook.getId(), 1800L, 1, 50, null);
+        SessionCreateRequestDTO dto = new SessionCreateRequestDTO(testBook.getId(), null, 1, null, null);
 
         mockMvc.perform(post(BASE_URL)
                         .with(jwtWithSub(OTHER_USER_SUB))
@@ -107,13 +137,13 @@ class SessionControllerIntegrationTest extends IntegrationTestBase
     }
 
     @Test
-    @DisplayName("POST /sessions - rejects creating a session for a deleted book")
+    @DisplayName("POST /sessions rejects creating a session for a deleted book")
     void addSession_deletedBook_returnsBadRequest() throws Exception
     {
         testBook.setStatus(Book.BookStatus.DELETED);
         bookRepository.save(testBook);
 
-        SessionCreateRequestDTO dto = new SessionCreateRequestDTO(testBook.getId(), 1800L, 1, 50, "Should fail");
+        SessionCreateRequestDTO dto = new SessionCreateRequestDTO(testBook.getId(), null, 1, null, "Should fail");
 
         mockMvc.perform(post(BASE_URL)
                         .with(jwtWithSub(USER_SUB))
@@ -123,13 +153,13 @@ class SessionControllerIntegrationTest extends IntegrationTestBase
     }
 
     @Test
-    @DisplayName("POST /sessions - rejects creating a session for an archived book")
+    @DisplayName("POST /sessions rejects creating a session for an archived book")
     void addSession_archivedBook_returnsBadRequest() throws Exception
     {
         testBook.setStatus(Book.BookStatus.ARCHIVED);
         bookRepository.save(testBook);
 
-        SessionCreateRequestDTO dto = new SessionCreateRequestDTO(testBook.getId(), 1800L, 1, 50, "Should fail");
+        SessionCreateRequestDTO dto = new SessionCreateRequestDTO(testBook.getId(), null, 1, null, "Should fail");
 
         mockMvc.perform(post(BASE_URL)
                         .with(jwtWithSub(USER_SUB))
@@ -139,7 +169,7 @@ class SessionControllerIntegrationTest extends IntegrationTestBase
     }
 
     @Test
-    @DisplayName("POST /sessions - rejects invalid request body")
+    @DisplayName("POST /sessions rejects invalid request body")
     void addSession_invalidPayload_returnsBadRequest() throws Exception
     {
         SessionCreateRequestDTO dto = new SessionCreateRequestDTO(null, -1L, null, -5, null);
@@ -157,10 +187,10 @@ class SessionControllerIntegrationTest extends IntegrationTestBase
     }
 
     @Test
-    @DisplayName("POST /sessions returns 404 with error body when authenticated user is missing")
+    @DisplayName("POST /sessions returns 404 when authenticated user is missing")
     void addSession_missingUser_returnsNotFoundWithBody() throws Exception
     {
-        SessionCreateRequestDTO dto = new SessionCreateRequestDTO(testBook.getId(), 1800L, 1, 50, "Great reading!");
+        SessionCreateRequestDTO dto = new SessionCreateRequestDTO(testBook.getId(), null, 1, null, "Great reading!");
 
         mockMvc.perform(post(BASE_URL)
                         .with(jwtWithSub("missing-user-sub"))
@@ -171,49 +201,69 @@ class SessionControllerIntegrationTest extends IntegrationTestBase
                 .andExpect(jsonPath("$.message", containsString("User with sub")));
     }
 
-    // ─── GET /sessions/{id} ───────────────────────────────────────
-
     @Test
-    @DisplayName("GET /sessions/{id} — returns own session")
+    @DisplayName("GET /sessions/{id} returns own session")
     void getSession_returnsOwnSession() throws Exception
     {
-        Session session = createSession(testUser, testBook, 1, 30, 900L);
+        Session session = createDraftSession(testUser, testBook, 1, 30, 900L);
 
         mockMvc.perform(get(BASE_URL + "/" + session.getId())
                         .with(jwtWithSub(USER_SUB)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.startPage").value(1))
-                .andExpect(jsonPath("$.endPage").value(30));
+                .andExpect(jsonPath("$.endPage").value(30))
+                .andExpect(jsonPath("$.completedAt").value(nullValue()));
     }
 
     @Test
-    @DisplayName("GET /sessions/{id} — returns 404 for another user's session")
+    @DisplayName("GET /sessions/{id} returns 404 for another user's session")
     void getSession_otherUser_returns404() throws Exception
     {
-        Session session = createSession(testUser, testBook, 1, 30, 900L);
+        Session session = createDraftSession(testUser, testBook, 1, 30, 900L);
 
         mockMvc.perform(get(BASE_URL + "/" + session.getId())
                         .with(jwtWithSub(OTHER_USER_SUB)))
                 .andExpect(status().isNotFound());
     }
 
-    // ─── GET /sessions/book/{bookId} ──────────────────────────────
+    @Test
+    @DisplayName("GET /sessions/book/{bookId}/active returns the active draft")
+    void getActiveSession_returnsDraft() throws Exception
+    {
+        Session session = createDraftSession(testUser, testBook, 1, 30, 900L);
+
+        mockMvc.perform(get(BASE_URL + "/book/" + testBook.getId() + "/active")
+                        .with(jwtWithSub(USER_SUB)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(session.getId()))
+                .andExpect(jsonPath("$.status").value("IN_PROGRESS"));
+    }
 
     @Test
-    @DisplayName("GET /sessions/book/{bookId} — returns sessions ordered by date desc")
-    void getSessionsByBook_returnsSessions() throws Exception
+    @DisplayName("GET /sessions/book/{bookId}/active returns 204 when no draft exists")
+    void getActiveSession_missingDraft_returnsNoContent() throws Exception
     {
-        createSession(testUser, testBook, 1, 30, 900L);
-        createSession(testUser, testBook, 31, 60, 1200L);
+        mockMvc.perform(get(BASE_URL + "/book/" + testBook.getId() + "/active")
+                        .with(jwtWithSub(USER_SUB)))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("GET /sessions/book/{bookId} returns completed sessions only")
+    void getSessionsByBook_returnsCompletedSessionsOnly() throws Exception
+    {
+        createDraftSession(testUser, testBook, 1, 30, 900L);
+        createCompletedSession(testUser, testBook, 31, 60, 1200L);
 
         mockMvc.perform(get(BASE_URL + "/book/" + testBook.getId())
                         .with(jwtWithSub(USER_SUB)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)));
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].status").value("COMPLETED"));
     }
 
     @Test
-    @DisplayName("GET /sessions/book/{bookId} — returns error when book belongs to another user")
+    @DisplayName("GET /sessions/book/{bookId} returns error when book belongs to another user")
     void getSessionsByBook_otherUser_throwsUnauthorized() throws Exception
     {
         mockMvc.perform(get(BASE_URL + "/book/" + testBook.getId())
@@ -221,13 +271,11 @@ class SessionControllerIntegrationTest extends IntegrationTestBase
                 .andExpect(status().isForbidden());
     }
 
-    // ─── PUT /sessions/{id} ──────────────────────────────────────
-
     @Test
-    @DisplayName("PUT /sessions/{id} — updates fields and syncs book progress")
-    void updateSession_updatesFieldsAndSyncsBook() throws Exception
+    @DisplayName("PUT /sessions/{id} updates draft fields without syncing book progress")
+    void updateSession_updatesDraftWithoutSyncingBook() throws Exception
     {
-        Session session = createSession(testUser, testBook, 1, 30, 900L);
+        Session session = createDraftSession(testUser, testBook, 1, 30, 900L);
 
         SessionUpdateRequestDTO dto = new SessionUpdateRequestDTO(80, 2400L, "Updated reflection", null);
 
@@ -239,53 +287,72 @@ class SessionControllerIntegrationTest extends IntegrationTestBase
                 .andExpect(jsonPath("$.endPage").value(80))
                 .andExpect(jsonPath("$.durationSeconds").value(2400))
                 .andExpect(jsonPath("$.reflection").value("Updated reflection"))
-                .andExpect(jsonPath("$.pagesRead").value(79));
+                .andExpect(jsonPath("$.pagesRead").value(79))
+                .andExpect(jsonPath("$.status").value("IN_PROGRESS"))
+                .andExpect(jsonPath("$.completedAt").value(nullValue()));
 
-        // Verify book progress was synced
         Book updatedBook = bookRepository.findById(testBook.getId()).orElseThrow();
-        assert updatedBook.getReadPages() == 80;
+        assert updatedBook.getReadPages() == 0;
     }
 
     @Test
-    @DisplayName("PUT /sessions/{id} — auto-completes when all fields are set")
-    void updateSession_autoCompletes() throws Exception
+    @DisplayName("POST /sessions/{id}/complete completes a draft and syncs book progress")
+    void completeSession_completesDraftAndSyncsBook() throws Exception
     {
-        Session session = createSession(testUser, testBook, 1, 30, 0L);
+        Session session = createDraftSession(testUser, testBook, 1, null, null);
 
-        SessionUpdateRequestDTO dto = new SessionUpdateRequestDTO(100, 3600L, "Finished the book!", null);
+        SessionCompleteRequestDTO dto = new SessionCompleteRequestDTO(100, 3600L, "Finished the book!");
 
-        mockMvc.perform(put(BASE_URL + "/" + session.getId())
+        mockMvc.perform(post(BASE_URL + "/" + session.getId() + "/complete")
                         .with(jwtWithSub(USER_SUB))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("COMPLETED"))
+                .andExpect(jsonPath("$.pagesRead").value(99))
+                .andExpect(jsonPath("$.completedAt").isNotEmpty())
                 .andExpect(jsonPath("$.xpUpdate.xpAwarded").value(25))
                 .andExpect(jsonPath("$.xpUpdate.previousTotalXp").value(0))
                 .andExpect(jsonPath("$.xpUpdate.newTotalXp").value(25));
+
+        Book updatedBook = bookRepository.findById(testBook.getId()).orElseThrow();
+        assert updatedBook.getReadPages() == 100;
     }
 
     @Test
-    @DisplayName("PUT /sessions/{id} — rejects endPage less than startPage")
+    @DisplayName("POST /sessions/{id}/complete rejects missing completion fields")
+    void completeSession_missingFields_returnsBadRequest() throws Exception
+    {
+        Session session = createDraftSession(testUser, testBook, 1, null, null);
+        SessionCompleteRequestDTO dto = new SessionCompleteRequestDTO(null, null, null);
+
+        mockMvc.perform(post(BASE_URL + "/" + session.getId() + "/complete")
+                        .with(jwtWithSub(USER_SUB))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("endPage is required to complete a session."));
+    }
+
+    @Test
+    @DisplayName("PUT /sessions/{id} rejects endPage less than startPage")
     void updateSession_endPageLessThanStart_throwsError() throws Exception
     {
-        Session session = createSession(testUser, testBook, 50, 60, 900L);
-
-        // endPage (10) < startPage (50) should throw
+        Session session = createDraftSession(testUser, testBook, 50, 60, 900L);
         SessionUpdateRequestDTO dto = new SessionUpdateRequestDTO(10, null, null, null);
 
         mockMvc.perform(put(BASE_URL + "/" + session.getId())
                         .with(jwtWithSub(USER_SUB))
                         .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(dto)))
+                        .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    @DisplayName("PUT /sessions/{id} - rejects updates when the parent book is deleted")
+    @DisplayName("PUT /sessions/{id} rejects updates when the parent book is deleted")
     void updateSession_deletedBook_returnsBadRequestAndKeepsDeletedStatus() throws Exception
     {
-        Session session = createSession(testUser, testBook, 1, 30, 900L);
+        Session session = createDraftSession(testUser, testBook, 1, 30, 900L);
         testBook.setStatus(Book.BookStatus.DELETED);
         bookRepository.save(testBook);
 
@@ -302,10 +369,10 @@ class SessionControllerIntegrationTest extends IntegrationTestBase
     }
 
     @Test
-    @DisplayName("PUT /sessions/{id} - rejects updates when the parent book is archived")
+    @DisplayName("PUT /sessions/{id} rejects updates when the parent book is archived")
     void updateSession_archivedBook_returnsBadRequestAndKeepsArchivedStatus() throws Exception
     {
-        Session session = createSession(testUser, testBook, 1, 30, 900L);
+        Session session = createDraftSession(testUser, testBook, 1, 30, 900L);
         testBook.setStatus(Book.BookStatus.ARCHIVED);
         bookRepository.save(testBook);
 
@@ -322,10 +389,10 @@ class SessionControllerIntegrationTest extends IntegrationTestBase
     }
 
     @Test
-    @DisplayName("PUT /sessions/{id} - rejects invalid update payload")
+    @DisplayName("PUT /sessions/{id} rejects invalid update payload")
     void updateSession_invalidPayload_returnsBadRequest() throws Exception
     {
-        Session session = createSession(testUser, testBook, 1, 30, 900L);
+        Session session = createDraftSession(testUser, testBook, 1, 30, 900L);
         SessionUpdateRequestDTO dto = new SessionUpdateRequestDTO(-10, -1L, null, null);
 
         mockMvc.perform(put(BASE_URL + "/" + session.getId())
@@ -336,5 +403,20 @@ class SessionControllerIntegrationTest extends IntegrationTestBase
                 .andExpect(jsonPath("$.message").value("Validation failed"))
                 .andExpect(jsonPath("$.errors.endPage").exists())
                 .andExpect(jsonPath("$.errors.durationSeconds").exists());
+    }
+
+    @Test
+    @DisplayName("PUT /sessions/{id} rejects edits to completed sessions")
+    void updateSession_completedSession_returnsBadRequest() throws Exception
+    {
+        Session session = createCompletedSession(testUser, testBook, 1, 30, 900L);
+        SessionUpdateRequestDTO dto = new SessionUpdateRequestDTO(80, 2400L, "Should fail", null);
+
+        mockMvc.perform(put(BASE_URL + "/" + session.getId())
+                        .with(jwtWithSub(USER_SUB))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Completed sessions cannot be edited."));
     }
 }

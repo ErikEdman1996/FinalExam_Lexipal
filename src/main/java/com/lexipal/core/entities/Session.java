@@ -17,13 +17,13 @@ public class Session
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column
     private Long durationSeconds;
 
     @Column(nullable = false)
     private Integer startPage;
 
-    @Column(nullable = false)
+    @Column
     private Integer endPage;
 
     @Column(nullable = false)
@@ -39,6 +39,10 @@ public class Session
     @Column(nullable = false)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime sessionDate;
+
+    @Column
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime completedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -63,7 +67,8 @@ public class Session
     }
 
     public Session(Long durationSeconds, Integer startPage, Integer endPage, Integer pagesRead,
-                   String reflection, SessionStatus status, LocalDateTime sessionDate, User user, Book book,
+                   String reflection, SessionStatus status, LocalDateTime sessionDate, LocalDateTime completedAt,
+                   User user, Book book,
                    Integer capturedWordCount)
     {
         this.durationSeconds = durationSeconds;
@@ -73,6 +78,7 @@ public class Session
         this.reflection = reflection;
         this.status = status;
         this.sessionDate = sessionDate;
+        this.completedAt = completedAt;
         this.user = user;
         this.book = book;
         this.capturedWordCount = capturedWordCount;
@@ -81,12 +87,23 @@ public class Session
     @PrePersist
     protected void onCreate()
     {
-        this.sessionDate = LocalDateTime.now();
-        this.status = SessionStatus.IN_PROGRESS;
+        if (this.sessionDate == null)
+        {
+            this.sessionDate = LocalDateTime.now();
+        }
+
+        if (this.status == null)
+        {
+            this.status = SessionStatus.IN_PROGRESS;
+        }
 
         if (this.startPage != null && this.endPage != null)
         {
             this.pagesRead = Math.max(0, this.endPage - this.startPage);
+        }
+        else if (this.pagesRead == null)
+        {
+            this.pagesRead = 0;
         }
 
         if (this.capturedWordCount == null)
@@ -149,6 +166,14 @@ public class Session
 
     public void setSessionDate(LocalDateTime sessionDate) {
         this.sessionDate = sessionDate;
+    }
+
+    public LocalDateTime getCompletedAt() {
+        return completedAt;
+    }
+
+    public void setCompletedAt(LocalDateTime completedAt) {
+        this.completedAt = completedAt;
     }
 
     public Book getBook() {

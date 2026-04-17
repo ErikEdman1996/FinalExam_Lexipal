@@ -14,6 +14,8 @@ public interface CodexEntryRepository extends JpaRepository<CodexEntry, Long>
 {
     Optional<CodexEntry> findByUser_IdAndWord_Lemma(Long userId, String word);
 
+    List<CodexEntry> findAllByUser_Id(Long userId);
+
     @Query("SELECT c FROM CodexEntry c WHERE c.user.keycloakSub = :sub")
     List<CodexEntry> findAllBySub(@Param("sub") String sub);
 }

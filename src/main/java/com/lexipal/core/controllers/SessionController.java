@@ -1,5 +1,6 @@
 package com.lexipal.core.controllers;
 
+import com.lexipal.core.dtos.requests.SessionCompleteRequestDTO;
 import com.lexipal.core.dtos.requests.SessionCreateRequestDTO;
 import com.lexipal.core.dtos.requests.SessionUpdateRequestDTO;
 import com.lexipal.core.dtos.responses.SessionCreateResponseDTO;
@@ -38,6 +39,22 @@ public class SessionController
         return ResponseEntity.ok(session);
     }
 
+    @GetMapping("/book/{bookId}/active")
+    public ResponseEntity<SessionReadResponseDTO> getActiveSession(@PathVariable final Long bookId,
+                                                                   @AuthenticationPrincipal Jwt jwt)
+    {
+        String keycloakSub = jwt.getSubject();
+
+        SessionReadResponseDTO session = sessionService.getActiveSessionByBook(bookId, keycloakSub);
+
+        if (session == null)
+        {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(session);
+    }
+
     @GetMapping("/book/{bookId}")
     public ResponseEntity<List<SessionReadResponseDTO>> getSessions(@PathVariable final Long bookId, @AuthenticationPrincipal Jwt jwt)
     {
@@ -68,5 +85,17 @@ public class SessionController
         SessionUpdateResponseDTO updatesSession = sessionService.updateSession(id, dto, keycloakSub);
 
         return ResponseEntity.ok(updatesSession);
+    }
+
+    @PostMapping("/{id}/complete")
+    public ResponseEntity<SessionUpdateResponseDTO> completeSession(@PathVariable Long id,
+                                                                    @Valid @RequestBody SessionCompleteRequestDTO dto,
+                                                                    @AuthenticationPrincipal Jwt jwt)
+    {
+        String keycloakSub = jwt.getSubject();
+
+        SessionUpdateResponseDTO completedSession = sessionService.completeSession(id, dto, keycloakSub);
+
+        return ResponseEntity.ok(completedSession);
     }
 }

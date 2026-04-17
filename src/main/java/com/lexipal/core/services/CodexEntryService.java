@@ -3,6 +3,7 @@ package com.lexipal.core.services;
 import com.lexipal.core.dtos.requests.CodexEntryCreateRequestDTO;
 import com.lexipal.core.dtos.responses.CodexEntryCreateResponseDTO;
 import com.lexipal.core.dtos.responses.CodexEntryReadResponseDTO;
+import com.lexipal.core.models.CodexBoardWordDefinition;
 import com.lexipal.core.entities.CodexEntry;
 import com.lexipal.core.entities.Session;
 import com.lexipal.core.entities.User;
@@ -34,19 +35,22 @@ public class CodexEntryService implements CodexEntryServiceInterface
     private final SessionRepository sessionRepository;
     private final UserServiceInterface userService;
     private final XpService xpService;
+    private final CodexBoardService codexBoardService;
 
     @Autowired
     public CodexEntryService(final CodexEntryRepository codexEntryRepository,
                              final WordService wordService,
                              final SessionRepository sessionRepository,
                              final UserServiceInterface userService,
-                             final XpService xpService)
+                             final XpService xpService,
+                             final CodexBoardService codexBoardService)
     {
         this.codexEntryRepository = codexEntryRepository;
         this.wordService = wordService;
         this.sessionRepository = sessionRepository;
         this.userService = userService;
         this.xpService = xpService;
+        this.codexBoardService = codexBoardService;
     }
 
     @Override
@@ -68,6 +72,26 @@ public class CodexEntryService implements CodexEntryServiceInterface
         }
 
         String cleanLemma = dto.getLemma().toLowerCase().trim();
+        Word globalWord = wordService.saveWordFromApi(cleanLemma);
+        CodexBoardWordDefinition boardWord = codexBoardService.findByLemma(cleanLemma).orElse(null);
+
+        if (boardWord == null)
+        {
+            logger.info("Lookup for '{}' succeeded for user {} but the word is not part of the active codex board", cleanLemma, user.getId());
+            return new CodexEntryCreateResponseDTO(
+                    toWordLookupResponse(globalWord, null),
+                    true,
+                    false,
+                    false,
+                    false,
+                    null,
+                    null,
+                    null,
+                    codexBoardService.getOverallProgressForUser(user),
+                    null,
+                    xpService.buildZeroAwardUpdate(user)
+            );
+        }
 
         var existingEntry = codexEntryRepository.findByUser_IdAndWord_Lemma(user.getId(), cleanLemma);
 
@@ -75,19 +99,25 @@ public class CodexEntryService implements CodexEntryServiceInterface
         {
             logger.info("Returned existing codex entry for lemma '{}' for user {}", cleanLemma, user.getId());
             return new CodexEntryCreateResponseDTO(
-                    toCodexEntryReadResponse(existingEntry.get()),
+                    toCodexEntryReadResponse(existingEntry.get(), boardWord),
+                    true,
+                    true,
                     false,
+                    true,
+                    boardWord.pageNumber(),
+                    boardWord.slotNumber(),
+                    codexBoardService.getPageProgressForUser(user, boardWord.pageNumber()),
+                    codexBoardService.getOverallProgressForUser(user),
+                    boardWord.rarityTier(),
                     xpService.buildZeroAwardUpdate(user)
             );
         }
-
-        Word globalWord = wordService.saveWordFromApi(cleanLemma);
 
         CodexEntry newCodexEntry = new CodexEntry();
         newCodexEntry.setWord(globalWord);
         newCodexEntry.setUser(user);
         newCodexEntry.setSourceSessionId(session.getId());
-        newCodexEntry.setXpValue(resolveCaptureXp(globalWord));
+        newCodexEntry.setXpValue(resolveCaptureXp(boardWord.rarityTier()));
 
         codexEntryRepository.save(newCodexEntry);
         user.getCodexEntries().add(newCodexEntry);
@@ -98,8 +128,16 @@ public class CodexEntryService implements CodexEntryServiceInterface
         logger.info("Added new codex entry '{}' from session {} for user {}", cleanLemma, session.getId(), user.getId());
 
         return new CodexEntryCreateResponseDTO(
-                toCodexEntryReadResponse(newCodexEntry),
+                toCodexEntryReadResponse(newCodexEntry, boardWord),
                 true,
+                true,
+                true,
+                false,
+                boardWord.pageNumber(),
+                boardWord.slotNumber(),
+                codexBoardService.getPageProgressForUser(user, boardWord.pageNumber()),
+                codexBoardService.getOverallProgressForUser(user),
+                boardWord.rarityTier(),
                 xpService.awardXp(user, newCodexEntry.getXpValue())
         );
     }
@@ -112,11 +150,14 @@ public class CodexEntryService implements CodexEntryServiceInterface
         List<CodexEntry> words = codexEntryRepository.findAllBySub(user.getKeycloakSub());
 
         return words.stream()
-                .map(this::toCodexEntryReadResponse)
+                .map(codexEntry -> toCodexEntryReadResponse(
+                        codexEntry,
+                        codexBoardService.findByLemma(codexEntry.getWord().getLemma()).orElse(null)
+                ))
                 .collect(Collectors.toList());
     }
 
-    private CodexEntryReadResponseDTO toCodexEntryReadResponse(CodexEntry codexEntry)
+    private CodexEntryReadResponseDTO toCodexEntryReadResponse(CodexEntry codexEntry, CodexBoardWordDefinition boardWord)
     {
         return new CodexEntryReadResponseDTO(
                 codexEntry.getId(),
@@ -126,37 +167,45 @@ public class CodexEntryService implements CodexEntryServiceInterface
                 codexEntry.getSpecificDefinition(),
                 codexEntry.getXpValue(),
                 codexEntry.getCreatedAt(),
-                codexEntry.getWord().getRarityScore(),
+                boardWord != null ? boardWord.rarityScore() : codexEntry.getWord().getRarityScore(),
+                boardWord != null ? boardWord.rarityTier() : null,
                 codexEntry.getWord().getSource(),
                 codexEntry.getWord().getDefinitions(),
                 codexEntry.getWord().getPhonetics()
         );
     }
 
-    private int resolveCaptureXp(Word word)
+    private CodexEntryReadResponseDTO toWordLookupResponse(Word word, CodexBoardWordDefinition boardWord)
     {
-        Double rarityScore = word.getRarityScore();
+        return new CodexEntryReadResponseDTO(
+                null,
+                word.getId(),
+                null,
+                word.getLemma(),
+                null,
+                null,
+                null,
+                boardWord != null ? boardWord.rarityScore() : word.getRarityScore(),
+                boardWord != null ? boardWord.rarityTier() : null,
+                word.getSource(),
+                word.getDefinitions(),
+                word.getPhonetics()
+        );
+    }
 
-        if (rarityScore == null)
+    private int resolveCaptureXp(String rarityTier)
+    {
+        if (rarityTier == null)
         {
             return COMMON_CAPTURE_XP;
         }
 
-        if (rarityScore >= 0.9)
+        return switch (rarityTier.trim().toLowerCase())
         {
-            return MYTHIC_CAPTURE_XP;
-        }
-
-        if (rarityScore >= 0.7)
-        {
-            return RARE_CAPTURE_XP;
-        }
-
-        if (rarityScore >= 0.5)
-        {
-            return UNCOMMON_CAPTURE_XP;
-        }
-
-        return COMMON_CAPTURE_XP;
+            case "mythic" -> MYTHIC_CAPTURE_XP;
+            case "rare" -> RARE_CAPTURE_XP;
+            case "uncommon" -> UNCOMMON_CAPTURE_XP;
+            default -> COMMON_CAPTURE_XP;
+        };
     }
 }

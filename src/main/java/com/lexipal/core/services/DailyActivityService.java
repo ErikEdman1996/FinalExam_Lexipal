@@ -109,7 +109,7 @@ public class DailyActivityService implements DailyActivityServiceInterface
         }
 
         DailyActivityCreateRequestDTO requestDTO = new DailyActivityCreateRequestDTO(
-                session.getSessionDate().toLocalDate(),
+                (session.getCompletedAt() != null ? session.getCompletedAt() : session.getSessionDate()).toLocalDate(),
                 DailyActivity.ActivityType.SESSION_COMPLETED,
                 SESSION_COMPLETION_XP,
                 session.getId()

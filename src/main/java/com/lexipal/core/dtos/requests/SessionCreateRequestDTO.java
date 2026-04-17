@@ -9,7 +9,6 @@ public class SessionCreateRequestDTO
     @NotNull(message = "Book id is required")
     private Long bookId;
 
-    @NotNull(message = "Duration is required")
     @Min(value = 0, message = "Duration must be zero or greater")
     private Long durationSeconds;
 
@@ -17,7 +16,6 @@ public class SessionCreateRequestDTO
     @Min(value = 0, message = "Start page must be zero or greater")
     private Integer startPage;
 
-    @NotNull(message = "End page is required")
     @Min(value = 0, message = "End page must be zero or greater")
     private Integer endPage;
 

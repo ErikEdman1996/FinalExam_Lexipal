@@ -9,5 +9,6 @@ import java.util.List;
 public interface CodexEntryServiceInterface
 {
     CodexEntryCreateResponseDTO searchAndAddToCodex(Long sessionId, CodexEntryCreateRequestDTO dto, String keycloakSub);
+
     List<CodexEntryReadResponseDTO> getAllCodexEntriesBySub(String keycloakSub);
 }
