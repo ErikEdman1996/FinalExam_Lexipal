@@ -28,6 +28,7 @@ public class SecurityConfig
                         .requestMatchers("/lexipal/api/v1/books/**").authenticated()
                         .requestMatchers("/lexipal/api/v1/sessions/**").authenticated()
                         .requestMatchers("/lexipal/api/v1/codexEntries/**").authenticated()
+                        .requestMatchers("/lexipal/api/v1/notes/**").authenticated()
                         .requestMatchers("/lexipal/api/v1/codex-board/**").authenticated()
                         .requestMatchers("/lexipal/api/v1/codexBoard/**").authenticated()
                         .requestMatchers("/lexipal/api/v1/dailyActivities/**").authenticated()

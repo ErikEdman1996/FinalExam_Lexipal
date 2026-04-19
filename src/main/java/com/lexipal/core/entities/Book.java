@@ -42,6 +42,10 @@ public class Book
     @JsonManagedReference("book-sessions")
     private List<Session> sessions = new ArrayList<>();
 
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL)
+    @JsonManagedReference("book-notes")
+    private List<Note> notes = new ArrayList<>();
+
     public Book()
     {
 
@@ -141,6 +145,14 @@ public class Book
 
     public void setSessions(List<Session> sessions) {
         this.sessions = sessions;
+    }
+
+    public List<Note> getNotes() {
+        return notes;
+    }
+
+    public void setNotes(List<Note> notes) {
+        this.notes = notes;
     }
 
     public enum BookStatus

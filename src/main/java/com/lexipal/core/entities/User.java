@@ -56,6 +56,10 @@ public class User
     @JsonManagedReference("user-challengeAttempts")
     private List<ChallengeAttempt> challengeAttempts = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonManagedReference("user-notes")
+    private List<Note> notes = new ArrayList<>();
+
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonManagedReference("user-streakMetaData")
     private StreakMetaData streakMetaData;
@@ -210,5 +214,13 @@ public class User
 
     public void setStreakMetaData(StreakMetaData streakMetaData) {
         this.streakMetaData = streakMetaData;
+    }
+
+    public List<Note> getNotes() {
+        return notes;
+    }
+
+    public void setNotes(List<Note> notes) {
+        this.notes = notes;
     }
 }
