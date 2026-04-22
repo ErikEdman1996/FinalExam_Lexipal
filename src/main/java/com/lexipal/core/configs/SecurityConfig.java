@@ -26,6 +26,7 @@ public class SecurityConfig
                 .csrf(crsf -> crsf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/lexipal/api/v1/books/**").authenticated()
+                        .requestMatchers("/lexipal/api/v1/book-circles/**").authenticated()
                         .requestMatchers("/lexipal/api/v1/sessions/**").authenticated()
                         .requestMatchers("/lexipal/api/v1/codexEntries/**").authenticated()
                         .requestMatchers("/lexipal/api/v1/notes/**").authenticated()

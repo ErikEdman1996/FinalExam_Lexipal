@@ -25,4 +25,6 @@ public interface SessionRepository extends JpaRepository<Session, Long>
     List<Session> findByUser_IdAndStatus(Long userId, Session.SessionStatus status);
 
     long countByBookIdAndStatus(Long bookId, Session.SessionStatus status);
+
+    List<Session> findByBook_IdOrderBySessionDateDesc(Long bookId);
 }

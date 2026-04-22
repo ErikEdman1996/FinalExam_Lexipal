@@ -43,7 +43,19 @@ public class ProfileService implements ProfileServiceInterface
     public ProfileReadResponseDTO getMyProfile(String keycloakSub)
     {
         User user = userService.getOrCreateUser(keycloakSub);
+        return buildProfileResponse(user, keycloakSub);
+    }
 
+    @Override
+    @Transactional
+    public ProfileReadResponseDTO setNickname(String keycloakSub, String nickname)
+    {
+        User user = userService.setNickname(keycloakSub, nickname);
+        return buildProfileResponse(user, keycloakSub);
+    }
+
+    private ProfileReadResponseDTO buildProfileResponse(User user, String keycloakSub)
+    {
         ProfileStatsResponseDTO stats = buildStats(user);
         StreakMetaDataReadResponseDTO streak = streakMetaDataService.getStreakMetaData(keycloakSub);
         List<DailyActivityReadResponseDTO> recentDailyActivities = user.getDailyActivities().stream()
@@ -55,6 +67,8 @@ public class ProfileService implements ProfileServiceInterface
 
         return new ProfileReadResponseDTO(
                 user.getStatus().name(),
+                user.getNickname(),
+                user.getNickname() == null,
                 user.getCreatedAt(),
                 stats,
                 streak,

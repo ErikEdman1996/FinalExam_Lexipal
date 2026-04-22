@@ -48,6 +48,11 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
+    @ExceptionHandler(NicknameConflictException.class)
+    public ResponseEntity<Map<String, Object>> handleNicknameConflictException(NicknameConflictException ex) {
+        return buildErrorResponse(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
     private ResponseEntity<Map<String, Object>> buildErrorResponse(HttpStatus status, String message) {
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("message", message);

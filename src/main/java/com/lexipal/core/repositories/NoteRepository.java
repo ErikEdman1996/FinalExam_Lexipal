@@ -15,4 +15,6 @@ public interface NoteRepository extends JpaRepository<Note, Long>
 
     @Query("SELECT n FROM Note n WHERE n.user.keycloakSub = :sub ORDER BY n.createdAt DESC")
     List<Note> findAllBySub(@Param("sub") String sub);
+
+    List<Note> findByBook_IdOrderByCreatedAtDesc(Long bookId);
 }

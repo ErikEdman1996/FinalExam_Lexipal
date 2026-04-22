@@ -7,4 +7,6 @@ public interface UserServiceInterface
     User getOrCreateUser(String keycloakSub);
 
     User getRequiredUser(String keycloakSub);
+
+    User setNickname(String keycloakSub, String nickname);
 }

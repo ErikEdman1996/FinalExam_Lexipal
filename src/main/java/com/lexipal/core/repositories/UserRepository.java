@@ -10,4 +10,6 @@ public interface UserRepository extends JpaRepository<User, Long>
 {
     Optional<User> findByKeycloakSub(String sub);
     List<User> findByTotalXpIsNull();
+    Optional<User> findByNicknameNormalized(String nicknameNormalized);
+    boolean existsByNicknameNormalized(String nicknameNormalized);
 }

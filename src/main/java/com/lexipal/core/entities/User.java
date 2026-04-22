@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @Entity
 @Table(name = "users")
@@ -18,6 +19,12 @@ public class User
 
     @Column(unique = true, nullable = false)
     private String keycloakSub;
+
+    @Column(length = 20)
+    private String nickname;
+
+    @Column(name = "nickname_normalized", unique = true, length = 20)
+    private String nicknameNormalized;
 
     @Column
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
@@ -116,6 +123,19 @@ public class User
 
     public void setKeycloakSub(String keycloakSub) {
         this.keycloakSub = keycloakSub;
+    }
+
+    public String getNickname() {
+        return nickname;
+    }
+
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
+        this.nicknameNormalized = nickname == null ? null : nickname.toLowerCase(Locale.ROOT);
+    }
+
+    public String getNicknameNormalized() {
+        return nicknameNormalized;
     }
 
     public LocalDateTime getCreatedAt()

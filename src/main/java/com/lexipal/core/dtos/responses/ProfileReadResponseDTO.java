@@ -6,6 +6,8 @@ import java.util.List;
 public class ProfileReadResponseDTO
 {
     private String status;
+    private String nickname;
+    private boolean needsOnboarding;
     private LocalDateTime createdAt;
     private ProfileStatsResponseDTO stats;
     private StreakMetaDataReadResponseDTO streak;
@@ -16,11 +18,14 @@ public class ProfileReadResponseDTO
 
     }
 
-    public ProfileReadResponseDTO(String status, LocalDateTime createdAt, ProfileStatsResponseDTO stats,
+    public ProfileReadResponseDTO(String status, String nickname, boolean needsOnboarding,
+                                  LocalDateTime createdAt, ProfileStatsResponseDTO stats,
                                   StreakMetaDataReadResponseDTO streak,
                                   List<DailyActivityReadResponseDTO> recentDailyActivities)
     {
         this.status = status;
+        this.nickname = nickname;
+        this.needsOnboarding = needsOnboarding;
         this.createdAt = createdAt;
         this.stats = stats;
         this.streak = streak;
@@ -33,6 +38,22 @@ public class ProfileReadResponseDTO
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getNickname() {
+        return nickname;
+    }
+
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public boolean isNeedsOnboarding() {
+        return needsOnboarding;
+    }
+
+    public void setNeedsOnboarding(boolean needsOnboarding) {
+        this.needsOnboarding = needsOnboarding;
     }
 
     public LocalDateTime getCreatedAt() {
