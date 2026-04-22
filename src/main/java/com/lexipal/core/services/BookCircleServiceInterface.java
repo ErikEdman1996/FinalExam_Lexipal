@@ -19,6 +19,8 @@ public interface BookCircleServiceInterface
 
     CircleMemberDetailResponseDTO getMemberDetails(Long circleId, Long targetUserId, String keycloakSub);
 
+    void removeMember(Long circleId, Long targetUserId, String keycloakSub);
+
     void leaveCircle(Long circleId, String keycloakSub);
 
     void closeCircle(Long circleId, String keycloakSub);

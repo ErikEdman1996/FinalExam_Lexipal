@@ -12,6 +12,7 @@ import com.lexipal.core.dtos.responses.CircleSessionDTO;
 import com.lexipal.core.entities.Book;
 import com.lexipal.core.entities.BookCircle;
 import com.lexipal.core.entities.CircleMember;
+import com.lexipal.core.entities.CircleMemberBlock;
 import com.lexipal.core.entities.CircleMemberRole;
 import com.lexipal.core.entities.CircleStatus;
 import com.lexipal.core.entities.CircleVisibility;
@@ -22,6 +23,7 @@ import com.lexipal.core.exceptions.ResourceNotFoundException;
 import com.lexipal.core.exceptions.UnauthorizedActionException;
 import com.lexipal.core.repositories.BookCircleRepository;
 import com.lexipal.core.repositories.BookRepository;
+import com.lexipal.core.repositories.CircleMemberBlockRepository;
 import com.lexipal.core.repositories.CircleMemberRepository;
 import com.lexipal.core.repositories.NoteRepository;
 import com.lexipal.core.repositories.SessionRepository;
@@ -40,6 +42,7 @@ public class BookCircleService implements BookCircleServiceInterface
     private static final Logger logger = LogManager.getLogger(BookCircleService.class);
 
     private final BookCircleRepository bookCircleRepository;
+    private final CircleMemberBlockRepository circleMemberBlockRepository;
     private final CircleMemberRepository circleMemberRepository;
     private final BookRepository bookRepository;
     private final SessionRepository sessionRepository;
@@ -50,6 +53,7 @@ public class BookCircleService implements BookCircleServiceInterface
 
     @Autowired
     public BookCircleService(final BookCircleRepository bookCircleRepository,
+                             final CircleMemberBlockRepository circleMemberBlockRepository,
                              final CircleMemberRepository circleMemberRepository,
                              final BookRepository bookRepository,
                              final SessionRepository sessionRepository,
@@ -59,6 +63,7 @@ public class BookCircleService implements BookCircleServiceInterface
                              final InviteCodeGenerator inviteCodeGenerator)
     {
         this.bookCircleRepository = bookCircleRepository;
+        this.circleMemberBlockRepository = circleMemberBlockRepository;
         this.circleMemberRepository = circleMemberRepository;
         this.bookRepository = bookRepository;
         this.sessionRepository = sessionRepository;
@@ -157,6 +162,12 @@ public class BookCircleService implements BookCircleServiceInterface
 
         BookCircle circle = bookCircleRepository.findByInviteCodeAndStatus(inviteCode, CircleStatus.ACTIVE)
                 .orElseThrow(() -> new ResourceNotFoundException("BookCircle", "inviteCode", inviteCode));
+
+        if (circleMemberBlockRepository.existsByCircle_IdAndUser_Id(circle.getId(), user.getId()))
+        {
+            throw new UnauthorizedActionException(
+                    "You have been removed from this circle and cannot rejoin.");
+        }
 
         if (circleMemberRepository.findByCircle_IdAndUser_Id(circle.getId(), user.getId()).isPresent())
         {
@@ -269,6 +280,42 @@ public class BookCircleService implements BookCircleServiceInterface
                 sessionDtos,
                 noteDtos
         );
+    }
+
+    @Override
+    @Transactional
+    public void removeMember(Long circleId, Long targetUserId, String keycloakSub)
+    {
+        User caller = userService.getOrCreateUser(keycloakSub);
+
+        BookCircle circle = bookCircleRepository.findById(circleId)
+                .orElseThrow(() -> new ResourceNotFoundException("BookCircle", "id", circleId));
+
+        if (!circle.getOwner().getId().equals(caller.getId()))
+        {
+            throw new UnauthorizedActionException("Only the circle owner can remove members");
+        }
+
+        CircleMember membership = circleMemberRepository.findByCircle_IdAndUser_Id(circleId, targetUserId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "CircleMember", "circleId+userId", circleId + "/" + targetUserId));
+
+        if (membership.getRole() == CircleMemberRole.OWNER)
+        {
+            throw new IllegalArgumentException("Owner cannot be removed from the circle.");
+        }
+
+        if (!circleMemberBlockRepository.existsByCircle_IdAndUser_Id(circleId, targetUserId))
+        {
+            CircleMemberBlock block = new CircleMemberBlock();
+            block.setCircle(circle);
+            block.setUser(membership.getUser());
+            block.setBlockedBy(caller);
+            circleMemberBlockRepository.save(block);
+        }
+
+        circleMemberRepository.delete(membership);
+        logger.info("Owner {} removed user {} from circle {}", caller.getId(), targetUserId, circleId);
     }
 
     @Override

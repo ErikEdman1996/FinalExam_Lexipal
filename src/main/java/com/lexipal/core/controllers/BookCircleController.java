@@ -73,6 +73,16 @@ public class BookCircleController
         return ResponseEntity.ok(bookCircleService.getMemberDetails(id, userId, keycloakSub));
     }
 
+    @DeleteMapping("/{id}/members/{userId}")
+    public ResponseEntity<?> removeMember(@PathVariable Long id,
+                                          @PathVariable Long userId,
+                                          @AuthenticationPrincipal Jwt jwt)
+    {
+        String keycloakSub = jwt.getSubject();
+        bookCircleService.removeMember(id, userId, keycloakSub);
+        return ResponseEntity.noContent().build();
+    }
+
     @DeleteMapping("/{id}/members/me")
     public ResponseEntity<?> leaveCircle(@PathVariable Long id,
                                          @AuthenticationPrincipal Jwt jwt)

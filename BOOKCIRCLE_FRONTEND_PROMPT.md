@@ -19,6 +19,7 @@ A "BookCircle" is a shared reading room. A user creates a circle, picks a book, 
 **Drill-down view**: clicking a member opens a detail panel showing every reading `Session` and every `Note` for that member's circle book. Allowed for: the circle owner (always), the target member viewing themselves (always), any peer when `visibility == ALL_MEMBERS`.
 
 Owner cannot leave a circle — they must **close** it instead. Closing sets `status = CLOSED` and blocks new joins; existing data is preserved.
+Owner can also **remove** non-owner members. Removal deletes circle membership, preserves the removed user's personal book/history, and permanently blocks that user from rejoining the same circle with the same invite code.
 
 ---
 
@@ -238,7 +239,26 @@ Errors:
 - `400` if caller is the **owner** — they must close the circle, not leave it. Message: `"Owner cannot leave the circle. Close the circle instead."`
 - `404` if caller is not a member of that circle.
 
-### 3.7 Close circle — `DELETE /{id}` (owner only)
+### 3.7 Remove member — `DELETE /{id}/members/{userId}` (owner only)
+
+`{userId}` is the internal `User.id` of the target member from `members[].userId`.
+
+Owner removes a non-owner member from the circle. This does **two** things atomically:
+- deletes the target's active circle membership
+- permanently blocks that user from rejoining the same circle
+
+The removed user's personal `Book` row stays in their library, along with all `Session` and `Note` history tied to that book.
+
+Response `204 No Content`.
+
+Errors:
+- `403` if caller is not the owner. Message: `"Only the circle owner can remove members"`
+- `404` if the target user is not currently a member of that circle
+- `400` if the target is the owner. Message: `"Owner cannot be removed from the circle."`
+
+If a removed user later tries `POST /book-circles/join` with the same invite code, backend returns `403` with message: `"You have been removed from this circle and cannot rejoin."`
+
+### 3.8 Close circle — `DELETE /{id}` (owner only)
 
 Sets `status = CLOSED`. Existing members stay in the data, but the circle is hidden from `GET /mine` and the invite code stops working for new joins.
 
@@ -270,8 +290,8 @@ Validation error (from `@Valid` failures, e.g. missing `memberCap`):
 
 Status codes you will see:
 - `200` / `201` / `204` — success
-- `400` — bad input, full circle, already member, owner trying to leave, invalid book-source combo
-- `403` — not a member / not the owner
+- `400` — bad input, full circle, already member, owner trying to leave, owner targeted for removal, invalid book-source combo
+- `403` — not a member / not the owner / blocked from rejoining after owner removal
 - `404` — circle, member, or book not found
 - `502` — could not generate a unique invite code after 10 attempts (rare; show a generic "Try again" toast)
 
@@ -308,6 +328,7 @@ Build these screens. Use the existing app's design system, Keycloak token wiring
 - On success, route to the circle detail page and toast "Book added to your library."
 - On `404`: "No active circle found for that code."
 - On `400`: show the backend message verbatim ("This circle is full" / "You are already a member of this circle").
+- On `403`: show the backend message verbatim. Most important case: removed member trying to rejoin sees "You have been removed from this circle and cannot rejoin."
 
 ### 6.4 Circle detail page (`/circles/:id`)
 - Calls `GET /book-circles/{id}`.
@@ -316,6 +337,8 @@ Build these screens. Use the existing app's design system, Keycloak token wiring
 - Non-owner actions: "Leave circle" button (calls `DELETE /book-circles/{id}/members/me`, confirm first).
 - Member list: one row per member showing nickname (or "You" when `userId === currentUser.id`; fall back to "Anonymous" on the rare chance `userNickname` is `null`), role badge (OWNER/MEMBER), join date, and a progress bar.
   - When `progressPercentage` is `null` (OWNER_ONLY visibility for peers), show a lock icon and the text "Hidden by owner" instead of the bar — but still show role and join date.
+  - For owners, show a "Remove member" action on non-owner rows only. It should call `DELETE /book-circles/{id}/members/{userId}` and require confirmation first.
+  - Never show "Remove member" on the owner row.
 - Clicking a row opens the drill-down panel (§6.5). Disable the click when drill-down is not allowed (peer in OWNER_ONLY): show a tooltip "Progress hidden by circle owner."
 
   Drill-down allowed-when logic on the client (mirror the backend):
@@ -339,7 +362,8 @@ Build these screens. Use the existing app's design system, Keycloak token wiring
 ## 7. State management notes
 
 - After a successful `POST /book-circles` or `POST /book-circles/join`, **invalidate** the user's books cache — the joiner's library has a new book, and the owner's library may have one too.
-- After `DELETE /book-circles/{id}` (close) or `DELETE /book-circles/{id}/members/me` (leave), refetch `GET /book-circles/mine`.
+- After `DELETE /book-circles/{id}` (close), `DELETE /book-circles/{id}/members/me` (leave), or `DELETE /book-circles/{id}/members/{userId}` (owner remove), refetch `GET /book-circles/mine`.
+- After owner removal, also refetch the currently open circle detail so the roster updates immediately.
 - The drill-down panel should refetch every time it opens — sessions/notes are fast-changing.
 
 ---
@@ -365,7 +389,8 @@ Build these screens. Use the existing app's design system, Keycloak token wiring
 8. User C tries to join again → toast "You are already a member of this circle."
 9. Switch the test to a fresh circle with `visibility=OWNER_ONLY`. Repeat step 5 — User B (a non-owner) sees Member C in the roster but with a lock icon and no progress numbers. User B can still see their own progress.
 10. User B clicks "Leave circle" → confirms → routed back to `/circles`. `Dune` is **still** in B's library (verify via `GET /books/all`).
-11. Owner clicks "Close circle" → confirm. Circle disappears from `GET /mine`. A fresh attempt by anyone to join with that code → "No active circle found for that code."
+11. In a fresh circle, owner clicks "Remove member" on User B → confirm. User B disappears from the roster, still has `Dune` in their library, and a fresh attempt by B to join with the same code → "You have been removed from this circle and cannot rejoin."
+12. Owner clicks "Close circle" → confirm. Circle disappears from `GET /mine`. A fresh attempt by anyone else to join with that code → "No active circle found for that code."
 
 ---
 
@@ -376,10 +401,11 @@ Build these screens. Use the existing app's design system, Keycloak token wiring
 | Get profile | GET | `/profile/me` | — | 200 + `ProfileReadResponseDTO` (incl. `nickname`, `needsOnboarding`) | — |
 | Set nickname | PATCH | `/profile/nickname` | `{ nickname }` | 200 + `ProfileReadResponseDTO` | 400 (validation), 409 (taken) |
 | Create | POST | `/book-circles` | `BookCircleCreateRequestDTO` | 201 + `BookCircleCreateResponseDTO` | 400 (validation, book-source rule) |
-| Join | POST | `/book-circles/join` | `{ inviteCode }` | 200 + `BookCircleReadResponseDTO` | 404 (bad code), 400 (full / dup) |
+| Join | POST | `/book-circles/join` | `{ inviteCode }` | 200 + `BookCircleReadResponseDTO` | 404 (bad code), 400 (full / dup), 403 (blocked after owner removal) |
 | Get one | GET | `/book-circles/{id}` | — | 200 + `BookCircleReadResponseDTO` | 403 (not member), 404 |
 | List mine | GET | `/book-circles/mine` | — | 200 + `BookCircleReadResponseDTO[]` | — |
 | Drill-down | GET | `/book-circles/{id}/members/{userId}/details` | — | 200 + `CircleMemberDetailResponseDTO` | 403 (visibility), 404 |
+| Remove member | DELETE | `/book-circles/{id}/members/{userId}` | — | 204 | 403 (not owner), 404 (not member), 400 (owner target) |
 | Leave | DELETE | `/book-circles/{id}/members/me` | — | 204 | 400 (owner), 404 (not member) |
 | Close | DELETE | `/book-circles/{id}` | — | 204 | 403 (not owner), 404 |
 
