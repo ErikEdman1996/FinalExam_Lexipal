@@ -10,15 +10,17 @@ import com.lexipal.core.exceptions.ResourceNotFoundException;
 import com.lexipal.core.exceptions.UnauthorizedActionException;
 import com.lexipal.core.repositories.BookRepository;
 import com.lexipal.core.repositories.SessionRepository;
-import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class BookService implements BookServiceInterface
 {
     private static final Logger logger = LogManager.getLogger(BookService.class);
@@ -26,15 +28,21 @@ public class BookService implements BookServiceInterface
     private final BookRepository bookRepository;
     private final SessionRepository sessionRepository;
     private final UserServiceInterface userService;
+    private final BookLifecycleValidator bookLifecycleValidator;
+    private final ReadingListServiceInterface readingListService;
 
     @Autowired
     public BookService(final BookRepository bookRepository,
                        final SessionRepository sessionRepository,
-                       final UserServiceInterface userService)
+                       final UserServiceInterface userService,
+                       final BookLifecycleValidator bookLifecycleValidator,
+                       @Lazy final ReadingListServiceInterface readingListService)
     {
         this.bookRepository = bookRepository;
         this.sessionRepository = sessionRepository;
         this.userService = userService;
+        this.bookLifecycleValidator = bookLifecycleValidator;
+        this.readingListService = readingListService;
     }
 
     @Override
@@ -75,11 +83,24 @@ public class BookService implements BookServiceInterface
             throw new UnauthorizedActionException("You do not own this book");
         }
 
-        if(dto.getTitle() != null) existingBook.setTitle(dto.getTitle().trim());
-        if(dto.getAuthor() != null) existingBook.setAuthor(dto.getAuthor().trim());
-        if(dto.getStatus() != null) existingBook.setStatus(dto.getStatus());
-        if(dto.getReadPages() != null) existingBook.setReadPages(dto.getReadPages());
-        if(dto.getTotalPages() != null) existingBook.setTotalPages(dto.getTotalPages());
+        BookLifecycleValidator.BookUpdateResolution resolution =
+                bookLifecycleValidator.resolveUpdate(existingBook, dto);
+
+        Integer furthestCompletedPage = sessionRepository.findMaxEndPageByBookIdAndStatus(
+                bookId,
+                com.lexipal.core.entities.Session.SessionStatus.COMPLETED
+        );
+        if (furthestCompletedPage != null && furthestCompletedPage > resolution.totalPages())
+        {
+            throw new IllegalArgumentException(
+                    "totalPages cannot be less than completed session progress (" + furthestCompletedPage + ").");
+        }
+
+        existingBook.setTitle(resolution.title());
+        existingBook.setAuthor(resolution.author());
+        existingBook.setReadPages(resolution.readPages());
+        existingBook.setTotalPages(resolution.totalPages());
+        existingBook.setStatus(resolution.status());
 
         Book updatedBook = bookRepository.save(existingBook);
         logger.info("Updated book {} for user {}", bookId, updatedBook.getUser().getId());
@@ -148,17 +169,17 @@ public class BookService implements BookServiceInterface
                 com.lexipal.core.entities.Session.SessionStatus.COMPLETED
         );
 
-        if (furthestPage == null) {
-            book.setReadPages(0);
-        } else {
-            book.setReadPages(furthestPage);
-        }
+        int syncedReadPages = furthestPage == null ? 0 : furthestPage;
+        bookLifecycleValidator.assertReadPagesWithinTotalPages(syncedReadPages, book.getTotalPages());
+        book.setReadPages(syncedReadPages);
 
         if (book.getStatus() == Book.BookStatus.DELETED || book.getStatus() == Book.BookStatus.ARCHIVED) {
             bookRepository.save(book);
             logger.info("Synced read progress for book {} without changing status because it is {}", bookId, book.getStatus());
             return;
         }
+
+        Book.BookStatus previousStatus = book.getStatus();
 
         // Auto-complete logic
         if (book.getReadPages() >= book.getTotalPages()) {
@@ -167,8 +188,13 @@ public class BookService implements BookServiceInterface
             book.setStatus(Book.BookStatus.ACTIVE);
         }
 
-        bookRepository.save(book);
+        Book savedBook = bookRepository.save(book);
         logger.info("Synced book {} progress to {} pages with status {}", bookId, book.getReadPages(), book.getStatus());
+
+        if (previousStatus != Book.BookStatus.COMPLETE && savedBook.getStatus() == Book.BookStatus.COMPLETE)
+        {
+            readingListService.onBookCompleted(savedBook);
+        }
     }
 
     @Override

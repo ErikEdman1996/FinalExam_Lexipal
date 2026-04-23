@@ -9,14 +9,15 @@ import com.lexipal.core.entities.DailyActivity;
 import com.lexipal.core.entities.Session;
 import com.lexipal.core.entities.User;
 import com.lexipal.core.repositories.SessionRepository;
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.List;
 
 @Service
+@Transactional
 public class ProfileService implements ProfileServiceInterface
 {
     private static final int RECENT_ACTIVITY_LIMIT = 10;

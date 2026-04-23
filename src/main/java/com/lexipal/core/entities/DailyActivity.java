@@ -35,10 +35,15 @@ public class DailyActivity
     @JsonBackReference("session-dailyActivities")
     private Session session;
 
+    @Column(name = "external_ref_id")
+    private Long externalRefId;
+
     public enum ActivityType
     {
         SESSION_COMPLETED,
-        CHALLENGE_COMPLETED
+        CHALLENGE_COMPLETED,
+        READING_LIST_BOOK_COMPLETED,
+        READING_LIST_COMPLETED
     }
 
     public DailyActivity()
@@ -103,5 +108,13 @@ public class DailyActivity
 
     public void setSession(Session session) {
         this.session = session;
+    }
+
+    public Long getExternalRefId() {
+        return externalRefId;
+    }
+
+    public void setExternalRefId(Long externalRefId) {
+        this.externalRefId = externalRefId;
     }
 }

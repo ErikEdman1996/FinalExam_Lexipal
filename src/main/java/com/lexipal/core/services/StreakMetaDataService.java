@@ -5,15 +5,16 @@ import com.lexipal.core.dtos.responses.StreakMetaDataReadResponseDTO;
 import com.lexipal.core.entities.StreakMetaData;
 import com.lexipal.core.entities.User;
 import com.lexipal.core.repositories.StreakMetaDataRepository;
-import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 
 @Service
+@Transactional
 public class StreakMetaDataService implements StreakMetaDataServiceInterface
 {
     private static final Logger logger = LogManager.getLogger(StreakMetaDataService.class);

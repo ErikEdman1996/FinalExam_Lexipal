@@ -1,10 +1,13 @@
 package com.lexipal.core.configs;
+
 import com.lexipal.core.utils.JwtAuthConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -24,19 +27,12 @@ public class SecurityConfig
         http
                 .cors(Customizer.withDefaults())
                 .csrf(crsf -> crsf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/lexipal/api/v1/books/**").authenticated()
-                        .requestMatchers("/lexipal/api/v1/book-circles/**").authenticated()
-                        .requestMatchers("/lexipal/api/v1/sessions/**").authenticated()
-                        .requestMatchers("/lexipal/api/v1/codexEntries/**").authenticated()
-                        .requestMatchers("/lexipal/api/v1/notes/**").authenticated()
-                        .requestMatchers("/lexipal/api/v1/codex-board/**").authenticated()
-                        .requestMatchers("/lexipal/api/v1/codexBoard/**").authenticated()
-                        .requestMatchers("/lexipal/api/v1/dailyActivities/**").authenticated()
-                        .requestMatchers("/lexipal/api/v1/streakMetadata/**").authenticated()
-                        .requestMatchers("/lexipal/api/v1/profile/**").authenticated()
-                        .requestMatchers("/test/dictionary/**").authenticated()
-                        .anyRequest().permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/error").permitAll()
+                        .requestMatchers("/lexipal/api/v1/**").authenticated()
+                        .anyRequest().denyAll()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2.
                         jwt(jwt->jwt.jwtAuthenticationConverter(jwtAuthConverter))

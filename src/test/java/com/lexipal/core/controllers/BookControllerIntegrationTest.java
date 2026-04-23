@@ -282,6 +282,87 @@ class BookControllerIntegrationTest extends IntegrationTestBase
     }
 
     @Test
+    @DisplayName("PUT /books/{id} rejects readPages greater than totalPages")
+    void updateBook_readPagesGreaterThanTotalPages_returnsBadRequest() throws Exception
+    {
+        Book book = createBook("Progress Book", "Author", 100, testUser);
+        BookUpdateRequestDTO dto = new BookUpdateRequestDTO(null, null, 120, 100, null);
+
+        mockMvc.perform(put(BASE_URL + "/" + book.getId())
+                        .with(jwtWithSub(USER_SUB))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("readPages cannot be greater than totalPages."));
+    }
+
+    @Test
+    @DisplayName("PUT /books/{id} rejects invalid COMPLETE status combinations")
+    void updateBook_invalidCompleteStatus_returnsBadRequest() throws Exception
+    {
+        Book book = createBook("Progress Book", "Author", 100, testUser);
+        BookUpdateRequestDTO dto = new BookUpdateRequestDTO(null, null, 50, 100, Book.BookStatus.COMPLETE);
+
+        mockMvc.perform(put(BASE_URL + "/" + book.getId())
+                        .with(jwtWithSub(USER_SUB))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("A COMPLETE book must have readPages equal to totalPages."));
+    }
+
+    @Test
+    @DisplayName("PUT /books/{id} rejects invalid ACTIVE status combinations")
+    void updateBook_invalidActiveStatus_returnsBadRequest() throws Exception
+    {
+        Book book = createBook("Progress Book", "Author", 100, testUser);
+        BookUpdateRequestDTO dto = new BookUpdateRequestDTO(null, null, 100, 100, Book.BookStatus.ACTIVE);
+
+        mockMvc.perform(put(BASE_URL + "/" + book.getId())
+                        .with(jwtWithSub(USER_SUB))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("An ACTIVE book must have readPages less than totalPages."));
+    }
+
+    @Test
+    @DisplayName("PUT /books/{id} rejects deleted books")
+    void updateBook_deletedBook_returnsBadRequest() throws Exception
+    {
+        Book book = createBook("Deleted Book", "Author", 100, testUser);
+        book.setStatus(Book.BookStatus.DELETED);
+        bookRepository.save(book);
+
+        BookUpdateRequestDTO dto = new BookUpdateRequestDTO("Updated", null, null, null, null);
+
+        mockMvc.perform(put(BASE_URL + "/" + book.getId())
+                        .with(jwtWithSub(USER_SUB))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Deleted books cannot be updated."));
+    }
+
+    @Test
+    @DisplayName("PUT /books/{id} rejects totalPages lower than completed session progress")
+    void updateBook_totalPagesBelowCompletedProgress_returnsBadRequest() throws Exception
+    {
+        Book book = createBook("Progress Book", "Author", 100, testUser);
+        createCompletedSession(book, 10, 40, 900L);
+
+        BookUpdateRequestDTO dto = new BookUpdateRequestDTO(null, null, null, 30, null);
+
+        mockMvc.perform(put(BASE_URL + "/" + book.getId())
+                        .with(jwtWithSub(USER_SUB))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message")
+                        .value("totalPages cannot be less than completed session progress (40)."));
+    }
+
+    @Test
     @DisplayName("DELETE /books/{id} soft-deletes by setting status to DELETED")
     void deleteBook_setsStatusDeleted() throws Exception
     {

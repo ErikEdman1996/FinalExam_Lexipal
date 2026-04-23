@@ -10,14 +10,15 @@ import com.lexipal.core.repositories.ChallengeAttemptRepository;
 import com.lexipal.core.repositories.ChallengeRepository;
 import com.lexipal.core.repositories.CodexEntryRepository;
 import com.lexipal.core.repositories.WordRepository;
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class ChallengeAttemptService implements ChallengeAttemptServiceInterface
 {
     private static final int PASS_XP = 10;

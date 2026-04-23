@@ -9,16 +9,17 @@ import com.lexipal.core.exceptions.ResourceNotFoundException;
 import com.lexipal.core.exceptions.UnauthorizedActionException;
 import com.lexipal.core.repositories.DailyActivityRepository;
 import com.lexipal.core.repositories.SessionRepository;
-import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class DailyActivityService implements DailyActivityServiceInterface
 {
     private static final int SESSION_COMPLETION_XP = 25;

@@ -15,6 +15,10 @@ public interface DailyActivityRepository extends JpaRepository<DailyActivity, Lo
     List<DailyActivity> findByUser_KeycloakSubOrderByActivityDateDesc(String keycloakSub);
     Optional<DailyActivity> findBySession_IdAndActivityType(Long sessionId, DailyActivity.ActivityType activityType);
 
+    boolean existsByUser_IdAndActivityTypeAndExternalRefId(Long userId,
+                                                           DailyActivity.ActivityType activityType,
+                                                           Long externalRefId);
+
     @Query("""
             select coalesce(sum(case when d.xpEarned > 0 then d.xpEarned else 0 end), 0)
             from DailyActivity d

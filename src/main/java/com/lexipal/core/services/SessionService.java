@@ -14,17 +14,18 @@ import com.lexipal.core.exceptions.ResourceNotFoundException;
 import com.lexipal.core.exceptions.UnauthorizedActionException;
 import com.lexipal.core.repositories.BookRepository;
 import com.lexipal.core.repositories.SessionRepository;
-import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class SessionService implements SessionServiceInterface
 {
     private static final Logger logger = LogManager.getLogger(SessionService.class);
@@ -35,6 +36,7 @@ public class SessionService implements SessionServiceInterface
     private final DailyActivityServiceInterface dailyActivityService;
     private final UserServiceInterface userService;
     private final XpService xpService;
+    private final BookLifecycleValidator bookLifecycleValidator;
 
     @Autowired
     public SessionService(final SessionRepository sessionRepository,
@@ -42,7 +44,8 @@ public class SessionService implements SessionServiceInterface
                           final BookServiceInterface bookService,
                           final DailyActivityServiceInterface dailyActivityService,
                           final UserServiceInterface userService,
-                          final XpService xpService)
+                          final XpService xpService,
+                          final BookLifecycleValidator bookLifecycleValidator)
     {
         this.sessionRepository = sessionRepository;
         this.bookRepository = bookRepository;
@@ -50,6 +53,7 @@ public class SessionService implements SessionServiceInterface
         this.dailyActivityService = dailyActivityService;
         this.userService = userService;
         this.xpService = xpService;
+        this.bookLifecycleValidator = bookLifecycleValidator;
     }
 
     @Override
@@ -68,7 +72,8 @@ public class SessionService implements SessionServiceInterface
             throw new UnauthorizedActionException("This book does belong to you.");
         }
 
-        validateBookCanAcceptSessionChanges(book);
+        bookLifecycleValidator.assertAllowsSessionMutations(book);
+        validateSessionPages(book, dto.getStartPage(), dto.getEndPage());
 
         sessionRepository.findFirstByBookIdAndUser_IdAndStatusOrderBySessionDateDesc(
                         bookId,
@@ -107,7 +112,7 @@ public class SessionService implements SessionServiceInterface
             throw new UnauthorizedActionException("This session does not belong to you.");
         }
 
-        validateBookCanAcceptSessionChanges(existingSession.getBook());
+        bookLifecycleValidator.assertAllowsSessionMutations(existingSession.getBook());
 
         if (existingSession.getStatus() == Session.SessionStatus.COMPLETED)
         {
@@ -134,6 +139,7 @@ public class SessionService implements SessionServiceInterface
             {
                 throw new IllegalArgumentException("endPage cannot be less than startPage.");
             }
+            validatePageWithinBook(existingSession.getBook(), "endPage", dto.getEndPage());
             existingSession.setEndPage(dto.getEndPage());
         }
 
@@ -163,7 +169,7 @@ public class SessionService implements SessionServiceInterface
             throw new UnauthorizedActionException("This session does not belong to you.");
         }
 
-        validateBookCanAcceptSessionChanges(existingSession.getBook());
+        bookLifecycleValidator.assertAllowsSessionMutations(existingSession.getBook());
 
         if (existingSession.getStatus() == Session.SessionStatus.COMPLETED)
         {
@@ -171,6 +177,7 @@ public class SessionService implements SessionServiceInterface
         }
 
         applyCompletionFields(existingSession, dto);
+        validateSessionPages(existingSession.getBook(), existingSession.getStartPage(), existingSession.getEndPage());
         validateCompletionReady(existingSession);
 
         existingSession.setStatus(Session.SessionStatus.COMPLETED);
@@ -189,11 +196,23 @@ public class SessionService implements SessionServiceInterface
         return toSessionUpdateResponse(updatedSession, xpUpdate);
     }
 
-    private void validateBookCanAcceptSessionChanges(Book book)
+    private void validateSessionPages(Book book, Integer startPage, Integer endPage)
     {
-        if (book.getStatus() == Book.BookStatus.DELETED || book.getStatus() == Book.BookStatus.ARCHIVED)
+        validatePageWithinBook(book, "startPage", startPage);
+        validatePageWithinBook(book, "endPage", endPage);
+
+        if (startPage != null && endPage != null && endPage < startPage)
         {
-            throw new IllegalArgumentException("Sessions cannot be modified for archived or deleted books.");
+            throw new IllegalArgumentException("endPage cannot be less than startPage.");
+        }
+    }
+
+    private void validatePageWithinBook(Book book, String fieldName, Integer page)
+    {
+        if (page != null && book.getTotalPages() != null && page > book.getTotalPages())
+        {
+            throw new IllegalArgumentException(
+                    fieldName + " cannot exceed the book's total pages (" + book.getTotalPages() + ").");
         }
     }
 

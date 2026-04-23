@@ -12,16 +12,17 @@ import com.lexipal.core.exceptions.UnauthorizedActionException;
 import com.lexipal.core.repositories.BookRepository;
 import com.lexipal.core.repositories.NoteRepository;
 import com.lexipal.core.repositories.SessionRepository;
-import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class NoteService implements NoteServiceInterface
 {
     private static final Logger logger = LogManager.getLogger(NoteService.class);
@@ -30,17 +31,20 @@ public class NoteService implements NoteServiceInterface
     private final BookRepository bookRepository;
     private final SessionRepository sessionRepository;
     private final UserServiceInterface userService;
+    private final BookLifecycleValidator bookLifecycleValidator;
 
     @Autowired
     public NoteService(final NoteRepository noteRepository,
                        final BookRepository bookRepository,
                        final SessionRepository sessionRepository,
-                       final UserServiceInterface userService)
+                       final UserServiceInterface userService,
+                       final BookLifecycleValidator bookLifecycleValidator)
     {
         this.noteRepository = noteRepository;
         this.bookRepository = bookRepository;
         this.sessionRepository = sessionRepository;
         this.userService = userService;
+        this.bookLifecycleValidator = bookLifecycleValidator;
     }
 
     @Override
@@ -60,6 +64,8 @@ public class NoteService implements NoteServiceInterface
             logger.warn("User {} attempted to create a note on book {} they do not own", user.getId(), book.getId());
             throw new UnauthorizedActionException("This book does not belong to you.");
         }
+
+        bookLifecycleValidator.assertAllowsNoteMutations(book);
 
         if (book.getTotalPages() != null && dto.getPageNumber() > book.getTotalPages())
         {
@@ -150,6 +156,8 @@ public class NoteService implements NoteServiceInterface
             throw new UnauthorizedActionException("This note does not belong to you.");
         }
 
+        bookLifecycleValidator.assertAllowsNoteMutations(note.getBook());
+
         if (dto.getQuotedText() != null)
         {
             if (dto.getQuotedText().isBlank())
@@ -195,6 +203,8 @@ public class NoteService implements NoteServiceInterface
             logger.warn("User {} attempted to delete note {} they do not own", user.getId(), noteId);
             throw new UnauthorizedActionException("This note does not belong to you.");
         }
+
+        bookLifecycleValidator.assertAllowsNoteMutations(note.getBook());
 
         noteRepository.delete(note);
         logger.info("Deleted note {} for user {}", noteId, user.getId());

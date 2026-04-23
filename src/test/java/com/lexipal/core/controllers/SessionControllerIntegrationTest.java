@@ -406,6 +406,37 @@ class SessionControllerIntegrationTest extends IntegrationTestBase
     }
 
     @Test
+    @DisplayName("POST /sessions rejects pages beyond the book's total pages")
+    void addSession_pageBeyondBookTotal_returnsBadRequest() throws Exception
+    {
+        SessionCreateRequestDTO dto = new SessionCreateRequestDTO(testBook.getId(), null, 301, 301, null);
+
+        mockMvc.perform(post(BASE_URL)
+                        .with(jwtWithSub(USER_SUB))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message")
+                        .value("startPage cannot exceed the book's total pages (300)."));
+    }
+
+    @Test
+    @DisplayName("POST /sessions/{id}/complete rejects endPage beyond the book's total pages")
+    void completeSession_pageBeyondBookTotal_returnsBadRequest() throws Exception
+    {
+        Session session = createDraftSession(testUser, testBook, 1, null, null);
+        SessionCompleteRequestDTO dto = new SessionCompleteRequestDTO(301, 900L, "Too far");
+
+        mockMvc.perform(post(BASE_URL + "/" + session.getId() + "/complete")
+                        .with(jwtWithSub(USER_SUB))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message")
+                        .value("endPage cannot exceed the book's total pages (300)."));
+    }
+
+    @Test
     @DisplayName("PUT /sessions/{id} rejects edits to completed sessions")
     void updateSession_completedSession_returnsBadRequest() throws Exception
     {

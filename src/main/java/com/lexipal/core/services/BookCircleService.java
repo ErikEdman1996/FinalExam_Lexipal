@@ -27,16 +27,17 @@ import com.lexipal.core.repositories.CircleMemberBlockRepository;
 import com.lexipal.core.repositories.CircleMemberRepository;
 import com.lexipal.core.repositories.NoteRepository;
 import com.lexipal.core.repositories.SessionRepository;
-import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class BookCircleService implements BookCircleServiceInterface
 {
     private static final Logger logger = LogManager.getLogger(BookCircleService.class);
@@ -50,6 +51,7 @@ public class BookCircleService implements BookCircleServiceInterface
     private final UserServiceInterface userService;
     private final BookServiceInterface bookService;
     private final InviteCodeGenerator inviteCodeGenerator;
+    private final BookLifecycleValidator bookLifecycleValidator;
 
     @Autowired
     public BookCircleService(final BookCircleRepository bookCircleRepository,
@@ -60,7 +62,8 @@ public class BookCircleService implements BookCircleServiceInterface
                              final NoteRepository noteRepository,
                              final UserServiceInterface userService,
                              final BookServiceInterface bookService,
-                             final InviteCodeGenerator inviteCodeGenerator)
+                             final InviteCodeGenerator inviteCodeGenerator,
+                             final BookLifecycleValidator bookLifecycleValidator)
     {
         this.bookCircleRepository = bookCircleRepository;
         this.circleMemberBlockRepository = circleMemberBlockRepository;
@@ -71,6 +74,7 @@ public class BookCircleService implements BookCircleServiceInterface
         this.userService = userService;
         this.bookService = bookService;
         this.inviteCodeGenerator = inviteCodeGenerator;
+        this.bookLifecycleValidator = bookLifecycleValidator;
     }
 
     @Override
@@ -79,7 +83,7 @@ public class BookCircleService implements BookCircleServiceInterface
     {
         User owner = userService.getOrCreateUser(keycloakSub);
 
-        Book ownerBook = resolveOwnerBook(request, owner, keycloakSub);
+        Book ownerBook = resolveOwnerBook(request, keycloakSub);
 
         BookCircle circle = new BookCircle();
         circle.setInviteCode(inviteCodeGenerator.generateUnique(bookCircleRepository));
@@ -100,8 +104,7 @@ public class BookCircleService implements BookCircleServiceInterface
         ownerMember.setRole(CircleMemberRole.OWNER);
         circleMemberRepository.save(ownerMember);
 
-        logger.info("Created circle {} with invite code {} for owner {}",
-                savedCircle.getId(), savedCircle.getInviteCode(), owner.getId());
+        logger.info("Created circle {} for owner {}", savedCircle.getId(), owner.getId());
 
         return new BookCircleCreateResponseDTO(
                 savedCircle.getId(),
@@ -116,7 +119,7 @@ public class BookCircleService implements BookCircleServiceInterface
         );
     }
 
-    private Book resolveOwnerBook(BookCircleCreateRequestDTO request, User owner, String keycloakSub)
+    private Book resolveOwnerBook(BookCircleCreateRequestDTO request, String keycloakSub)
     {
         if (request.getExistingBookId() != null)
         {
@@ -133,6 +136,8 @@ public class BookCircleService implements BookCircleServiceInterface
             {
                 throw new UnauthorizedActionException("You do not own this book");
             }
+
+            bookLifecycleValidator.assertCanBeUsedForCircle(existing);
 
             return existing;
         }
@@ -195,7 +200,7 @@ public class BookCircleService implements BookCircleServiceInterface
         member.setRole(CircleMemberRole.MEMBER);
         circleMemberRepository.save(member);
 
-        logger.info("User {} joined circle {} via code {}", user.getId(), circle.getId(), inviteCode);
+        logger.info("User {} joined circle {}", user.getId(), circle.getId());
 
         return buildCircleReadResponse(circle, user);
     }
