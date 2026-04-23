@@ -53,6 +53,19 @@ public class BookCircle
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 
+    @Column
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime nextMeetingDate;
+
+    @Column(length = 100)
+    private String meetingChapterLabel;
+
+    @Column
+    private Integer meetingPageStart;
+
+    @Column
+    private Integer meetingPageEnd;
+
     public BookCircle()
     {
 
@@ -154,5 +167,37 @@ public class BookCircle
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getNextMeetingDate() {
+        return nextMeetingDate;
+    }
+
+    public void setNextMeetingDate(LocalDateTime nextMeetingDate) {
+        this.nextMeetingDate = nextMeetingDate;
+    }
+
+    public String getMeetingChapterLabel() {
+        return meetingChapterLabel;
+    }
+
+    public void setMeetingChapterLabel(String meetingChapterLabel) {
+        this.meetingChapterLabel = meetingChapterLabel;
+    }
+
+    public Integer getMeetingPageStart() {
+        return meetingPageStart;
+    }
+
+    public void setMeetingPageStart(Integer meetingPageStart) {
+        this.meetingPageStart = meetingPageStart;
+    }
+
+    public Integer getMeetingPageEnd() {
+        return meetingPageEnd;
+    }
+
+    public void setMeetingPageEnd(Integer meetingPageEnd) {
+        this.meetingPageEnd = meetingPageEnd;
     }
 }

@@ -2,6 +2,7 @@ package com.lexipal.core.controllers;
 
 import com.lexipal.core.dtos.requests.BookCircleCreateRequestDTO;
 import com.lexipal.core.dtos.requests.BookCircleJoinRequestDTO;
+import com.lexipal.core.dtos.requests.SetNextMeetingRequestDTO;
 import com.lexipal.core.dtos.responses.BookCircleCreateResponseDTO;
 import com.lexipal.core.dtos.responses.BookCircleReadResponseDTO;
 import com.lexipal.core.dtos.responses.CircleMemberDetailResponseDTO;
@@ -99,5 +100,24 @@ public class BookCircleController
         String keycloakSub = jwt.getSubject();
         bookCircleService.closeCircle(id, keycloakSub);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/next-meeting")
+    public ResponseEntity<BookCircleReadResponseDTO> setNextMeeting(
+            @PathVariable Long id,
+            @Valid @RequestBody SetNextMeetingRequestDTO request,
+            @AuthenticationPrincipal Jwt jwt)
+    {
+        String keycloakSub = jwt.getSubject();
+        return ResponseEntity.ok(bookCircleService.setNextMeeting(id, request, keycloakSub));
+    }
+
+    @DeleteMapping("/{id}/next-meeting")
+    public ResponseEntity<BookCircleReadResponseDTO> clearNextMeeting(
+            @PathVariable Long id,
+            @AuthenticationPrincipal Jwt jwt)
+    {
+        String keycloakSub = jwt.getSubject();
+        return ResponseEntity.ok(bookCircleService.clearNextMeeting(id, keycloakSub));
     }
 }

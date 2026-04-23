@@ -2,6 +2,7 @@ package com.lexipal.core.services;
 
 import com.lexipal.core.dtos.requests.BookCircleCreateRequestDTO;
 import com.lexipal.core.dtos.requests.BookCreateRequestDTO;
+import com.lexipal.core.dtos.requests.SetNextMeetingRequestDTO;
 import com.lexipal.core.dtos.responses.BookCircleCreateResponseDTO;
 import com.lexipal.core.dtos.responses.BookCircleReadResponseDTO;
 import com.lexipal.core.dtos.responses.BookCreateResponseDTO;
@@ -52,6 +53,7 @@ public class BookCircleService implements BookCircleServiceInterface
     private final BookServiceInterface bookService;
     private final InviteCodeGenerator inviteCodeGenerator;
     private final BookLifecycleValidator bookLifecycleValidator;
+    private final BookCircleChatServiceInterface bookCircleChatService;
 
     @Autowired
     public BookCircleService(final BookCircleRepository bookCircleRepository,
@@ -63,7 +65,8 @@ public class BookCircleService implements BookCircleServiceInterface
                              final UserServiceInterface userService,
                              final BookServiceInterface bookService,
                              final InviteCodeGenerator inviteCodeGenerator,
-                             final BookLifecycleValidator bookLifecycleValidator)
+                             final BookLifecycleValidator bookLifecycleValidator,
+                             final BookCircleChatServiceInterface bookCircleChatService)
     {
         this.bookCircleRepository = bookCircleRepository;
         this.circleMemberBlockRepository = circleMemberBlockRepository;
@@ -75,6 +78,7 @@ public class BookCircleService implements BookCircleServiceInterface
         this.bookService = bookService;
         this.inviteCodeGenerator = inviteCodeGenerator;
         this.bookLifecycleValidator = bookLifecycleValidator;
+        this.bookCircleChatService = bookCircleChatService;
     }
 
     @Override
@@ -320,6 +324,12 @@ public class BookCircleService implements BookCircleServiceInterface
         }
 
         circleMemberRepository.delete(membership);
+        bookCircleChatService.handleChatAccessRevoked(
+                circleId,
+                membership.getUser().getId(),
+                membership.getUser().getKeycloakSub(),
+                "You are no longer a member of this circle."
+        );
         logger.info("Owner {} removed user {} from circle {}", caller.getId(), targetUserId, circleId);
     }
 
@@ -340,6 +350,12 @@ public class BookCircleService implements BookCircleServiceInterface
         }
 
         circleMemberRepository.delete(membership);
+        bookCircleChatService.handleChatAccessRevoked(
+                circleId,
+                membership.getUser().getId(),
+                membership.getUser().getKeycloakSub(),
+                "You left this circle and chat is no longer available."
+        );
         logger.info("User {} left circle {}", caller.getId(), circleId);
     }
 
@@ -359,7 +375,104 @@ public class BookCircleService implements BookCircleServiceInterface
 
         circle.setStatus(CircleStatus.CLOSED);
         bookCircleRepository.save(circle);
+        bookCircleChatService.handleCircleClosed(circleId,
+                "This circle has been closed and chat is no longer available.");
         logger.info("Circle {} closed by owner {}", circleId, caller.getId());
+    }
+
+    @Override
+    @Transactional
+    public BookCircleReadResponseDTO setNextMeeting(Long circleId, SetNextMeetingRequestDTO request, String keycloakSub)
+    {
+        User caller = userService.getOrCreateUser(keycloakSub);
+
+        BookCircle circle = bookCircleRepository.findById(circleId)
+                .orElseThrow(() -> new ResourceNotFoundException("BookCircle", "id", circleId));
+
+        if (!circle.getOwner().getId().equals(caller.getId()))
+        {
+            throw new UnauthorizedActionException("Only the circle owner can set the next meeting");
+        }
+
+        boolean hasChapter = request.getChapterLabel() != null && !request.getChapterLabel().isBlank();
+        boolean hasPageStart = request.getPageStart() != null;
+        boolean hasPageEnd = request.getPageEnd() != null;
+        boolean hasPageRange = hasPageStart || hasPageEnd;
+
+        if (hasChapter && hasPageRange)
+        {
+            throw new IllegalArgumentException(
+                    "Specify either a chapter label or a page range, not both.");
+        }
+
+        if (!hasChapter && !hasPageRange)
+        {
+            throw new IllegalArgumentException(
+                    "A chapter label or a page range is required.");
+        }
+
+        if (hasPageRange)
+        {
+            if (!hasPageStart || !hasPageEnd)
+            {
+                throw new IllegalArgumentException(
+                        "Both pageStart and pageEnd are required for a page range.");
+            }
+            if (request.getPageStart() > request.getPageEnd())
+            {
+                throw new IllegalArgumentException(
+                        "pageStart must be less than or equal to pageEnd.");
+            }
+            if (request.getPageEnd() > circle.getTotalPages())
+            {
+                throw new IllegalArgumentException(
+                        "pageEnd cannot exceed the book's total pages.");
+            }
+        }
+
+        circle.setNextMeetingDate(request.getMeetingDate());
+        if (hasChapter)
+        {
+            circle.setMeetingChapterLabel(request.getChapterLabel());
+            circle.setMeetingPageStart(null);
+            circle.setMeetingPageEnd(null);
+        }
+        else
+        {
+            circle.setMeetingChapterLabel(null);
+            circle.setMeetingPageStart(request.getPageStart());
+            circle.setMeetingPageEnd(request.getPageEnd());
+        }
+
+        bookCircleRepository.save(circle);
+        logger.info("Circle {} next meeting set by owner {}", circleId, caller.getId());
+
+        return buildCircleReadResponse(circle, caller);
+    }
+
+    @Override
+    @Transactional
+    public BookCircleReadResponseDTO clearNextMeeting(Long circleId, String keycloakSub)
+    {
+        User caller = userService.getOrCreateUser(keycloakSub);
+
+        BookCircle circle = bookCircleRepository.findById(circleId)
+                .orElseThrow(() -> new ResourceNotFoundException("BookCircle", "id", circleId));
+
+        if (!circle.getOwner().getId().equals(caller.getId()))
+        {
+            throw new UnauthorizedActionException("Only the circle owner can clear the next meeting");
+        }
+
+        circle.setNextMeetingDate(null);
+        circle.setMeetingChapterLabel(null);
+        circle.setMeetingPageStart(null);
+        circle.setMeetingPageEnd(null);
+
+        bookCircleRepository.save(circle);
+        logger.info("Circle {} next meeting cleared by owner {}", circleId, caller.getId());
+
+        return buildCircleReadResponse(circle, caller);
     }
 
     private BookCircleReadResponseDTO buildCircleReadResponse(BookCircle circle, User caller)
@@ -375,7 +488,7 @@ public class BookCircleService implements BookCircleServiceInterface
                 .map(m -> toMemberProgressDTO(m, caller, revealAllProgress))
                 .collect(Collectors.toList());
 
-        return new BookCircleReadResponseDTO(
+        BookCircleReadResponseDTO dto = new BookCircleReadResponseDTO(
                 circle.getId(),
                 circle.getInviteCode(),
                 circle.getBookTitle(),
@@ -390,6 +503,11 @@ public class BookCircleService implements BookCircleServiceInterface
                 circle.getCreatedAt(),
                 memberDtos
         );
+        dto.setNextMeetingDate(circle.getNextMeetingDate());
+        dto.setMeetingChapterLabel(circle.getMeetingChapterLabel());
+        dto.setMeetingPageStart(circle.getMeetingPageStart());
+        dto.setMeetingPageEnd(circle.getMeetingPageEnd());
+        return dto;
     }
 
     private CircleMemberProgressDTO toMemberProgressDTO(CircleMember member, User caller, boolean revealAllProgress)

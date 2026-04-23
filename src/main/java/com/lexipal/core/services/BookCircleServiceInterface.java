@@ -1,6 +1,7 @@
 package com.lexipal.core.services;
 
 import com.lexipal.core.dtos.requests.BookCircleCreateRequestDTO;
+import com.lexipal.core.dtos.requests.SetNextMeetingRequestDTO;
 import com.lexipal.core.dtos.responses.BookCircleCreateResponseDTO;
 import com.lexipal.core.dtos.responses.BookCircleReadResponseDTO;
 import com.lexipal.core.dtos.responses.CircleMemberDetailResponseDTO;
@@ -24,4 +25,8 @@ public interface BookCircleServiceInterface
     void leaveCircle(Long circleId, String keycloakSub);
 
     void closeCircle(Long circleId, String keycloakSub);
+
+    BookCircleReadResponseDTO setNextMeeting(Long circleId, SetNextMeetingRequestDTO request, String keycloakSub);
+
+    BookCircleReadResponseDTO clearNextMeeting(Long circleId, String keycloakSub);
 }

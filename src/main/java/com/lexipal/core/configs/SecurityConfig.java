@@ -31,6 +31,7 @@ public class SecurityConfig
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/error").permitAll()
+                        .requestMatchers("/lexipal/ws", "/lexipal/ws/**").permitAll()
                         .requestMatchers("/lexipal/api/v1/**").authenticated()
                         .anyRequest().denyAll()
                 )

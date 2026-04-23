@@ -372,7 +372,7 @@ Build these screens. Use the existing app's design system, Keycloak token wiring
 
 - **No invite-code regeneration.** If the code leaks, the owner must close the circle and create a new one.
 - **No ownership transfer.** Owner is fixed for the circle's lifetime.
-- **No notifications, chat, or activity feed** inside circles.
+- **No notifications or activity feed** inside circles. Real-time chat is documented separately in `BOOKCIRCLE_CHAT_FRONTEND_PROMPT.md`.
 - Joiners get a **fresh `Book` row** every time they join — even if they already own a personal copy of the same book under a different name. There is no dedup. UI should not try to merge them.
 
 ---
