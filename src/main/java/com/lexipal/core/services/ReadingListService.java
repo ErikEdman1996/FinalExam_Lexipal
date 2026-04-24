@@ -12,6 +12,7 @@ import com.lexipal.core.entities.CatalogBook;
 import com.lexipal.core.entities.DailyActivity;
 import com.lexipal.core.entities.ReadingList;
 import com.lexipal.core.entities.ReadingListBook;
+import com.lexipal.core.entities.ReadingListGenre;
 import com.lexipal.core.entities.ReadingListStar;
 import com.lexipal.core.entities.ReadingListStatus;
 import com.lexipal.core.entities.ReadingListSubscription;
@@ -38,6 +39,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -49,6 +51,8 @@ public class ReadingListService implements ReadingListServiceInterface
 {
     private static final int LIST_BOOK_COMPLETION_XP = 50;
     private static final int LIST_FULLY_COMPLETED_XP = 200;
+    private static final int MAX_GENRES = 10;
+    private static final int MAX_GENRE_LENGTH = 50;
 
     private static final Logger logger = LogManager.getLogger(ReadingListService.class);
 
@@ -99,6 +103,7 @@ public class ReadingListService implements ReadingListServiceInterface
         list.setStatus(request.getStatus() == null ? ReadingListStatus.PUBLISHED : request.getStatus());
 
         ReadingList savedList = readingListRepository.save(list);
+        replaceGenres(savedList, request.getGenres());
 
         List<ReadingListBook> slotEntities = new ArrayList<>();
         for (ReadingListBookSlotRequestDTO slot : slots)
@@ -142,6 +147,10 @@ public class ReadingListService implements ReadingListServiceInterface
         if (request.getStatus() != null)
         {
             list.setStatus(request.getStatus());
+        }
+        if (request.isGenresProvided())
+        {
+            replaceGenres(list, request.getGenres());
         }
 
         ReadingList saved = readingListRepository.save(list);
@@ -194,7 +203,9 @@ public class ReadingListService implements ReadingListServiceInterface
                     .collect(Collectors.toList());
         }
 
-        return readingListRepository.browseWithQuery(ReadingListStatus.PUBLISHED, safeMinStars, trimmedQuery, pageable)
+        String normalizedQuery = CatalogBook.normalize(trimmedQuery);
+        return readingListRepository.browseWithQuery(
+                        ReadingListStatus.PUBLISHED, safeMinStars, trimmedQuery, normalizedQuery, pageable)
                 .getContent().stream()
                 .map(l -> buildSummaryResponse(l, caller))
                 .collect(Collectors.toList());
@@ -437,6 +448,55 @@ public class ReadingListService implements ReadingListServiceInterface
         }
     }
 
+    private void replaceGenres(ReadingList list, List<String> genreValues)
+    {
+        List<GenreValue> genres = validateGenres(genreValues);
+        list.getGenres().clear();
+
+        for (GenreValue genre : genres)
+        {
+            ReadingListGenre entity = new ReadingListGenre();
+            entity.setList(list);
+            entity.setGenre(genre.displayValue());
+            list.getGenres().add(entity);
+        }
+    }
+
+    private List<GenreValue> validateGenres(List<String> genreValues)
+    {
+        if (genreValues == null)
+        {
+            return Collections.emptyList();
+        }
+        if (genreValues.size() > MAX_GENRES)
+        {
+            throw new IllegalArgumentException("A reading list can have at most " + MAX_GENRES + " genres");
+        }
+
+        Set<String> seen = new HashSet<>();
+        List<GenreValue> genres = new ArrayList<>();
+        for (String rawGenre : genreValues)
+        {
+            String normalized = CatalogBook.normalize(rawGenre);
+            if (normalized == null || normalized.isBlank())
+            {
+                throw new IllegalArgumentException("Genre cannot be blank");
+            }
+
+            String displayValue = rawGenre.trim();
+            if (displayValue.length() > MAX_GENRE_LENGTH)
+            {
+                throw new IllegalArgumentException("Genre must be " + MAX_GENRE_LENGTH + " characters or fewer");
+            }
+            if (!seen.add(normalized))
+            {
+                throw new IllegalArgumentException("Duplicate genre: " + displayValue);
+            }
+            genres.add(new GenreValue(displayValue, normalized));
+        }
+        return genres;
+    }
+
     private ReadingList loadOwnedList(Long listId, User caller)
     {
         ReadingList list = readingListRepository.findById(listId)
@@ -484,6 +544,7 @@ public class ReadingListService implements ReadingListServiceInterface
                 list.getOwner().getNickname(),
                 list.getOwner().getId(),
                 list.getStatus(),
+                sortedGenres(list),
                 list.getStarCount(),
                 callerIsOwner,
                 hasStarred,
@@ -508,6 +569,7 @@ public class ReadingListService implements ReadingListServiceInterface
                 list.getOwner().getNickname(),
                 list.getOwner().getId(),
                 list.getStatus(),
+                sortedGenres(list),
                 list.getStarCount(),
                 (int) bookCount,
                 callerIsOwner,
@@ -558,5 +620,22 @@ public class ReadingListService implements ReadingListServiceInterface
                 inMyLibrary,
                 completedByMe
         );
+    }
+
+    private List<String> sortedGenres(ReadingList list)
+    {
+        if (list.getGenres() == null || list.getGenres().isEmpty())
+        {
+            return Collections.emptyList();
+        }
+        return list.getGenres().stream()
+                .sorted(Comparator.comparing(ReadingListGenre::getGenreNormalized))
+                .map(ReadingListGenre::getGenre)
+                .collect(Collectors.toList());
+    }
+
+    private record GenreValue(String displayValue, String normalizedValue)
+    {
+
     }
 }

@@ -49,6 +49,10 @@ public class ReadingList
     @OrderBy("position ASC")
     private List<ReadingListBook> books = new ArrayList<>();
 
+    @OneToMany(mappedBy = "list", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("list-genres")
+    private List<ReadingListGenre> genres = new ArrayList<>();
+
     public ReadingList()
     {
 
@@ -146,5 +150,13 @@ public class ReadingList
 
     public void setBooks(List<ReadingListBook> books) {
         this.books = books;
+    }
+
+    public List<ReadingListGenre> getGenres() {
+        return genres;
+    }
+
+    public void setGenres(List<ReadingListGenre> genres) {
+        this.genres = genres;
     }
 }

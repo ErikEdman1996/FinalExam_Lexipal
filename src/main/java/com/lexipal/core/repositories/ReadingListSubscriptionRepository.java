@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.time.LocalDateTime;
 
 @Repository
 public interface ReadingListSubscriptionRepository extends JpaRepository<ReadingListSubscription, Long>
@@ -29,4 +30,14 @@ public interface ReadingListSubscriptionRepository extends JpaRepository<Reading
     List<ReadingListSubscription> findActiveSubscriptionsByCatalogBookForUser(
             @Param("userId") Long userId,
             @Param("catalogBookId") Long catalogBookId);
+
+    long countBySubscribedAtGreaterThanEqualAndSubscribedAtLessThan(LocalDateTime start, LocalDateTime end);
+
+    long countByCompletedAtGreaterThanEqualAndCompletedAtLessThan(LocalDateTime start, LocalDateTime end);
+
+    @Query("SELECT MIN(s.subscribedAt) FROM ReadingListSubscription s WHERE s.subscribedAt IS NOT NULL")
+    LocalDateTime findEarliestSubscribedAt();
+
+    @Query("SELECT MIN(s.completedAt) FROM ReadingListSubscription s WHERE s.completedAt IS NOT NULL")
+    LocalDateTime findEarliestCompletedAt();
 }

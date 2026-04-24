@@ -3,6 +3,7 @@ package com.lexipal.core.dtos.responses;
 import com.lexipal.core.entities.ReadingListStatus;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class ReadingListSummaryResponseDTO
 {
@@ -12,6 +13,7 @@ public class ReadingListSummaryResponseDTO
     private String ownerNickname;
     private Long ownerUserId;
     private ReadingListStatus status;
+    private List<String> genres;
     private Integer starCount;
     private Integer bookCount;
     private boolean callerIsOwner;
@@ -30,12 +32,23 @@ public class ReadingListSummaryResponseDTO
                                          Integer bookCount, boolean callerIsOwner, boolean hasStarred,
                                          boolean isSubscribed, LocalDateTime createdAt, LocalDateTime updatedAt)
     {
+        this(id, title, description, ownerNickname, ownerUserId, status, null, starCount, bookCount,
+                callerIsOwner, hasStarred, isSubscribed, createdAt, updatedAt);
+    }
+
+    public ReadingListSummaryResponseDTO(Long id, String title, String description, String ownerNickname,
+                                         Long ownerUserId, ReadingListStatus status, List<String> genres,
+                                         Integer starCount, Integer bookCount, boolean callerIsOwner,
+                                         boolean hasStarred, boolean isSubscribed, LocalDateTime createdAt,
+                                         LocalDateTime updatedAt)
+    {
         this.id = id;
         this.title = title;
         this.description = description;
         this.ownerNickname = ownerNickname;
         this.ownerUserId = ownerUserId;
         this.status = status;
+        this.genres = genres;
         this.starCount = starCount;
         this.bookCount = bookCount;
         this.callerIsOwner = callerIsOwner;
@@ -62,6 +75,9 @@ public class ReadingListSummaryResponseDTO
 
     public ReadingListStatus getStatus() { return status; }
     public void setStatus(ReadingListStatus status) { this.status = status; }
+
+    public List<String> getGenres() { return genres; }
+    public void setGenres(List<String> genres) { this.genres = genres; }
 
     public Integer getStarCount() { return starCount; }
     public void setStarCount(Integer starCount) { this.starCount = starCount; }

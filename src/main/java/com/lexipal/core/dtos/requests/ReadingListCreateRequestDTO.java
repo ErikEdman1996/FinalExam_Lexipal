@@ -19,6 +19,8 @@ public class ReadingListCreateRequestDTO
 
     private ReadingListStatus status;
 
+    private List<String> genres;
+
     @NotEmpty(message = "A reading list must contain at least one book")
     @Valid
     private List<ReadingListBookSlotRequestDTO> books;
@@ -31,9 +33,16 @@ public class ReadingListCreateRequestDTO
     public ReadingListCreateRequestDTO(String title, String description, ReadingListStatus status,
                                        List<ReadingListBookSlotRequestDTO> books)
     {
+        this(title, description, status, null, books);
+    }
+
+    public ReadingListCreateRequestDTO(String title, String description, ReadingListStatus status,
+                                       List<String> genres, List<ReadingListBookSlotRequestDTO> books)
+    {
         this.title = title;
         this.description = description;
         this.status = status;
+        this.genres = genres;
         this.books = books;
     }
 
@@ -45,6 +54,9 @@ public class ReadingListCreateRequestDTO
 
     public ReadingListStatus getStatus() { return status; }
     public void setStatus(ReadingListStatus status) { this.status = status; }
+
+    public List<String> getGenres() { return genres; }
+    public void setGenres(List<String> genres) { this.genres = genres; }
 
     public List<ReadingListBookSlotRequestDTO> getBooks() { return books; }
     public void setBooks(List<ReadingListBookSlotRequestDTO> books) { this.books = books; }

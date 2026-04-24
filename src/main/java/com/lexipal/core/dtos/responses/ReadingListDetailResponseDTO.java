@@ -13,6 +13,7 @@ public class ReadingListDetailResponseDTO
     private String ownerNickname;
     private Long ownerUserId;
     private ReadingListStatus status;
+    private List<String> genres;
     private Integer starCount;
     private boolean callerIsOwner;
     private boolean hasStarred;
@@ -32,12 +33,23 @@ public class ReadingListDetailResponseDTO
                                         LocalDateTime createdAt, LocalDateTime updatedAt,
                                         List<ReadingListSlotResponseDTO> slots)
     {
+        this(id, title, description, ownerNickname, ownerUserId, status, null, starCount, callerIsOwner,
+                hasStarred, isSubscribed, createdAt, updatedAt, slots);
+    }
+
+    public ReadingListDetailResponseDTO(Long id, String title, String description, String ownerNickname,
+                                        Long ownerUserId, ReadingListStatus status, List<String> genres,
+                                        Integer starCount, boolean callerIsOwner, boolean hasStarred,
+                                        boolean isSubscribed, LocalDateTime createdAt, LocalDateTime updatedAt,
+                                        List<ReadingListSlotResponseDTO> slots)
+    {
         this.id = id;
         this.title = title;
         this.description = description;
         this.ownerNickname = ownerNickname;
         this.ownerUserId = ownerUserId;
         this.status = status;
+        this.genres = genres;
         this.starCount = starCount;
         this.callerIsOwner = callerIsOwner;
         this.hasStarred = hasStarred;
@@ -64,6 +76,9 @@ public class ReadingListDetailResponseDTO
 
     public ReadingListStatus getStatus() { return status; }
     public void setStatus(ReadingListStatus status) { this.status = status; }
+
+    public List<String> getGenres() { return genres; }
+    public void setGenres(List<String> genres) { this.genres = genres; }
 
     public Integer getStarCount() { return starCount; }
     public void setStarCount(Integer starCount) { this.starCount = starCount; }

@@ -32,6 +32,7 @@ public class SecurityConfig
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/lexipal/ws", "/lexipal/ws/**").permitAll()
+                        .requestMatchers("/lexipal/api/v1/admin/**").hasRole("admin")
                         .requestMatchers("/lexipal/api/v1/**").authenticated()
                         .anyRequest().denyAll()
                 )

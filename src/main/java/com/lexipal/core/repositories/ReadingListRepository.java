@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.time.LocalDateTime;
 
 @Repository
 public interface ReadingListRepository extends JpaRepository<ReadingList, Long>
@@ -24,15 +25,40 @@ public interface ReadingListRepository extends JpaRepository<ReadingList, Long>
                              @Param("minStars") int minStars,
                              Pageable pageable);
 
-    @Query("""
-            SELECT rl FROM ReadingList rl
+    @Query(value = """
+            SELECT DISTINCT rl FROM ReadingList rl
+            LEFT JOIN rl.genres g
+            LEFT JOIN rl.books rlb
+            LEFT JOIN rlb.catalogBook cb
             WHERE rl.status = :status
               AND rl.starCount >= :minStars
-              AND LOWER(rl.title) LIKE LOWER(CONCAT('%', :query, '%'))
+              AND (
+                    LOWER(rl.title) LIKE LOWER(CONCAT('%', :query, '%'))
+                    OR LOWER(rl.title) LIKE LOWER(CONCAT('%', :normalizedQuery, '%'))
+                    OR g.genreNormalized LIKE CONCAT('%', :normalizedQuery, '%')
+                    OR cb.titleNormalized LIKE CONCAT('%', :normalizedQuery, '%')
+                    OR cb.authorNormalized LIKE CONCAT('%', :normalizedQuery, '%')
+              )
+            """,
+            countQuery = """
+            SELECT COUNT(DISTINCT rl) FROM ReadingList rl
+            LEFT JOIN rl.genres g
+            LEFT JOIN rl.books rlb
+            LEFT JOIN rlb.catalogBook cb
+            WHERE rl.status = :status
+              AND rl.starCount >= :minStars
+              AND (
+                    LOWER(rl.title) LIKE LOWER(CONCAT('%', :query, '%'))
+                    OR LOWER(rl.title) LIKE LOWER(CONCAT('%', :normalizedQuery, '%'))
+                    OR g.genreNormalized LIKE CONCAT('%', :normalizedQuery, '%')
+                    OR cb.titleNormalized LIKE CONCAT('%', :normalizedQuery, '%')
+                    OR cb.authorNormalized LIKE CONCAT('%', :normalizedQuery, '%')
+              )
             """)
     Page<ReadingList> browseWithQuery(@Param("status") ReadingListStatus status,
                                       @Param("minStars") int minStars,
                                       @Param("query") String query,
+                                      @Param("normalizedQuery") String normalizedQuery,
                                       Pageable pageable);
 
     List<ReadingList> findByOwner_KeycloakSubOrderByCreatedAtDesc(String keycloakSub);
@@ -44,4 +70,9 @@ public interface ReadingListRepository extends JpaRepository<ReadingList, Long>
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE ReadingList rl SET rl.starCount = CASE WHEN rl.starCount > 0 THEN rl.starCount - 1 ELSE 0 END WHERE rl.id = :id")
     void decrementStarCount(@Param("id") Long id);
+
+    long countByCreatedAtGreaterThanEqualAndCreatedAtLessThan(LocalDateTime start, LocalDateTime end);
+
+    @Query("SELECT MIN(rl.createdAt) FROM ReadingList rl WHERE rl.createdAt IS NOT NULL")
+    LocalDateTime findEarliestCreatedAt();
 }

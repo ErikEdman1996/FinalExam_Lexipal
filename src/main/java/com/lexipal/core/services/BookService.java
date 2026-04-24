@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -100,7 +101,7 @@ public class BookService implements BookServiceInterface
         existingBook.setAuthor(resolution.author());
         existingBook.setReadPages(resolution.readPages());
         existingBook.setTotalPages(resolution.totalPages());
-        existingBook.setStatus(resolution.status());
+        applyStatusWithCompletionTimestamp(existingBook, resolution.status(), null);
 
         Book updatedBook = bookRepository.save(existingBook);
         logger.info("Updated book {} for user {}", bookId, updatedBook.getUser().getId());
@@ -124,6 +125,7 @@ public class BookService implements BookServiceInterface
         }
 
         existingBook.setStatus(Book.BookStatus.DELETED);
+        existingBook.setCompletedAt(null);
         bookRepository.save(existingBook);
         logger.info("Marked book {} as deleted", bookId);
     }
@@ -183,9 +185,10 @@ public class BookService implements BookServiceInterface
 
         // Auto-complete logic
         if (book.getReadPages() >= book.getTotalPages()) {
-            book.setStatus(Book.BookStatus.COMPLETE);
+            LocalDateTime completedAt = sessionRepository.findLatestCompletedAtByBookId(bookId);
+            applyStatusWithCompletionTimestamp(book, Book.BookStatus.COMPLETE, completedAt);
         } else {
-            book.setStatus(Book.BookStatus.ACTIVE);
+            applyStatusWithCompletionTimestamp(book, Book.BookStatus.ACTIVE, null);
         }
 
         Book savedBook = bookRepository.save(book);
@@ -255,5 +258,25 @@ public class BookService implements BookServiceInterface
                 book.getId(),
                 com.lexipal.core.entities.Session.SessionStatus.COMPLETED
         ));
+    }
+
+    private void applyStatusWithCompletionTimestamp(Book book, Book.BookStatus nextStatus, LocalDateTime completedAt)
+    {
+        Book.BookStatus previousStatus = book.getStatus();
+        book.setStatus(nextStatus);
+
+        if (nextStatus == Book.BookStatus.COMPLETE)
+        {
+            if (book.getCompletedAt() == null || previousStatus != Book.BookStatus.COMPLETE)
+            {
+                book.setCompletedAt(completedAt == null ? LocalDateTime.now() : completedAt);
+            }
+            return;
+        }
+
+        if (previousStatus == Book.BookStatus.COMPLETE || book.getCompletedAt() != null)
+        {
+            book.setCompletedAt(null);
+        }
     }
 }

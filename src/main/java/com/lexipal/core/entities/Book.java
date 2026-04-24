@@ -29,6 +29,10 @@ public class Book
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 
+    @Column
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime completedAt;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private BookStatus status = BookStatus.ACTIVE;
@@ -129,6 +133,14 @@ public class Book
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getCompletedAt() {
+        return completedAt;
+    }
+
+    public void setCompletedAt(LocalDateTime completedAt) {
+        this.completedAt = completedAt;
     }
 
     public BookStatus getStatus() {
