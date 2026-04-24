@@ -63,6 +63,12 @@ public interface ReadingListRepository extends JpaRepository<ReadingList, Long>
 
     List<ReadingList> findByOwner_KeycloakSubOrderByCreatedAtDesc(String keycloakSub);
 
+    @Query("""
+            SELECT COALESCE(MAX(rl.starCount), 0) FROM ReadingList rl
+            WHERE rl.owner.id = :ownerId
+            """)
+    int findMaxStarCountByOwnerId(@Param("ownerId") Long ownerId);
+
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE ReadingList rl SET rl.starCount = rl.starCount + 1 WHERE rl.id = :id")
     void incrementStarCount(@Param("id") Long id);

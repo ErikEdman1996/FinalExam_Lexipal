@@ -30,6 +30,13 @@ public interface SessionRepository extends JpaRepository<Session, Long>
 
     List<Session> findByBook_IdOrderBySessionDateDesc(Long bookId);
 
+    @Query("""
+            SELECT COALESCE(SUM(s.pagesRead), 0) FROM Session s
+            WHERE s.user.id = :userId
+              AND s.status = com.lexipal.core.entities.Session.SessionStatus.COMPLETED
+            """)
+    int sumCompletedPagesByUserId(@Param("userId") Long userId);
+
     @Query("SELECT MAX(s.completedAt) FROM Session s WHERE s.book.id = :bookId AND s.status = com.lexipal.core.entities.Session.SessionStatus.COMPLETED")
     LocalDateTime findLatestCompletedAtByBookId(@Param("bookId") Long bookId);
 

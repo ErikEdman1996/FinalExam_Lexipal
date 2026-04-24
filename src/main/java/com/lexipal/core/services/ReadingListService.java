@@ -65,6 +65,7 @@ public class ReadingListService implements ReadingListServiceInterface
     private final DailyActivityRepository dailyActivityRepository;
     private final UserServiceInterface userService;
     private final XpService xpService;
+    private final AchievementService achievementService;
 
     @Autowired
     public ReadingListService(final ReadingListRepository readingListRepository,
@@ -75,7 +76,8 @@ public class ReadingListService implements ReadingListServiceInterface
                               final BookRepository bookRepository,
                               final DailyActivityRepository dailyActivityRepository,
                               final UserServiceInterface userService,
-                              final XpService xpService)
+                              final XpService xpService,
+                              final AchievementService achievementService)
     {
         this.readingListRepository = readingListRepository;
         this.readingListBookRepository = readingListBookRepository;
@@ -86,6 +88,7 @@ public class ReadingListService implements ReadingListServiceInterface
         this.dailyActivityRepository = dailyActivityRepository;
         this.userService = userService;
         this.xpService = xpService;
+        this.achievementService = achievementService;
     }
 
     @Override
@@ -255,6 +258,7 @@ public class ReadingListService implements ReadingListServiceInterface
         sub.setList(list);
         sub.setUser(caller);
         subscriptionRepository.save(sub);
+        achievementService.evaluateAchievements(list.getOwner());
 
         logger.info("User {} subscribed to reading list {}", caller.getId(), listId);
     }
@@ -291,6 +295,8 @@ public class ReadingListService implements ReadingListServiceInterface
         starRepository.save(star);
 
         readingListRepository.incrementStarCount(listId);
+        list.setStarCount((list.getStarCount() == null ? 0 : list.getStarCount()) + 1);
+        achievementService.evaluateAchievements(list.getOwner());
         logger.info("User {} starred reading list {}", caller.getId(), listId);
     }
 

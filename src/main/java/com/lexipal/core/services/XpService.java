@@ -5,6 +5,7 @@ import com.lexipal.core.entities.User;
 import com.lexipal.core.repositories.DailyActivityRepository;
 import com.lexipal.core.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -14,13 +15,24 @@ public class XpService
 
     private final UserRepository userRepository;
     private final DailyActivityRepository dailyActivityRepository;
+    private final PortraitService portraitService;
 
     @Autowired
+    public XpService(final UserRepository userRepository,
+                     final DailyActivityRepository dailyActivityRepository,
+                     @Lazy final PortraitService portraitService)
+    {
+        this.userRepository = userRepository;
+        this.dailyActivityRepository = dailyActivityRepository;
+        this.portraitService = portraitService;
+    }
+
     public XpService(final UserRepository userRepository,
                      final DailyActivityRepository dailyActivityRepository)
     {
         this.userRepository = userRepository;
         this.dailyActivityRepository = dailyActivityRepository;
+        this.portraitService = null;
     }
 
     public XpUpdateResponseDTO awardXp(User user, int xpAwarded)
@@ -31,6 +43,10 @@ public class XpService
 
         user.setTotalXp(newTotalXp);
         userRepository.save(user);
+        if (portraitService != null)
+        {
+            portraitService.unlockEligiblePortraits(user);
+        }
 
         return buildXpUpdate(safeAward, previousTotalXp, newTotalXp);
     }
@@ -69,7 +85,7 @@ public class XpService
         );
     }
 
-    private int calculateLevel(int totalXp)
+    public int calculateLevel(int totalXp)
     {
         return (totalXp / XP_PER_LEVEL) + 1;
     }

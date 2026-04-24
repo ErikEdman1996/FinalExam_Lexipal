@@ -19,6 +19,18 @@ public interface ReadingListSubscriptionRepository extends JpaRepository<Reading
 
     List<ReadingListSubscription> findByUser_KeycloakSubOrderBySubscribedAtDesc(String keycloakSub);
 
+    @Query(value = """
+            SELECT coalesce(max(subscriber_count), 0)
+            FROM (
+                SELECT count(s.id) as subscriber_count
+                FROM reading_lists rl
+                LEFT JOIN reading_list_subscriptions s ON s.list_id = rl.id
+                WHERE rl.owner_user_id = :ownerId
+                GROUP BY rl.id
+            ) counts
+            """, nativeQuery = true)
+    int findMaxSubscriberCountByOwnerId(@Param("ownerId") Long ownerId);
+
     @Query("""
             SELECT DISTINCT s FROM ReadingListSubscription s
             JOIN s.list rl

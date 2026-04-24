@@ -26,17 +26,20 @@ public class ProfileService implements ProfileServiceInterface
     private final StreakMetaDataServiceInterface streakMetaDataService;
     private final XpService xpService;
     private final SessionRepository sessionRepository;
+    private final PortraitService portraitService;
 
     @Autowired
     public ProfileService(final UserServiceInterface userService,
                           final StreakMetaDataServiceInterface streakMetaDataService,
                           final XpService xpService,
-                          final SessionRepository sessionRepository)
+                          final SessionRepository sessionRepository,
+                          final PortraitService portraitService)
     {
         this.userService = userService;
         this.streakMetaDataService = streakMetaDataService;
         this.xpService = xpService;
         this.sessionRepository = sessionRepository;
+        this.portraitService = portraitService;
     }
 
     @Override
@@ -73,7 +76,8 @@ public class ProfileService implements ProfileServiceInterface
                 user.getCreatedAt(),
                 stats,
                 streak,
-                recentDailyActivities
+                recentDailyActivities,
+                portraitService.getSelectedPortraitForProfile(user)
         );
     }
 

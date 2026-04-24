@@ -13,6 +13,7 @@ public class CircleMemberProgressDTO
     private Integer totalPages;
     private Double progressPercentage;
     private LocalDateTime joinedAt;
+    private PortraitResponseDTO selectedPortrait;
 
     public CircleMemberProgressDTO()
     {
@@ -23,6 +24,13 @@ public class CircleMemberProgressDTO
                                    Integer readPages, Integer totalPages, Double progressPercentage,
                                    LocalDateTime joinedAt)
     {
+        this(userId, userNickname, role, readPages, totalPages, progressPercentage, joinedAt, null);
+    }
+
+    public CircleMemberProgressDTO(Long userId, String userNickname, CircleMemberRole role,
+                                   Integer readPages, Integer totalPages, Double progressPercentage,
+                                   LocalDateTime joinedAt, PortraitResponseDTO selectedPortrait)
+    {
         this.userId = userId;
         this.userNickname = userNickname;
         this.role = role;
@@ -30,6 +38,7 @@ public class CircleMemberProgressDTO
         this.totalPages = totalPages;
         this.progressPercentage = progressPercentage;
         this.joinedAt = joinedAt;
+        this.selectedPortrait = selectedPortrait;
     }
 
     public Long getUserId() { return userId; }
@@ -52,4 +61,7 @@ public class CircleMemberProgressDTO
 
     public LocalDateTime getJoinedAt() { return joinedAt; }
     public void setJoinedAt(LocalDateTime joinedAt) { this.joinedAt = joinedAt; }
+
+    public PortraitResponseDTO getSelectedPortrait() { return selectedPortrait; }
+    public void setSelectedPortrait(PortraitResponseDTO selectedPortrait) { this.selectedPortrait = selectedPortrait; }
 }

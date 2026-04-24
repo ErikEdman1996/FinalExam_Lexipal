@@ -54,6 +54,8 @@ public class BookCircleService implements BookCircleServiceInterface
     private final InviteCodeGenerator inviteCodeGenerator;
     private final BookLifecycleValidator bookLifecycleValidator;
     private final BookCircleChatServiceInterface bookCircleChatService;
+    private final AchievementService achievementService;
+    private final PortraitService portraitService;
 
     @Autowired
     public BookCircleService(final BookCircleRepository bookCircleRepository,
@@ -66,7 +68,9 @@ public class BookCircleService implements BookCircleServiceInterface
                              final BookServiceInterface bookService,
                              final InviteCodeGenerator inviteCodeGenerator,
                              final BookLifecycleValidator bookLifecycleValidator,
-                             final BookCircleChatServiceInterface bookCircleChatService)
+                             final BookCircleChatServiceInterface bookCircleChatService,
+                             final AchievementService achievementService,
+                             final PortraitService portraitService)
     {
         this.bookCircleRepository = bookCircleRepository;
         this.circleMemberBlockRepository = circleMemberBlockRepository;
@@ -79,6 +83,8 @@ public class BookCircleService implements BookCircleServiceInterface
         this.inviteCodeGenerator = inviteCodeGenerator;
         this.bookLifecycleValidator = bookLifecycleValidator;
         this.bookCircleChatService = bookCircleChatService;
+        this.achievementService = achievementService;
+        this.portraitService = portraitService;
     }
 
     @Override
@@ -107,6 +113,7 @@ public class BookCircleService implements BookCircleServiceInterface
         ownerMember.setBook(ownerBook);
         ownerMember.setRole(CircleMemberRole.OWNER);
         circleMemberRepository.save(ownerMember);
+        achievementService.evaluateAchievements(owner);
 
         logger.info("Created circle {} for owner {}", savedCircle.getId(), owner.getId());
 
@@ -282,6 +289,7 @@ public class BookCircleService implements BookCircleServiceInterface
                 book.getReadPages(),
                 book.getTotalPages(),
                 percent,
+                portraitService.getSelectedPortraitForProfile(target.getUser()),
                 book.getId(),
                 book.getTitle(),
                 book.getAuthor(),
@@ -527,7 +535,8 @@ public class BookCircleService implements BookCircleServiceInterface
                 readPages,
                 totalPages,
                 percent,
-                member.getJoinedAt()
+                member.getJoinedAt(),
+                portraitService.getSelectedPortraitForProfile(member.getUser())
         );
     }
 

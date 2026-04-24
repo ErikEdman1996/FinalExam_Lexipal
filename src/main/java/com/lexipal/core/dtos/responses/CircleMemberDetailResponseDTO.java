@@ -16,6 +16,7 @@ public class CircleMemberDetailResponseDTO
     private Integer readPages;
     private Integer totalPages;
     private Double progressPercentage;
+    private PortraitResponseDTO selectedPortrait;
     private Long bookId;
     private String bookTitle;
     private String bookAuthor;
@@ -35,6 +36,18 @@ public class CircleMemberDetailResponseDTO
                                          Book.BookStatus bookStatus,
                                          List<CircleSessionDTO> sessions, List<CircleNoteDTO> notes)
     {
+        this(circleId, userId, userNickname, role, joinedAt, readPages, totalPages, progressPercentage,
+                null, bookId, bookTitle, bookAuthor, bookStatus, sessions, notes);
+    }
+
+    public CircleMemberDetailResponseDTO(Long circleId, Long userId, String userNickname,
+                                         CircleMemberRole role, LocalDateTime joinedAt,
+                                         Integer readPages, Integer totalPages, Double progressPercentage,
+                                         PortraitResponseDTO selectedPortrait,
+                                         Long bookId, String bookTitle, String bookAuthor,
+                                         Book.BookStatus bookStatus,
+                                         List<CircleSessionDTO> sessions, List<CircleNoteDTO> notes)
+    {
         this.circleId = circleId;
         this.userId = userId;
         this.userNickname = userNickname;
@@ -43,6 +56,7 @@ public class CircleMemberDetailResponseDTO
         this.readPages = readPages;
         this.totalPages = totalPages;
         this.progressPercentage = progressPercentage;
+        this.selectedPortrait = selectedPortrait;
         this.bookId = bookId;
         this.bookTitle = bookTitle;
         this.bookAuthor = bookAuthor;
@@ -74,6 +88,9 @@ public class CircleMemberDetailResponseDTO
 
     public Double getProgressPercentage() { return progressPercentage; }
     public void setProgressPercentage(Double progressPercentage) { this.progressPercentage = progressPercentage; }
+
+    public PortraitResponseDTO getSelectedPortrait() { return selectedPortrait; }
+    public void setSelectedPortrait(PortraitResponseDTO selectedPortrait) { this.selectedPortrait = selectedPortrait; }
 
     public Long getBookId() { return bookId; }
     public void setBookId(Long bookId) { this.bookId = bookId; }

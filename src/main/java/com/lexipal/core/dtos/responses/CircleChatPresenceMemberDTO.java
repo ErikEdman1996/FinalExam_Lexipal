@@ -4,6 +4,7 @@ public class CircleChatPresenceMemberDTO
 {
     private Long userId;
     private String userNickname;
+    private PortraitResponseDTO selectedPortrait;
 
     public CircleChatPresenceMemberDTO()
     {
@@ -12,8 +13,14 @@ public class CircleChatPresenceMemberDTO
 
     public CircleChatPresenceMemberDTO(Long userId, String userNickname)
     {
+        this(userId, userNickname, null);
+    }
+
+    public CircleChatPresenceMemberDTO(Long userId, String userNickname, PortraitResponseDTO selectedPortrait)
+    {
         this.userId = userId;
         this.userNickname = userNickname;
+        this.selectedPortrait = selectedPortrait;
     }
 
     public Long getUserId()
@@ -34,5 +41,15 @@ public class CircleChatPresenceMemberDTO
     public void setUserNickname(String userNickname)
     {
         this.userNickname = userNickname;
+    }
+
+    public PortraitResponseDTO getSelectedPortrait()
+    {
+        return selectedPortrait;
+    }
+
+    public void setSelectedPortrait(PortraitResponseDTO selectedPortrait)
+    {
+        this.selectedPortrait = selectedPortrait;
     }
 }

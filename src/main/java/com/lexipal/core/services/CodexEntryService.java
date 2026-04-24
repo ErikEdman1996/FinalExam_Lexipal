@@ -37,6 +37,7 @@ public class CodexEntryService implements CodexEntryServiceInterface
     private final UserServiceInterface userService;
     private final XpService xpService;
     private final CodexBoardService codexBoardService;
+    private final AchievementService achievementService;
 
     @Autowired
     public CodexEntryService(final CodexEntryRepository codexEntryRepository,
@@ -44,7 +45,8 @@ public class CodexEntryService implements CodexEntryServiceInterface
                              final SessionRepository sessionRepository,
                              final UserServiceInterface userService,
                              final XpService xpService,
-                             final CodexBoardService codexBoardService)
+                             final CodexBoardService codexBoardService,
+                             final AchievementService achievementService)
     {
         this.codexEntryRepository = codexEntryRepository;
         this.wordService = wordService;
@@ -52,6 +54,7 @@ public class CodexEntryService implements CodexEntryServiceInterface
         this.userService = userService;
         this.xpService = xpService;
         this.codexBoardService = codexBoardService;
+        this.achievementService = achievementService;
     }
 
     @Override
@@ -125,6 +128,7 @@ public class CodexEntryService implements CodexEntryServiceInterface
 
         session.setCapturedWordCount(session.getCapturedWordCount() + 1);
         sessionRepository.save(session);
+        achievementService.evaluateAchievements(user);
 
         logger.info("Added new codex entry '{}' from session {} for user {}", cleanLemma, session.getId(), user.getId());
 

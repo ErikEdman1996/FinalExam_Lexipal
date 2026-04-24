@@ -37,6 +37,7 @@ public class SessionService implements SessionServiceInterface
     private final UserServiceInterface userService;
     private final XpService xpService;
     private final BookLifecycleValidator bookLifecycleValidator;
+    private final AchievementService achievementService;
 
     @Autowired
     public SessionService(final SessionRepository sessionRepository,
@@ -45,7 +46,8 @@ public class SessionService implements SessionServiceInterface
                           final DailyActivityServiceInterface dailyActivityService,
                           final UserServiceInterface userService,
                           final XpService xpService,
-                          final BookLifecycleValidator bookLifecycleValidator)
+                          final BookLifecycleValidator bookLifecycleValidator,
+                          final AchievementService achievementService)
     {
         this.sessionRepository = sessionRepository;
         this.bookRepository = bookRepository;
@@ -54,6 +56,7 @@ public class SessionService implements SessionServiceInterface
         this.userService = userService;
         this.xpService = xpService;
         this.bookLifecycleValidator = bookLifecycleValidator;
+        this.achievementService = achievementService;
     }
 
     @Override
@@ -190,6 +193,7 @@ public class SessionService implements SessionServiceInterface
 
         dailyActivityService.recordSessionCompletedActivity(updatedSession);
         XpUpdateResponseDTO xpUpdate = xpService.awardXp(updatedSession.getUser(), 25);
+        achievementService.evaluateAchievements(updatedSession.getUser());
 
         logger.info("Completed session {} for user {}", updatedSession.getId(), updatedSession.getUser().getId());
 

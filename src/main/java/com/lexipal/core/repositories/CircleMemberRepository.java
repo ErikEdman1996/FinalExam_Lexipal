@@ -15,4 +15,6 @@ public interface CircleMemberRepository extends JpaRepository<CircleMember, Long
     long countByCircle_Id(Long circleId);
 
     List<CircleMember> findByCircle_Id(Long circleId);
+
+    long countByUser_IdAndBook_Status(Long userId, com.lexipal.core.entities.Book.BookStatus status);
 }

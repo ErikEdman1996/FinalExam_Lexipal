@@ -60,6 +60,8 @@ public interface BookRepository extends JpaRepository<Book, Long>
             """)
     long countAllCompleted();
 
+    long countByUser_IdAndStatus(Long userId, Book.BookStatus status);
+
     @Query("""
             SELECT COUNT(b) FROM Book b
             WHERE b.status <> com.lexipal.core.entities.Book.BookStatus.DELETED

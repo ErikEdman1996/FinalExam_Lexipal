@@ -15,6 +15,8 @@ public interface BookCircleRepository extends JpaRepository<BookCircle, Long>
 {
     Optional<BookCircle> findByInviteCodeAndStatus(String inviteCode, CircleStatus status);
 
+    long countByOwner_Id(Long ownerId);
+
     boolean existsByInviteCode(String inviteCode);
 
     @Query("SELECT bc FROM BookCircle bc JOIN bc.members m " +

@@ -22,4 +22,6 @@ public interface CodexEntryRepository extends JpaRepository<CodexEntry, Long>
     @EntityGraph(attributePaths = "word")
     @Query("SELECT c FROM CodexEntry c WHERE c.user.keycloakSub = :sub")
     List<CodexEntry> findAllBySub(@Param("sub") String sub);
+
+    long countByUser_Id(Long userId);
 }

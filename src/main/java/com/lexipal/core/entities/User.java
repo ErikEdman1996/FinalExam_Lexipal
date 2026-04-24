@@ -43,6 +43,10 @@ public class User
     @Column
     private Integer totalXp;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "selected_portrait_id")
+    private PortraitDefinition selectedPortrait;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonManagedReference("user-books")
     private List<Book> books = new ArrayList<>();
@@ -186,6 +190,14 @@ public class User
     public void setTotalXp(Integer totalXp)
     {
         this.totalXp = totalXp;
+    }
+
+    public PortraitDefinition getSelectedPortrait() {
+        return selectedPortrait;
+    }
+
+    public void setSelectedPortrait(PortraitDefinition selectedPortrait) {
+        this.selectedPortrait = selectedPortrait;
     }
 
     public List<Book> getBooks() {

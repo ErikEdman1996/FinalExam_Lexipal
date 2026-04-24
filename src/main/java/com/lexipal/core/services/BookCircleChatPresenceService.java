@@ -27,13 +27,16 @@ public class BookCircleChatPresenceService
 
     private final UserRepository userRepository;
     private final BookCircleChatEventBroadcaster eventBroadcaster;
+    private final PortraitService portraitService;
 
     @Autowired
     public BookCircleChatPresenceService(final UserRepository userRepository,
-                                         final BookCircleChatEventBroadcaster eventBroadcaster)
+                                         final BookCircleChatEventBroadcaster eventBroadcaster,
+                                         final PortraitService portraitService)
     {
         this.userRepository = userRepository;
         this.eventBroadcaster = eventBroadcaster;
+        this.portraitService = portraitService;
     }
 
     public synchronized void registerSubscription(String sessionId, String subscriptionId, Long circleId)
@@ -273,7 +276,11 @@ public class BookCircleChatPresenceService
                 .map(userId -> {
                     User user = usersById.get(userId);
                     String nickname = user == null ? null : user.getNickname();
-                    return new CircleChatPresenceMemberDTO(userId, nickname);
+                    return new CircleChatPresenceMemberDTO(
+                            userId,
+                            nickname,
+                            user == null ? null : portraitService.getSelectedPortraitForProfile(user)
+                    );
                 })
                 .sorted(Comparator.comparing(
                                 CircleChatPresenceMemberDTO::getUserNickname,

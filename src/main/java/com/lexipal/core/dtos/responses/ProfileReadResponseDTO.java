@@ -12,6 +12,7 @@ public class ProfileReadResponseDTO
     private ProfileStatsResponseDTO stats;
     private StreakMetaDataReadResponseDTO streak;
     private List<DailyActivityReadResponseDTO> recentDailyActivities;
+    private PortraitResponseDTO selectedPortrait;
 
     public ProfileReadResponseDTO()
     {
@@ -23,6 +24,15 @@ public class ProfileReadResponseDTO
                                   StreakMetaDataReadResponseDTO streak,
                                   List<DailyActivityReadResponseDTO> recentDailyActivities)
     {
+        this(status, nickname, needsOnboarding, createdAt, stats, streak, recentDailyActivities, null);
+    }
+
+    public ProfileReadResponseDTO(String status, String nickname, boolean needsOnboarding,
+                                  LocalDateTime createdAt, ProfileStatsResponseDTO stats,
+                                  StreakMetaDataReadResponseDTO streak,
+                                  List<DailyActivityReadResponseDTO> recentDailyActivities,
+                                  PortraitResponseDTO selectedPortrait)
+    {
         this.status = status;
         this.nickname = nickname;
         this.needsOnboarding = needsOnboarding;
@@ -30,6 +40,7 @@ public class ProfileReadResponseDTO
         this.stats = stats;
         this.streak = streak;
         this.recentDailyActivities = recentDailyActivities;
+        this.selectedPortrait = selectedPortrait;
     }
 
     public String getStatus() {
@@ -86,5 +97,13 @@ public class ProfileReadResponseDTO
 
     public void setRecentDailyActivities(List<DailyActivityReadResponseDTO> recentDailyActivities) {
         this.recentDailyActivities = recentDailyActivities;
+    }
+
+    public PortraitResponseDTO getSelectedPortrait() {
+        return selectedPortrait;
+    }
+
+    public void setSelectedPortrait(PortraitResponseDTO selectedPortrait) {
+        this.selectedPortrait = selectedPortrait;
     }
 }
