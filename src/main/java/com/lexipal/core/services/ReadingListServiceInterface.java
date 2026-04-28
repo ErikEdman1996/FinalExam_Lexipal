@@ -20,7 +20,7 @@ public interface ReadingListServiceInterface
     ReadingListDetailResponseDTO getList(Long listId, String keycloakSub);
 
     List<ReadingListSummaryResponseDTO> browseLists(String query, Integer minStars, Integer page, Integer size,
-                                                    String keycloakSub);
+                                                    String sort, String keycloakSub);
 
     List<ReadingListSummaryResponseDTO> getMyLists(String keycloakSub);
 

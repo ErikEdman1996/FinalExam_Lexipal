@@ -8,6 +8,7 @@ import com.lexipal.core.entities.Book;
 import com.lexipal.core.entities.User;
 import com.lexipal.core.exceptions.ResourceNotFoundException;
 import com.lexipal.core.exceptions.UnauthorizedActionException;
+import com.lexipal.core.models.BookCoverMatch;
 import com.lexipal.core.repositories.BookRepository;
 import com.lexipal.core.repositories.SessionRepository;
 import org.apache.logging.log4j.LogManager;
@@ -31,19 +32,22 @@ public class BookService implements BookServiceInterface
     private final UserServiceInterface userService;
     private final BookLifecycleValidator bookLifecycleValidator;
     private final ReadingListServiceInterface readingListService;
+    private final BookCoverLookupService bookCoverLookupService;
 
     @Autowired
     public BookService(final BookRepository bookRepository,
                        final SessionRepository sessionRepository,
                        final UserServiceInterface userService,
                        final BookLifecycleValidator bookLifecycleValidator,
-                       @Lazy final ReadingListServiceInterface readingListService)
+                       @Lazy final ReadingListServiceInterface readingListService,
+                       final BookCoverLookupService bookCoverLookupService)
     {
         this.bookRepository = bookRepository;
         this.sessionRepository = sessionRepository;
         this.userService = userService;
         this.bookLifecycleValidator = bookLifecycleValidator;
         this.readingListService = readingListService;
+        this.bookCoverLookupService = bookCoverLookupService;
     }
 
     @Override
@@ -58,6 +62,7 @@ public class BookService implements BookServiceInterface
         newBook.setAuthor(request.getAuthor().trim());
         newBook.setTotalPages(request.getTotalPages());
         newBook.setUser(user);
+        applyBestCoverMatch(newBook);
 
         user.getBooks().add(newBook);
 
@@ -86,6 +91,7 @@ public class BookService implements BookServiceInterface
 
         BookLifecycleValidator.BookUpdateResolution resolution =
                 bookLifecycleValidator.resolveUpdate(existingBook, dto);
+        boolean titleOrAuthorChanged = titleOrAuthorChanged(existingBook, resolution);
 
         Integer furthestCompletedPage = sessionRepository.findMaxEndPageByBookIdAndStatus(
                 bookId,
@@ -102,6 +108,11 @@ public class BookService implements BookServiceInterface
         existingBook.setReadPages(resolution.readPages());
         existingBook.setTotalPages(resolution.totalPages());
         applyStatusWithCompletionTimestamp(existingBook, resolution.status(), null);
+        if (titleOrAuthorChanged && hasAutoResolvedCover(existingBook))
+        {
+            clearCoverMetadata(existingBook);
+            applyBestCoverMatch(existingBook);
+        }
 
         Book updatedBook = bookRepository.save(existingBook);
         logger.info("Updated book {} for user {}", bookId, updatedBook.getUser().getId());
@@ -218,7 +229,10 @@ public class BookService implements BookServiceInterface
                 calculateBookProgress(book),
                 book.getStatus().name(),
                 getCompletedSessionCount(book),
-                book.getCreatedAt()
+                book.getCreatedAt(),
+                book.getCoverImageUrl(),
+                book.getCoverSource(),
+                book.getExternalBookId()
         );
     }
 
@@ -233,7 +247,10 @@ public class BookService implements BookServiceInterface
                 calculateBookProgress(book),
                 book.getStatus().name(),
                 getCompletedSessionCount(book),
-                book.getCreatedAt()
+                book.getCreatedAt(),
+                book.getCoverImageUrl(),
+                book.getCoverSource(),
+                book.getExternalBookId()
         );
     }
 
@@ -248,7 +265,10 @@ public class BookService implements BookServiceInterface
                 calculateBookProgress(book),
                 book.getStatus().name(),
                 getCompletedSessionCount(book),
-                book.getCreatedAt()
+                book.getCreatedAt(),
+                book.getCoverImageUrl(),
+                book.getCoverSource(),
+                book.getExternalBookId()
         );
     }
 
@@ -278,5 +298,38 @@ public class BookService implements BookServiceInterface
         {
             book.setCompletedAt(null);
         }
+    }
+
+    private void applyBestCoverMatch(Book book)
+    {
+        bookCoverLookupService.findBestCover(book.getTitle(), book.getAuthor())
+                .ifPresent(match -> applyCoverMatch(book, match));
+    }
+
+    private void applyCoverMatch(Book book, BookCoverMatch match)
+    {
+        book.setCoverImageUrl(match.coverImageUrl());
+        book.setCoverSource(match.coverSource());
+        book.setExternalBookId(match.externalBookId());
+    }
+
+    private boolean titleOrAuthorChanged(Book existingBook, BookLifecycleValidator.BookUpdateResolution resolution)
+    {
+        return !existingBook.getTitle().equals(resolution.title())
+                || !existingBook.getAuthor().equals(resolution.author());
+    }
+
+    private boolean hasAutoResolvedCover(Book book)
+    {
+        return book.getCoverSource() == null
+                || BookCoverLookupService.SOURCE_OPEN_LIBRARY.equals(book.getCoverSource())
+                || BookCoverLookupService.SOURCE_GOOGLE_BOOKS.equals(book.getCoverSource());
+    }
+
+    private void clearCoverMetadata(Book book)
+    {
+        book.setCoverImageUrl(null);
+        book.setCoverSource(null);
+        book.setExternalBookId(null);
     }
 }

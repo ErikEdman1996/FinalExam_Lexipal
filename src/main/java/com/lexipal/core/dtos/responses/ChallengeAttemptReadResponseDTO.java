@@ -11,7 +11,7 @@ public class ChallengeAttemptReadResponseDTO
     private LocalDateTime attemptedAt;
     private Long challengeId;
     private String challengeType;
-    private Long codexEntryId;
+    private Long wordLookupId;
     private Long wordId;
     private String lemma;
     private String definitionPreview;
@@ -24,7 +24,7 @@ public class ChallengeAttemptReadResponseDTO
 
     public ChallengeAttemptReadResponseDTO(Long id, String userAnswer, String result, Integer xpAwarded,
                                            LocalDateTime attemptedAt, Long challengeId, String challengeType,
-                                           Long codexEntryId, Long wordId, String lemma, String definitionPreview,
+                                           Long wordLookupId, Long wordId, String lemma, String definitionPreview,
                                            XpUpdateResponseDTO xpUpdate)
     {
         this.id = id;
@@ -34,7 +34,7 @@ public class ChallengeAttemptReadResponseDTO
         this.attemptedAt = attemptedAt;
         this.challengeId = challengeId;
         this.challengeType = challengeType;
-        this.codexEntryId = codexEntryId;
+        this.wordLookupId = wordLookupId;
         this.wordId = wordId;
         this.lemma = lemma;
         this.definitionPreview = definitionPreview;
@@ -111,14 +111,14 @@ public class ChallengeAttemptReadResponseDTO
         this.challengeType = challengeType;
     }
 
-    public Long getCodexEntryId()
+    public Long getWordLookupId()
     {
-        return codexEntryId;
+        return wordLookupId;
     }
 
-    public void setCodexEntryId(Long codexEntryId)
+    public void setWordLookupId(Long wordLookupId)
     {
-        this.codexEntryId = codexEntryId;
+        this.wordLookupId = wordLookupId;
     }
 
     public Long getWordId()

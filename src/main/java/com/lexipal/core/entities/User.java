@@ -60,6 +60,10 @@ public class User
     private List<CodexEntry> codexEntries = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonManagedReference("user-wordLookups")
+    private List<WordLookup> wordLookups = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonManagedReference("user-dailyActivities")
     private List<DailyActivity> dailyActivities = new ArrayList<>();
 
@@ -222,6 +226,16 @@ public class User
 
     public void setCodexEntries(List<CodexEntry> codexEntries) {
         this.codexEntries = codexEntries;
+    }
+
+    public List<WordLookup> getWordLookups()
+    {
+        return wordLookups;
+    }
+
+    public void setWordLookups(List<WordLookup> wordLookups)
+    {
+        this.wordLookups = wordLookups;
     }
 
     public List<DailyActivity> getDailyActivities() {

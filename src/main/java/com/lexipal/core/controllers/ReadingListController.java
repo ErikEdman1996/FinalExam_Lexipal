@@ -44,10 +44,11 @@ public class ReadingListController
             @RequestParam(required = false) Integer minStars,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size,
+            @RequestParam(required = false) String sort,
             @AuthenticationPrincipal Jwt jwt)
     {
         String keycloakSub = jwt.getSubject();
-        return ResponseEntity.ok(readingListService.browseLists(q, minStars, page, size, keycloakSub));
+        return ResponseEntity.ok(readingListService.browseLists(q, minStars, page, size, sort, keycloakSub));
     }
 
     @GetMapping("/mine")

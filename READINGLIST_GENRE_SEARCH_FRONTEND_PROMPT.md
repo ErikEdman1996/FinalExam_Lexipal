@@ -133,7 +133,7 @@ The backend returns genres sorted by normalized genre value for stable rendering
 The existing browse endpoint is unchanged:
 
 ```text
-GET /lexipal/api/v1/reading-lists?q={query}&minStars={minStars}&page={page}&size={size}
+GET /lexipal/api/v1/reading-lists?q={query}&minStars={minStars}&page={page}&size={size}&sort={sort}
 ```
 
 The frontend should keep using one search input bound to `q`.
@@ -145,7 +145,7 @@ The frontend should keep using one search input bound to `q`.
 - Contained catalog book titles.
 - Contained catalog book authors.
 
-Only `PUBLISHED` lists are returned. Results remain sorted by `starCount` descending, then `createdAt` descending. Pagination behavior is unchanged: response body is only the page array, so treat `response.length === size` as "there may be a next page."
+Only `PUBLISHED` lists are returned. `sort` is optional and accepts `POPULAR | RECENT | OLDEST | TITLE_ASC`; missing or unknown values default to `POPULAR`. Pagination behavior is unchanged: response body is only the page array, so treat `response.length === size` as "there may be a next page."
 
 Search examples:
 
@@ -161,6 +161,7 @@ Search examples:
 - Keep the current single search input.
 - Update placeholder/copy to imply broad search, for example: `Search lists, genres, books, or authors`.
 - Continue debouncing `q` and sending it to `GET /reading-lists`.
+- Add a compact sort select/menu and send `sort` with Explore requests.
 - Render genre chips on each reading-list card when `genres.length > 0`.
 - Keep existing star, subscribe, minStars, pagination, and card click behavior.
 

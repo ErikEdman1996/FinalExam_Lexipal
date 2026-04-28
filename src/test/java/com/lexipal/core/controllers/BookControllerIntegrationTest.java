@@ -6,18 +6,26 @@ import com.lexipal.core.dtos.requests.BookUpdateRequestDTO;
 import com.lexipal.core.entities.Book;
 import com.lexipal.core.entities.Session;
 import com.lexipal.core.entities.User;
+import com.lexipal.core.models.BookCoverMatch;
 import com.lexipal.core.repositories.BookRepository;
 import com.lexipal.core.repositories.SessionRepository;
 import com.lexipal.core.repositories.UserRepository;
+import com.lexipal.core.services.BookCoverLookupService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -36,6 +44,9 @@ class BookControllerIntegrationTest extends IntegrationTestBase
     @Autowired
     private SessionRepository sessionRepository;
 
+    @MockitoBean
+    private BookCoverLookupService bookCoverLookupService;
+
     private static final String BASE_URL = "/lexipal/api/v1/books";
     private static final String USER_SUB = "keycloak-sub-user-1";
     private static final String OTHER_USER_SUB = "keycloak-sub-user-2";
@@ -48,6 +59,9 @@ class BookControllerIntegrationTest extends IntegrationTestBase
         testUser = new User();
         testUser.setKeycloakSub(USER_SUB);
         testUser = userRepository.save(testUser);
+
+        when(bookCoverLookupService.findBestCover(anyString(), anyString())).thenReturn(Optional.empty());
+        when(bookCoverLookupService.findCoverCandidates(anyString(), anyString())).thenReturn(List.of());
     }
 
     private Book createBook(String title, String author, int totalPages, User owner)
@@ -104,6 +118,62 @@ class BookControllerIntegrationTest extends IntegrationTestBase
     }
 
     @Test
+    @DisplayName("POST /books stores and returns auto-resolved cover metadata")
+    void addBook_coverLookupSucceeds_returnsCoverMetadata() throws Exception
+    {
+        when(bookCoverLookupService.findBestCover(eq("Dune"), eq("Frank Herbert")))
+                .thenReturn(Optional.of(new BookCoverMatch(
+                        "https://covers.openlibrary.org/b/id/12345-L.jpg",
+                        BookCoverLookupService.SOURCE_OPEN_LIBRARY,
+                        "/works/OL893415W",
+                        "Dune",
+                        "Frank Herbert",
+                        100
+                )));
+
+        BookCreateRequestDTO request = new BookCreateRequestDTO("Dune", "Frank Herbert", 688);
+
+        mockMvc.perform(post(BASE_URL)
+                        .with(jwtWithSub(USER_SUB))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.coverImageUrl").value("https://covers.openlibrary.org/b/id/12345-L.jpg"))
+                .andExpect(jsonPath("$.coverSource").value("OPEN_LIBRARY"))
+                .andExpect(jsonPath("$.externalBookId").value("/works/OL893415W"));
+    }
+
+    @Test
+    @DisplayName("POST /books/cover-candidates returns possible covers")
+    void findCoverCandidates_returnsMatches() throws Exception
+    {
+        when(bookCoverLookupService.findCoverCandidates(eq("Dune"), eq("Frank Herbert")))
+                .thenReturn(List.of(new BookCoverMatch(
+                        "https://covers.openlibrary.org/b/id/12345-L.jpg",
+                        BookCoverLookupService.SOURCE_OPEN_LIBRARY,
+                        "/works/OL893415W",
+                        "Dune",
+                        "Frank Herbert",
+                        100
+                )));
+
+        BookCreateRequestDTO request = new BookCreateRequestDTO("Dune", "Frank Herbert", 688);
+
+        mockMvc.perform(post(BASE_URL + "/cover-candidates")
+                        .with(jwtWithSub(USER_SUB))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].coverImageUrl").value("https://covers.openlibrary.org/b/id/12345-L.jpg"))
+                .andExpect(jsonPath("$[0].coverSource").value("OPEN_LIBRARY"))
+                .andExpect(jsonPath("$[0].externalBookId").value("/works/OL893415W"))
+                .andExpect(jsonPath("$[0].matchedTitle").value("Dune"))
+                .andExpect(jsonPath("$[0].matchedAuthor").value("Frank Herbert"))
+                .andExpect(jsonPath("$[0].confidence").value(100));
+    }
+
+    @Test
     @DisplayName("POST /books reuses an existing user for the same sub")
     void addBook_existingUser_reusesUser() throws Exception
     {
@@ -150,13 +220,20 @@ class BookControllerIntegrationTest extends IntegrationTestBase
     void getBook_returnsOwnBook() throws Exception
     {
         Book book = createBook("1984", "George Orwell", 328, testUser);
+        book.setCoverImageUrl("https://covers.openlibrary.org/b/id/7222246-L.jpg");
+        book.setCoverSource(BookCoverLookupService.SOURCE_OPEN_LIBRARY);
+        book.setExternalBookId("/works/OL1168083W");
+        book = bookRepository.save(book);
 
         mockMvc.perform(get(BASE_URL + "/" + book.getId())
                         .with(jwtWithSub(USER_SUB)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("1984"))
                 .andExpect(jsonPath("$.author").value("George Orwell"))
-                .andExpect(jsonPath("$.sessionCount").value(0));
+                .andExpect(jsonPath("$.sessionCount").value(0))
+                .andExpect(jsonPath("$.coverImageUrl").value("https://covers.openlibrary.org/b/id/7222246-L.jpg"))
+                .andExpect(jsonPath("$.coverSource").value("OPEN_LIBRARY"))
+                .andExpect(jsonPath("$.externalBookId").value("/works/OL1168083W"));
     }
 
     @Test
@@ -233,8 +310,21 @@ class BookControllerIntegrationTest extends IntegrationTestBase
     void updateBook_updatesFields() throws Exception
     {
         Book book = createBook("Old Title", "Old Author", 100, testUser);
+        book.setCoverImageUrl("https://covers.openlibrary.org/b/id/111-L.jpg");
+        book.setCoverSource(BookCoverLookupService.SOURCE_OPEN_LIBRARY);
+        book.setExternalBookId("/works/OLD");
+        book = bookRepository.save(book);
         createDraftSession(book, 1, 20, 600L);
         createCompletedSession(book, 21, 40, 900L);
+        when(bookCoverLookupService.findBestCover(eq("New Title"), eq("New Author")))
+                .thenReturn(Optional.of(new BookCoverMatch(
+                        "https://covers.openlibrary.org/b/id/222-L.jpg",
+                        BookCoverLookupService.SOURCE_OPEN_LIBRARY,
+                        "/works/NEW",
+                        "New Title",
+                        "New Author",
+                        100
+                )));
         BookUpdateRequestDTO dto = new BookUpdateRequestDTO("New Title", "New Author", null, 300, null);
 
         mockMvc.perform(put(BASE_URL + "/" + book.getId())
@@ -245,7 +335,9 @@ class BookControllerIntegrationTest extends IntegrationTestBase
                 .andExpect(jsonPath("$.title").value("New Title"))
                 .andExpect(jsonPath("$.author").value("New Author"))
                 .andExpect(jsonPath("$.totalPages").value(300))
-                .andExpect(jsonPath("$.sessionCount").value(1));
+                .andExpect(jsonPath("$.sessionCount").value(1))
+                .andExpect(jsonPath("$.coverImageUrl").value("https://covers.openlibrary.org/b/id/222-L.jpg"))
+                .andExpect(jsonPath("$.externalBookId").value("/works/NEW"));
     }
 
     @Test

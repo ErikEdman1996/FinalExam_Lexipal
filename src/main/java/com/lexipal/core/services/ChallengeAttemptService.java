@@ -3,13 +3,17 @@ package com.lexipal.core.services;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.lexipal.core.dtos.requests.ChallengeAttemptCreateRequestDTO;
 import com.lexipal.core.dtos.responses.ChallengeAttemptReadResponseDTO;
-import com.lexipal.core.entities.*;
+import com.lexipal.core.entities.Challenge;
+import com.lexipal.core.entities.ChallengeAttempt;
+import com.lexipal.core.entities.ChallengeResult;
+import com.lexipal.core.entities.User;
+import com.lexipal.core.entities.Word;
+import com.lexipal.core.entities.WordLookup;
 import com.lexipal.core.exceptions.ResourceNotFoundException;
 import com.lexipal.core.exceptions.UnauthorizedActionException;
 import com.lexipal.core.repositories.ChallengeAttemptRepository;
 import com.lexipal.core.repositories.ChallengeRepository;
-import com.lexipal.core.repositories.CodexEntryRepository;
-import com.lexipal.core.repositories.WordRepository;
+import com.lexipal.core.repositories.WordLookupRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,23 +30,20 @@ public class ChallengeAttemptService implements ChallengeAttemptServiceInterface
 
     private final ChallengeAttemptRepository challengeAttemptRepository;
     private final ChallengeRepository challengeRepository;
-    private final CodexEntryRepository codexEntryRepository;
-    private final WordRepository wordRepository;
+    private final WordLookupRepository wordLookupRepository;
     private final UserServiceInterface userService;
     private final XpService xpService;
 
     @Autowired
     public ChallengeAttemptService(final ChallengeAttemptRepository challengeAttemptRepository,
                                    final ChallengeRepository challengeRepository,
-                                   final CodexEntryRepository codexEntryRepository,
-                                   final WordRepository wordRepository,
+                                   final WordLookupRepository wordLookupRepository,
                                    final UserServiceInterface userService,
                                    final XpService xpService)
     {
         this.challengeAttemptRepository = challengeAttemptRepository;
         this.challengeRepository = challengeRepository;
-        this.codexEntryRepository = codexEntryRepository;
-        this.wordRepository = wordRepository;
+        this.wordLookupRepository = wordLookupRepository;
         this.userService = userService;
         this.xpService = xpService;
     }
@@ -56,26 +57,12 @@ public class ChallengeAttemptService implements ChallengeAttemptServiceInterface
         Challenge challenge = challengeRepository.findById(challengeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Challenge", "id", challengeId));
 
-        validateReferenceInputs(dto);
+        WordLookup wordLookup = wordLookupRepository.findById(dto.getWordLookupId())
+                .orElseThrow(() -> new ResourceNotFoundException("WordLookup", "id", dto.getWordLookupId()));
 
-        CodexEntry codexEntry = null;
-        Word word = null;
-
-        if (dto.getCodexEntryId() != null)
+        if (!wordLookup.getUser().getKeycloakSub().equals(keycloakSub))
         {
-            codexEntry = codexEntryRepository.findById(dto.getCodexEntryId())
-                    .orElseThrow(() -> new ResourceNotFoundException("CodexEntry", "id", dto.getCodexEntryId()));
-
-            if (!codexEntry.getUser().getKeycloakSub().equals(keycloakSub))
-            {
-                throw new UnauthorizedActionException("This codex entry does not belong to you.");
-            }
-        }
-
-        if (dto.getWordId() != null)
-        {
-            word = wordRepository.findById(dto.getWordId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Word", "id", dto.getWordId()));
+            throw new UnauthorizedActionException("This word lookup does not belong to you.");
         }
 
         ChallengeAttempt attempt = new ChallengeAttempt();
@@ -84,8 +71,7 @@ public class ChallengeAttemptService implements ChallengeAttemptServiceInterface
         attempt.setUserAnswer(dto.getUserAnswer());
         attempt.setResult(dto.getResult());
         attempt.setXpAwarded(calculateXpAwarded(dto.getResult()));
-        attempt.setCodexEntry(codexEntry);
-        attempt.setWord(word);
+        attempt.setWordLookup(wordLookup);
 
         ChallengeAttempt savedAttempt = challengeAttemptRepository.save(attempt);
         user.getChallengeAttempts().add(savedAttempt);
@@ -117,17 +103,6 @@ public class ChallengeAttemptService implements ChallengeAttemptServiceInterface
                 .collect(Collectors.toList());
     }
 
-    private void validateReferenceInputs(ChallengeAttemptCreateRequestDTO dto)
-    {
-        boolean hasCodexEntry = dto.getCodexEntryId() != null;
-        boolean hasWord = dto.getWordId() != null;
-
-        if (hasCodexEntry == hasWord)
-        {
-            throw new IllegalArgumentException("Exactly one of codexEntryId or wordId must be provided.");
-        }
-    }
-
     private int calculateXpAwarded(ChallengeResult result)
     {
         return result == ChallengeResult.PASS ? PASS_XP : FAIL_XP;
@@ -141,11 +116,8 @@ public class ChallengeAttemptService implements ChallengeAttemptServiceInterface
     private ChallengeAttemptReadResponseDTO toChallengeAttemptReadResponse(ChallengeAttempt attempt,
                                                                            com.lexipal.core.dtos.responses.XpUpdateResponseDTO xpUpdate)
     {
-        CodexEntry codexEntry = attempt.getCodexEntry();
-        Word sourceWord = codexEntry != null ? codexEntry.getWord() : attempt.getWord();
-        String definitionPreview = codexEntry != null && codexEntry.getSpecificDefinition() != null
-                ? codexEntry.getSpecificDefinition()
-                : extractDefinitionPreview(sourceWord);
+        WordLookup wordLookup = attempt.getWordLookup();
+        Word sourceWord = wordLookup != null ? wordLookup.getWord() : null;
 
         return new ChallengeAttemptReadResponseDTO(
                 attempt.getId(),
@@ -155,10 +127,10 @@ public class ChallengeAttemptService implements ChallengeAttemptServiceInterface
                 attempt.getAttemptedAt(),
                 attempt.getChallenge().getId(),
                 attempt.getChallenge().getType().name(),
-                codexEntry != null ? codexEntry.getId() : null,
-                attempt.getWord() != null ? attempt.getWord().getId() : null,
+                wordLookup != null ? wordLookup.getId() : null,
+                sourceWord != null ? sourceWord.getId() : null,
                 sourceWord != null ? sourceWord.getLemma() : null,
-                definitionPreview,
+                extractDefinitionPreview(sourceWord),
                 xpUpdate
         );
     }

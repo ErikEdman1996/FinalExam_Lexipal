@@ -1,10 +1,14 @@
 package com.lexipal.core.controllers;
 
 import com.lexipal.core.dtos.responses.BookCreateResponseDTO;
+import com.lexipal.core.dtos.responses.BookCoverCandidateResponseDTO;
 import com.lexipal.core.dtos.responses.BookReadResponseDTO;
 import com.lexipal.core.dtos.responses.BookUpdateResponseDTO;
+import com.lexipal.core.dtos.requests.BookCoverCandidatesRequestDTO;
 import com.lexipal.core.dtos.requests.BookUpdateRequestDTO;
 import com.lexipal.core.dtos.requests.BookCreateRequestDTO;
+import com.lexipal.core.models.BookCoverMatch;
+import com.lexipal.core.services.BookCoverLookupService;
 import com.lexipal.core.services.BookServiceInterface;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,11 +25,14 @@ import java.util.List;
 public class BookController
 {
     private final BookServiceInterface bookService;
+    private final BookCoverLookupService bookCoverLookupService;
 
     @Autowired
-    public BookController(final BookServiceInterface bookService)
+    public BookController(final BookServiceInterface bookService,
+                          final BookCoverLookupService bookCoverLookupService)
     {
         this.bookService = bookService;
+        this.bookCoverLookupService = bookCoverLookupService;
     }
 
     @GetMapping("/{id}")
@@ -57,6 +64,20 @@ public class BookController
         return ResponseEntity.status(HttpStatus.CREATED).body(bookService.addBook(request, keycloakSub));
     }
 
+    @PostMapping("/cover-candidates")
+    public ResponseEntity<List<BookCoverCandidateResponseDTO>> findCoverCandidates(
+            @Valid @RequestBody BookCoverCandidatesRequestDTO request,
+            @AuthenticationPrincipal final Jwt jwt)
+    {
+        List<BookCoverCandidateResponseDTO> candidates = bookCoverLookupService
+                .findCoverCandidates(request.getTitle(), request.getAuthor())
+                .stream()
+                .map(this::toCoverCandidateResponse)
+                .toList();
+
+        return ResponseEntity.ok(candidates);
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<BookUpdateResponseDTO> updateBook(@PathVariable Long id,
                                                             @Valid @RequestBody BookUpdateRequestDTO dto,
@@ -78,5 +99,17 @@ public class BookController
         bookService.deleteBook(id, keycloakSub);
 
         return ResponseEntity.noContent().build();
+    }
+
+    private BookCoverCandidateResponseDTO toCoverCandidateResponse(BookCoverMatch match)
+    {
+        return new BookCoverCandidateResponseDTO(
+                match.coverImageUrl(),
+                match.coverSource(),
+                match.externalBookId(),
+                match.matchedTitle(),
+                match.matchedAuthor(),
+                match.confidence()
+        );
     }
 }

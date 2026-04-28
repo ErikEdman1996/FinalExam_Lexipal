@@ -13,6 +13,9 @@ public class BookCreateResponseDTO
     private String status;
     private int sessionCount;
     private LocalDateTime createdAt;
+    private String coverImageUrl;
+    private String coverSource;
+    private String externalBookId;
 
     public BookCreateResponseDTO()
     {
@@ -21,6 +24,14 @@ public class BookCreateResponseDTO
 
     public BookCreateResponseDTO(Long id, String title, String author, Integer readPages, Integer totalPages,
                                  double progressPercentage, String status, int sessionCount, LocalDateTime createdAt)
+    {
+        this(id, title, author, readPages, totalPages, progressPercentage, status, sessionCount, createdAt,
+                null, null, null);
+    }
+
+    public BookCreateResponseDTO(Long id, String title, String author, Integer readPages, Integer totalPages,
+                                 double progressPercentage, String status, int sessionCount, LocalDateTime createdAt,
+                                 String coverImageUrl, String coverSource, String externalBookId)
     {
         this.id = id;
         this.title = title;
@@ -31,6 +42,9 @@ public class BookCreateResponseDTO
         this.status = status;
         this.sessionCount = sessionCount;
         this.createdAt = createdAt;
+        this.coverImageUrl = coverImageUrl;
+        this.coverSource = coverSource;
+        this.externalBookId = externalBookId;
     }
 
     public Long getId() {
@@ -103,5 +117,29 @@ public class BookCreateResponseDTO
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getCoverImageUrl() {
+        return coverImageUrl;
+    }
+
+    public void setCoverImageUrl(String coverImageUrl) {
+        this.coverImageUrl = coverImageUrl;
+    }
+
+    public String getCoverSource() {
+        return coverSource;
+    }
+
+    public void setCoverSource(String coverSource) {
+        this.coverSource = coverSource;
+    }
+
+    public String getExternalBookId() {
+        return externalBookId;
+    }
+
+    public void setExternalBookId(String externalBookId) {
+        this.externalBookId = externalBookId;
     }
 }

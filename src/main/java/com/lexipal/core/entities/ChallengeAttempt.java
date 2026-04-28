@@ -37,12 +37,8 @@ public class ChallengeAttempt
     private Challenge challenge;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "codex_entry_id")
-    private CodexEntry codexEntry;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "word_id")
-    private Word word;
+    @JoinColumn(name = "word_lookup_id", nullable = false)
+    private WordLookup wordLookup;
 
     public ChallengeAttempt()
     {
@@ -125,23 +121,13 @@ public class ChallengeAttempt
         this.challenge = challenge;
     }
 
-    public CodexEntry getCodexEntry()
+    public WordLookup getWordLookup()
     {
-        return codexEntry;
+        return wordLookup;
     }
 
-    public void setCodexEntry(CodexEntry codexEntry)
+    public void setWordLookup(WordLookup wordLookup)
     {
-        this.codexEntry = codexEntry;
-    }
-
-    public Word getWord()
-    {
-        return word;
-    }
-
-    public void setWord(Word word)
-    {
-        this.word = word;
+        this.wordLookup = wordLookup;
     }
 }

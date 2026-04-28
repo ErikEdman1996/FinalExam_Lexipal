@@ -9,7 +9,7 @@
 A **reading list** is a public, user-curated roadmap of books. Any user can:
 
 - **Author** a list — pick a title, description, and an ordered list of books (title + author only, no page counts).
-- **Browse** published lists, filter by minimum star count, sort by popularity.
+- **Browse** published lists, filter by minimum star count, and sort by popularity, recency, oldest, or title.
 - **Star** a list (one star per user, toggleable — think GitHub stars). Star count drives discovery.
 - **Subscribe** to a list — this marks them as "working through it" and activates per-slot progress tracking.
 - **Earn bonus XP** when they finish a book that belongs to a list they subscribed to (+50), and a big bonus when they finish the whole list (+200).
@@ -79,8 +79,9 @@ Query params (all optional):
 - `minStars` — integer, lists with `starCount < minStars` are excluded. Defaults to `0`.
 - `page` — 0-based page index. Defaults to `0`.
 - `size` — page size. Defaults to `20`, max `100`.
+- `sort` — optional sort mode. Accepted values: `POPULAR | RECENT | OLDEST | TITLE_ASC`. Defaults to `POPULAR`.
 
-Only lists with `status = PUBLISHED` are returned. Results are sorted by `starCount` descending, then by `createdAt` descending.
+Only lists with `status = PUBLISHED` are returned. Sort behavior: `POPULAR` sorts by `starCount` descending then newest first; `RECENT` sorts newest first; `OLDEST` sorts oldest first; `TITLE_ASC` sorts title A-Z.
 
 Response: `200 OK` with `ReadingListSummaryResponseDTO[]` (see §4.1). The array is the page content — pagination metadata is NOT returned in the body (frontend paginates by incrementing `page` and checking whether the returned array is shorter than `size`).
 
@@ -323,6 +324,7 @@ GlobalExceptionHandler returns the project's standard shape:
 1. **Browse / Explore page** (`GET /`)
    - Search input (bound to `q`, debounced).
    - Min-stars filter (slider or numeric input, bound to `minStars`).
+   - Compact sort select/menu (bound to `sort`): Most popular, Most recent, Oldest, Title A-Z.
    - Paginated grid/list of `ReadingListSummaryResponseDTO` cards: title, description snippet, ownerNickname, starCount, bookCount, star/subscribe buttons, "subscribed" badge if `isSubscribed`.
    - Clicking a card → detail page.
 

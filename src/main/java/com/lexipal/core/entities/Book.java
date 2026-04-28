@@ -25,6 +25,15 @@ public class Book
     @Column(nullable = false)
     private Integer totalPages;
 
+    @Column(length = 1000)
+    private String coverImageUrl;
+
+    @Column(length = 50)
+    private String coverSource;
+
+    @Column(length = 255)
+    private String externalBookId;
+
     @Column(nullable = false)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
@@ -125,6 +134,30 @@ public class Book
 
     public void setTotalPages(Integer totalPages) {
         this.totalPages = totalPages;
+    }
+
+    public String getCoverImageUrl() {
+        return coverImageUrl;
+    }
+
+    public void setCoverImageUrl(String coverImageUrl) {
+        this.coverImageUrl = coverImageUrl;
+    }
+
+    public String getCoverSource() {
+        return coverSource;
+    }
+
+    public void setCoverSource(String coverSource) {
+        this.coverSource = coverSource;
+    }
+
+    public String getExternalBookId() {
+        return externalBookId;
+    }
+
+    public void setExternalBookId(String externalBookId) {
+        this.externalBookId = externalBookId;
     }
 
     public LocalDateTime getCreatedAt() {

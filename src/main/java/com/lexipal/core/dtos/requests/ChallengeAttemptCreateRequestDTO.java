@@ -12,8 +12,8 @@ public class ChallengeAttemptCreateRequestDTO
     @NotNull(message = "Result is required")
     private ChallengeResult result;
 
-    private Long codexEntryId;
-    private Long wordId;
+    @NotNull(message = "wordLookupId is required")
+    private Long wordLookupId;
 
     public ChallengeAttemptCreateRequestDTO()
     {
@@ -40,23 +40,13 @@ public class ChallengeAttemptCreateRequestDTO
         this.result = result;
     }
 
-    public Long getCodexEntryId()
+    public Long getWordLookupId()
     {
-        return codexEntryId;
+        return wordLookupId;
     }
 
-    public void setCodexEntryId(Long codexEntryId)
+    public void setWordLookupId(Long wordLookupId)
     {
-        this.codexEntryId = codexEntryId;
-    }
-
-    public Long getWordId()
-    {
-        return wordId;
-    }
-
-    public void setWordId(Long wordId)
-    {
-        this.wordId = wordId;
+        this.wordLookupId = wordLookupId;
     }
 }

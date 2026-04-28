@@ -19,6 +19,7 @@ import com.lexipal.core.entities.ReadingListSubscription;
 import com.lexipal.core.entities.User;
 import com.lexipal.core.exceptions.ResourceNotFoundException;
 import com.lexipal.core.exceptions.UnauthorizedActionException;
+import com.lexipal.core.models.ReadingListSortOption;
 import com.lexipal.core.repositories.BookRepository;
 import com.lexipal.core.repositories.CatalogBookRepository;
 import com.lexipal.core.repositories.DailyActivityRepository;
@@ -31,7 +32,6 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -186,7 +186,7 @@ public class ReadingListService implements ReadingListServiceInterface
     @Override
     @Transactional(readOnly = true)
     public List<ReadingListSummaryResponseDTO> browseLists(String query, Integer minStars, Integer page, Integer size,
-                                                           String keycloakSub)
+                                                           String sort, String keycloakSub)
     {
         User caller = userService.getOrCreateUser(keycloakSub);
 
@@ -195,8 +195,7 @@ public class ReadingListService implements ReadingListServiceInterface
         int safeMinStars = minStars == null || minStars < 0 ? 0 : minStars;
         String trimmedQuery = (query == null || query.isBlank()) ? null : query.trim();
 
-        Pageable pageable = PageRequest.of(safePage, safeSize,
-                Sort.by(Sort.Direction.DESC, "starCount").and(Sort.by(Sort.Direction.DESC, "createdAt")));
+        Pageable pageable = PageRequest.of(safePage, safeSize, ReadingListSortOption.from(sort).toSort());
 
         if (trimmedQuery == null)
         {
