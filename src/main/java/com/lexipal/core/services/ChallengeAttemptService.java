@@ -1,11 +1,11 @@
 package com.lexipal.core.services;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.lexipal.core.dtos.requests.ChallengeAttemptCreateRequestDTO;
 import com.lexipal.core.dtos.responses.ChallengeAttemptReadResponseDTO;
 import com.lexipal.core.entities.Challenge;
 import com.lexipal.core.entities.ChallengeAttempt;
 import com.lexipal.core.entities.ChallengeResult;
+import com.lexipal.core.entities.ChallengeType;
 import com.lexipal.core.entities.User;
 import com.lexipal.core.entities.Word;
 import com.lexipal.core.entities.WordLookup;
@@ -56,6 +56,11 @@ public class ChallengeAttemptService implements ChallengeAttemptServiceInterface
 
         Challenge challenge = challengeRepository.findById(challengeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Challenge", "id", challengeId));
+
+        if (challenge.getType() == ChallengeType.CROSSWORD)
+        {
+            throw new IllegalArgumentException("Crossword attempts must be submitted through the crossword puzzle endpoint.");
+        }
 
         WordLookup wordLookup = wordLookupRepository.findById(dto.getWordLookupId())
                 .orElseThrow(() -> new ResourceNotFoundException("WordLookup", "id", dto.getWordLookupId()));
@@ -130,57 +135,9 @@ public class ChallengeAttemptService implements ChallengeAttemptServiceInterface
                 wordLookup != null ? wordLookup.getId() : null,
                 sourceWord != null ? sourceWord.getId() : null,
                 sourceWord != null ? sourceWord.getLemma() : null,
-                extractDefinitionPreview(sourceWord),
+                sourceWord != null ? WordDefinitionExtractor.extractPreview(sourceWord.getDefinitions()) : null,
+                attempt.getCrosswordPuzzle() != null ? attempt.getCrosswordPuzzle().getId() : null,
                 xpUpdate
         );
-    }
-
-    private String extractDefinitionPreview(Word word)
-    {
-        if (word == null || word.getDefinitions() == null)
-        {
-            return null;
-        }
-
-        JsonNode definitions = word.getDefinitions();
-
-        if (definitions.isArray() && !definitions.isEmpty())
-        {
-            JsonNode first = definitions.get(0);
-            if (first != null)
-            {
-                JsonNode sensesNode = first.get("senses");
-                if (sensesNode != null && sensesNode.isArray() && !sensesNode.isEmpty())
-                {
-                    JsonNode firstSense = sensesNode.get(0);
-                    if (firstSense != null)
-                    {
-                        JsonNode definitionNode = firstSense.get("definition");
-                        if (definitionNode != null && definitionNode.isTextual())
-                        {
-                            return definitionNode.asText();
-                        }
-                    }
-                }
-
-                if (first.isTextual())
-                {
-                    return first.asText();
-                }
-
-                JsonNode definitionNode = first.get("definition");
-                if (definitionNode != null && definitionNode.isTextual())
-                {
-                    return definitionNode.asText();
-                }
-            }
-        }
-
-        if (definitions.isTextual())
-        {
-            return definitions.asText();
-        }
-
-        return definitions.toString();
     }
 }

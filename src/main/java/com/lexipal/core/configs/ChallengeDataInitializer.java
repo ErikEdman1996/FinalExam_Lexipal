@@ -8,19 +8,43 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.List;
+
 @Configuration
 public class ChallengeDataInitializer
 {
     @Bean
-    CommandLineRunner seedDefaultChallenge(ChallengeRepository challengeRepository)
+    CommandLineRunner seedDefaultChallenges(ChallengeRepository challengeRepository)
     {
-        return args -> challengeRepository.findByType(ChallengeType.FLASHCARD)
-                .orElseGet(() -> {
-                    Challenge challenge = new Challenge();
-                    challenge.setType(ChallengeType.FLASHCARD);
-                    challenge.setDescription("Review a word by recalling its meaning from memory.");
-                    challenge.setDifficulty(ChallengeDifficulty.EASY);
-                    return challengeRepository.save(challenge);
-                });
+        return args -> {
+            List<DefaultChallenge> defaultChallenges = List.of(
+                    new DefaultChallenge(
+                            ChallengeType.FLASHCARD,
+                            "Review a word by recalling its meaning from memory.",
+                            ChallengeDifficulty.EASY
+                    ),
+                    new DefaultChallenge(
+                            ChallengeType.CROSSWORD,
+                            "Solve a five-word crossword built from your vocabulary.",
+                            ChallengeDifficulty.MEDIUM
+                    )
+            );
+
+            for (DefaultChallenge defaultChallenge : defaultChallenges)
+            {
+                challengeRepository.findByType(defaultChallenge.type())
+                        .orElseGet(() -> {
+                            Challenge challenge = new Challenge();
+                            challenge.setType(defaultChallenge.type());
+                            challenge.setDescription(defaultChallenge.description());
+                            challenge.setDifficulty(defaultChallenge.difficulty());
+                            return challengeRepository.save(challenge);
+                        });
+            }
+        };
+    }
+
+    private record DefaultChallenge(ChallengeType type, String description, ChallengeDifficulty difficulty)
+    {
     }
 }

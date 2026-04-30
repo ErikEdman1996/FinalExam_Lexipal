@@ -37,8 +37,12 @@ public class ChallengeAttempt
     private Challenge challenge;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "word_lookup_id", nullable = false)
+    @JoinColumn(name = "word_lookup_id")
     private WordLookup wordLookup;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "crossword_puzzle_id")
+    private CrosswordPuzzle crosswordPuzzle;
 
     public ChallengeAttempt()
     {
@@ -129,5 +133,15 @@ public class ChallengeAttempt
     public void setWordLookup(WordLookup wordLookup)
     {
         this.wordLookup = wordLookup;
+    }
+
+    public CrosswordPuzzle getCrosswordPuzzle()
+    {
+        return crosswordPuzzle;
+    }
+
+    public void setCrosswordPuzzle(CrosswordPuzzle crosswordPuzzle)
+    {
+        this.crosswordPuzzle = crosswordPuzzle;
     }
 }

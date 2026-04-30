@@ -15,6 +15,7 @@ public class ChallengeAttemptReadResponseDTO
     private Long wordId;
     private String lemma;
     private String definitionPreview;
+    private Long crosswordPuzzleId;
     private XpUpdateResponseDTO xpUpdate;
 
     public ChallengeAttemptReadResponseDTO()
@@ -27,6 +28,15 @@ public class ChallengeAttemptReadResponseDTO
                                            Long wordLookupId, Long wordId, String lemma, String definitionPreview,
                                            XpUpdateResponseDTO xpUpdate)
     {
+        this(id, userAnswer, result, xpAwarded, attemptedAt, challengeId, challengeType, wordLookupId, wordId,
+                lemma, definitionPreview, null, xpUpdate);
+    }
+
+    public ChallengeAttemptReadResponseDTO(Long id, String userAnswer, String result, Integer xpAwarded,
+                                           LocalDateTime attemptedAt, Long challengeId, String challengeType,
+                                           Long wordLookupId, Long wordId, String lemma, String definitionPreview,
+                                           Long crosswordPuzzleId, XpUpdateResponseDTO xpUpdate)
+    {
         this.id = id;
         this.userAnswer = userAnswer;
         this.result = result;
@@ -38,6 +48,7 @@ public class ChallengeAttemptReadResponseDTO
         this.wordId = wordId;
         this.lemma = lemma;
         this.definitionPreview = definitionPreview;
+        this.crosswordPuzzleId = crosswordPuzzleId;
         this.xpUpdate = xpUpdate;
     }
 
@@ -149,6 +160,16 @@ public class ChallengeAttemptReadResponseDTO
     public void setDefinitionPreview(String definitionPreview)
     {
         this.definitionPreview = definitionPreview;
+    }
+
+    public Long getCrosswordPuzzleId()
+    {
+        return crosswordPuzzleId;
+    }
+
+    public void setCrosswordPuzzleId(Long crosswordPuzzleId)
+    {
+        this.crosswordPuzzleId = crosswordPuzzleId;
     }
 
     public XpUpdateResponseDTO getXpUpdate()

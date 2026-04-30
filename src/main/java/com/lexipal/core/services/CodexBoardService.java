@@ -65,6 +65,13 @@ public class CodexBoardService
         return Optional.ofNullable(boardWordsByLemma.get(normalizeLemma(lemma)));
     }
 
+    public List<CodexBoardWordDefinition> getBoardWords()
+    {
+        return boardWordsByPage.values().stream()
+                .flatMap(List::stream)
+                .toList();
+    }
+
     public CodexBoardResponseDTO getBoardForUser(String keycloakSub)
     {
         User user = userService.getRequiredUser(keycloakSub);
