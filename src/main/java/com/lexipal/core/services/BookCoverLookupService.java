@@ -66,8 +66,8 @@ public class BookCoverLookupService
     private static RestClient createClient(RestClient.Builder restClientBuilder, String baseUrl)
     {
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        requestFactory.setConnectTimeout(Duration.ofSeconds(2));
-        requestFactory.setReadTimeout(Duration.ofSeconds(2));
+        requestFactory.setConnectTimeout(Duration.ofSeconds(5));
+        requestFactory.setReadTimeout(Duration.ofSeconds(8));
 
         return restClientBuilder.clone()
                 .baseUrl(baseUrl)

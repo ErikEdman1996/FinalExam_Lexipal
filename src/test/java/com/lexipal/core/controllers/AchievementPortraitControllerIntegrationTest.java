@@ -2,6 +2,7 @@ package com.lexipal.core.controllers;
 
 import com.lexipal.core.IntegrationTestBase;
 import com.lexipal.core.dtos.requests.PortraitSelectionRequestDTO;
+import com.lexipal.core.dtos.requests.SessionCompleteRequestDTO;
 import com.lexipal.core.entities.Book;
 import com.lexipal.core.entities.BookCircle;
 import com.lexipal.core.entities.CircleMember;
@@ -116,7 +117,7 @@ class AchievementPortraitControllerIntegrationTest extends IntegrationTestBase
     @DisplayName("Portraits unlock from level and selected portrait can be changed")
     void portraits_unlockAndCanBeSelected() throws Exception
     {
-        User user = createUser("portrait-level-sub", 200);
+        User user = createUser("portrait-level-sub", 250);
 
         mockMvc.perform(get("/lexipal/api/v1/profile/me").with(jwtWithSub(user.getKeycloakSub())))
                 .andExpect(status().isOk())
@@ -138,6 +139,44 @@ class AchievementPortraitControllerIntegrationTest extends IntegrationTestBase
     }
 
     @Test
+    @DisplayName("XP update and profile responses include threshold progress fields")
+    void xpResponses_includeThresholdProgressFields() throws Exception
+    {
+        User user = createUser("xp-threshold-sub", 75);
+        Book book = createBook(user, "Threshold Book", 200, Book.BookStatus.ACTIVE);
+        Session session = createInProgressSession(user, book, 1);
+
+        mockMvc.perform(post("/lexipal/api/v1/sessions/" + session.getId() + "/complete")
+                        .with(jwtWithSub(user.getKeycloakSub()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(
+                                new SessionCompleteRequestDTO(5, 600L, "A solid threshold session."))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.xpUpdate.xpAwarded").value(25))
+                .andExpect(jsonPath("$.xpUpdate.previousTotalXp").value(75))
+                .andExpect(jsonPath("$.xpUpdate.newTotalXp").value(100))
+                .andExpect(jsonPath("$.xpUpdate.level").value(2))
+                .andExpect(jsonPath("$.xpUpdate.xpIntoLevel").value(0))
+                .andExpect(jsonPath("$.xpUpdate.xpPerLevel").value(150))
+                .andExpect(jsonPath("$.xpUpdate.maxLevel").value(10))
+                .andExpect(jsonPath("$.xpUpdate.currentLevelMinXp").value(100))
+                .andExpect(jsonPath("$.xpUpdate.nextLevelMinXp").value(250))
+                .andExpect(jsonPath("$.xpUpdate.xpToNextLevel").value(150))
+                .andExpect(jsonPath("$.xpUpdate.leveledUp").value(true));
+
+        mockMvc.perform(get("/lexipal/api/v1/profile/me").with(jwtWithSub(user.getKeycloakSub())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.stats.totalXpEarned").value(100))
+                .andExpect(jsonPath("$.stats.level").value(2))
+                .andExpect(jsonPath("$.stats.xpIntoLevel").value(0))
+                .andExpect(jsonPath("$.stats.xpPerLevel").value(150))
+                .andExpect(jsonPath("$.stats.maxLevel").value(10))
+                .andExpect(jsonPath("$.stats.currentLevelMinXp").value(100))
+                .andExpect(jsonPath("$.stats.nextLevelMinXp").value(250))
+                .andExpect(jsonPath("$.stats.xpToNextLevel").value(150));
+    }
+
+    @Test
     @DisplayName("Locked portraits cannot be selected")
     void portraits_rejectLockedSelection() throws Exception
     {
@@ -156,7 +195,7 @@ class AchievementPortraitControllerIntegrationTest extends IntegrationTestBase
     void circleMemberResponses_includeSelectedPortrait() throws Exception
     {
         User owner = createUser("circle-portrait-owner-sub", 0);
-        User member = createUser("circle-portrait-member-sub", 200);
+        User member = createUser("circle-portrait-member-sub", 250);
         member.setSelectedPortrait(portraitDefinitionRepository.findByCode("curious_larvae").orElseThrow());
         member = userRepository.save(member);
 
@@ -215,6 +254,17 @@ class AchievementPortraitControllerIntegrationTest extends IntegrationTestBase
         session.setStatus(Session.SessionStatus.COMPLETED);
         session.setCompletedAt(LocalDateTime.now());
         sessionRepository.save(session);
+    }
+
+    private Session createInProgressSession(User user, Book book, int startPage)
+    {
+        Session session = new Session();
+        session.setUser(user);
+        session.setBook(book);
+        session.setStartPage(startPage);
+        session.setPagesRead(0);
+        session.setStatus(Session.SessionStatus.IN_PROGRESS);
+        return sessionRepository.save(session);
     }
 
     private void createCodexEntries(User user, int count)

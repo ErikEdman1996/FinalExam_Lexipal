@@ -11,7 +11,19 @@ import org.springframework.stereotype.Service;
 @Service
 public class XpService
 {
-    private static final int XP_PER_LEVEL = 100;
+    public static final int MAX_LEVEL = 10;
+    private static final int[] LEVEL_XP_THRESHOLDS = {
+            0,
+            100,
+            250,
+            450,
+            700,
+            1000,
+            1350,
+            1750,
+            2200,
+            2700
+    };
 
     private final UserRepository userRepository;
     private final DailyActivityRepository dailyActivityRepository;
@@ -80,18 +92,96 @@ public class XpService
                 newTotalXp,
                 newLevel,
                 calculateXpIntoLevel(newTotalXp),
-                XP_PER_LEVEL,
-                newLevel > previousLevel
+                calculateXpPerLevel(newTotalXp),
+                newLevel > previousLevel,
+                MAX_LEVEL,
+                calculateCurrentLevelMinXp(newTotalXp),
+                calculateNextLevelMinXp(newTotalXp),
+                calculateXpToNextLevel(newTotalXp)
         );
     }
 
     public int calculateLevel(int totalXp)
     {
-        return (totalXp / XP_PER_LEVEL) + 1;
+        int normalizedXp = normalizeTotalXp(totalXp);
+
+        for (int level = MAX_LEVEL; level >= 1; level--)
+        {
+            if (normalizedXp >= thresholdForLevel(level))
+            {
+                return level;
+            }
+        }
+
+        return 1;
     }
 
-    private int calculateXpIntoLevel(int totalXp)
+    public int calculateXpIntoLevel(int totalXp)
     {
-        return totalXp % XP_PER_LEVEL;
+        int level = calculateLevel(totalXp);
+
+        if (level == MAX_LEVEL)
+        {
+            return calculateXpPerLevel(totalXp);
+        }
+
+        return normalizeTotalXp(totalXp) - calculateCurrentLevelMinXp(totalXp);
+    }
+
+    public int calculateXpPerLevel(int totalXp)
+    {
+        int level = calculateLevel(totalXp);
+
+        if (level == MAX_LEVEL)
+        {
+            return thresholdForLevel(MAX_LEVEL) - thresholdForLevel(MAX_LEVEL - 1);
+        }
+
+        return thresholdForLevel(level + 1) - thresholdForLevel(level);
+    }
+
+    public int calculateCurrentLevelMinXp(int totalXp)
+    {
+        return thresholdForLevel(calculateLevel(totalXp));
+    }
+
+    public Integer calculateNextLevelMinXp(int totalXp)
+    {
+        int level = calculateLevel(totalXp);
+
+        if (level >= MAX_LEVEL)
+        {
+            return null;
+        }
+
+        return thresholdForLevel(level + 1);
+    }
+
+    public int calculateXpToNextLevel(int totalXp)
+    {
+        Integer nextLevelMinXp = calculateNextLevelMinXp(totalXp);
+
+        if (nextLevelMinXp == null)
+        {
+            return 0;
+        }
+
+        return Math.max(nextLevelMinXp - normalizeTotalXp(totalXp), 0);
+    }
+
+    public int getMaxLevel()
+    {
+        return MAX_LEVEL;
+    }
+
+    private int thresholdForLevel(int level)
+    {
+        int clampedLevel = Math.max(1, Math.min(level, MAX_LEVEL));
+        return LEVEL_XP_THRESHOLDS[clampedLevel - 1];
+    }
+
+    private int normalizeTotalXp(int totalXp)
+    {
+        return Math.max(totalXp, 0);
     }
 }

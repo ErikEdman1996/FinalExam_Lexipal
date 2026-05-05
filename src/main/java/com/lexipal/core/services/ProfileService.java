@@ -117,7 +117,14 @@ public class ProfileService implements ProfileServiceInterface
                 totalBooksRead,
                 totalSessionsCompleted,
                 totalCapturedWords,
-                totalXpEarned
+                totalXpEarned,
+                xpService.calculateLevel(totalXpEarned),
+                xpService.calculateXpIntoLevel(totalXpEarned),
+                xpService.calculateXpPerLevel(totalXpEarned),
+                xpService.getMaxLevel(),
+                xpService.calculateCurrentLevelMinXp(totalXpEarned),
+                xpService.calculateNextLevelMinXp(totalXpEarned),
+                xpService.calculateXpToNextLevel(totalXpEarned)
         );
     }
 

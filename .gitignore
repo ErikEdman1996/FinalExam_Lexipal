@@ -48,3 +48,5 @@ src/test/**
 !src/test/java/com/lexipal/core/
 !src/test/java/com/lexipal/core/controllers/
 !src/test/java/com/lexipal/core/controllers/AchievementPortraitControllerIntegrationTest.java
+!src/test/java/com/lexipal/core/services/
+!src/test/java/com/lexipal/core/services/XpServiceTest.java

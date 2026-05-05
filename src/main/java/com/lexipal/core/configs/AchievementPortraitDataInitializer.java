@@ -54,11 +54,11 @@ public class AchievementPortraitDataInitializer
             seedPortrait(repository, "silken_cocoon", "Silken Cocoon",
                     "A quiet cocoon holding all that reading energy.", "mascot_silken_cocoon", 5, 30);
             seedPortrait(repository, "emerging_moth", "Emerging Moth",
-                    "The first soft wings appear.", "mascot_emerging_moth", 8, 40);
+                    "The first soft wings appear.", "mascot_emerging_moth", 7, 40);
             seedPortrait(repository, "young_moth", "Young Moth",
-                    "A young moth ready for longer flights.", "mascot_young_moth", 10, 50);
+                    "A young moth ready for longer flights.", "mascot_young_moth", 9, 50);
             seedPortrait(repository, "lexipal_moth", "Lexipal Moth",
-                    "The full site mascot, glowing with reading progress.", "mascot_lexipal_moth", 15, 60);
+                    "The full site mascot, glowing with reading progress.", "mascot_lexipal_moth", 10, 60);
         };
     }
 
