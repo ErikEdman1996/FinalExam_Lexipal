@@ -13,11 +13,14 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer
 {
     private final WebSocketAuthChannelInterceptor webSocketAuthChannelInterceptor;
+    private final LexipalCorsProperties corsProperties;
 
     @Autowired
-    public WebSocketConfig(final WebSocketAuthChannelInterceptor webSocketAuthChannelInterceptor)
+    public WebSocketConfig(final WebSocketAuthChannelInterceptor webSocketAuthChannelInterceptor,
+                           final LexipalCorsProperties corsProperties)
     {
         this.webSocketAuthChannelInterceptor = webSocketAuthChannelInterceptor;
+        this.corsProperties = corsProperties;
     }
 
     @Override
@@ -32,7 +35,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer
     public void registerStompEndpoints(StompEndpointRegistry registry)
     {
         registry.addEndpoint("/lexipal/ws")
-                .setAllowedOrigins("http://localhost:5173");
+                .setAllowedOrigins(corsProperties.getAllowedOrigins());
     }
 
     @Override

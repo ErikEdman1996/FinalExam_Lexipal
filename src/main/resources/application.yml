@@ -1,0 +1,43 @@
+spring:
+  application:
+    name: Lexipal
+  datasource:
+    url: ${LEXIPAL_DB_URL:jdbc:postgresql://localhost:5432/lexipal_db}
+    username: ${LEXIPAL_DB_USERNAME:postgres}
+    password: ${LEXIPAL_DB_PASSWORD:admin}
+  jpa:
+    open-in-view: ${LEXIPAL_OPEN_IN_VIEW:false}
+    hibernate:
+      ddl-auto: ${LEXIPAL_HIBERNATE_DDL_AUTO:validate}
+    show-sql: ${LEXIPAL_SHOW_SQL:false}
+  flyway:
+    enabled: ${LEXIPAL_FLYWAY_ENABLED:true}
+    baseline-on-migrate: ${LEXIPAL_FLYWAY_BASELINE_ON_MIGRATE:true}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${LEXIPAL_JWT_ISSUER_URI:http://localhost:8080/realms/Lexipal_Realm}
+
+server:
+  port: ${PORT:${SERVER_PORT:8585}}
+
+jwt:
+  auth:
+    converter:
+      resource-id:
+        name: ${JWT_RESOURCE_ID_NAME:Lexipal_Backend}
+      principal-attribute: ${JWT_PRINCIPAL_ATTRIBUTE:sub}
+
+lexipal:
+  allowed-origins: ${LEXIPAL_ALLOWED_ORIGINS:http://localhost:5173}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true

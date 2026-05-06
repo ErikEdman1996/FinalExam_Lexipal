@@ -31,6 +31,7 @@ public class SecurityConfig
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/error").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/actuator/health").permitAll()
                         .requestMatchers("/lexipal/ws", "/lexipal/ws/**").permitAll()
                         .requestMatchers("/lexipal/api/v1/admin/**").hasRole("admin")
                         .requestMatchers("/lexipal/api/v1/**").authenticated()
