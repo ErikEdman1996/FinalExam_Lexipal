@@ -2,9 +2,12 @@ package com.lexipal.core.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "notes")
@@ -39,6 +42,10 @@ public class Note
 
     @Column(name = "source_session_id")
     private Long sourceSessionId;
+
+    @OneToMany(mappedBy = "note", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("note-tag-assignments")
+    private List<NoteTagAssignment> tagAssignments = new ArrayList<>();
 
     public Note()
     {
@@ -126,5 +133,13 @@ public class Note
 
     public void setSourceSessionId(Long sourceSessionId) {
         this.sourceSessionId = sourceSessionId;
+    }
+
+    public List<NoteTagAssignment> getTagAssignments() {
+        return tagAssignments;
+    }
+
+    public void setTagAssignments(List<NoteTagAssignment> tagAssignments) {
+        this.tagAssignments = tagAssignments;
     }
 }

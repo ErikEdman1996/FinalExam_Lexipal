@@ -3,6 +3,8 @@ package com.lexipal.core.dtos.responses;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class NoteReadResponseDTO
 {
@@ -12,6 +14,7 @@ public class NoteReadResponseDTO
     private Integer pageNumber;
     private String chapterLabel;
     private String quotedText;
+    private List<NoteTagResponseDTO> tags = new ArrayList<>();
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
@@ -24,6 +27,13 @@ public class NoteReadResponseDTO
     public NoteReadResponseDTO(Long id, Long bookId, Long sourceSessionId, Integer pageNumber,
                                String chapterLabel, String quotedText, LocalDateTime createdAt)
     {
+        this(id, bookId, sourceSessionId, pageNumber, chapterLabel, quotedText, createdAt, new ArrayList<>());
+    }
+
+    public NoteReadResponseDTO(Long id, Long bookId, Long sourceSessionId, Integer pageNumber,
+                               String chapterLabel, String quotedText, LocalDateTime createdAt,
+                               List<NoteTagResponseDTO> tags)
+    {
         this.id = id;
         this.bookId = bookId;
         this.sourceSessionId = sourceSessionId;
@@ -31,6 +41,7 @@ public class NoteReadResponseDTO
         this.chapterLabel = chapterLabel;
         this.quotedText = quotedText;
         this.createdAt = createdAt;
+        this.tags = tags == null ? new ArrayList<>() : tags;
     }
 
     public Long getId() {
@@ -79,6 +90,14 @@ public class NoteReadResponseDTO
 
     public void setQuotedText(String quotedText) {
         this.quotedText = quotedText;
+    }
+
+    public List<NoteTagResponseDTO> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<NoteTagResponseDTO> tags) {
+        this.tags = tags == null ? new ArrayList<>() : tags;
     }
 
     public LocalDateTime getCreatedAt() {

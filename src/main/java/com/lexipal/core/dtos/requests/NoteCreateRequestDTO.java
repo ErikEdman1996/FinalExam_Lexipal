@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.util.List;
+
 public class NoteCreateRequestDTO
 {
     @NotNull(message = "Book id is required")
@@ -22,6 +24,8 @@ public class NoteCreateRequestDTO
     @Size(max = 100, message = "Chapter label must be 100 characters or fewer")
     private String chapterLabel;
 
+    private List<Long> tagIds;
+
     public NoteCreateRequestDTO()
     {
 
@@ -30,11 +34,18 @@ public class NoteCreateRequestDTO
     public NoteCreateRequestDTO(Long bookId, Long sessionId, String quotedText,
                                 Integer pageNumber, String chapterLabel)
     {
+        this(bookId, sessionId, quotedText, pageNumber, chapterLabel, null);
+    }
+
+    public NoteCreateRequestDTO(Long bookId, Long sessionId, String quotedText,
+                                Integer pageNumber, String chapterLabel, List<Long> tagIds)
+    {
         this.bookId = bookId;
         this.sessionId = sessionId;
         this.quotedText = quotedText;
         this.pageNumber = pageNumber;
         this.chapterLabel = chapterLabel;
+        this.tagIds = tagIds;
     }
 
     public Long getBookId() {
@@ -75,5 +86,13 @@ public class NoteCreateRequestDTO
 
     public void setChapterLabel(String chapterLabel) {
         this.chapterLabel = chapterLabel;
+    }
+
+    public List<Long> getTagIds() {
+        return tagIds;
+    }
+
+    public void setTagIds(List<Long> tagIds) {
+        this.tagIds = tagIds;
     }
 }

@@ -75,6 +75,10 @@ public class User
     @JsonManagedReference("user-notes")
     private List<Note> notes = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonManagedReference("user-note-tags")
+    private List<NoteTag> noteTags = new ArrayList<>();
+
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonManagedReference("user-streakMetaData")
     private StreakMetaData streakMetaData;
@@ -268,5 +272,13 @@ public class User
 
     public void setNotes(List<Note> notes) {
         this.notes = notes;
+    }
+
+    public List<NoteTag> getNoteTags() {
+        return noteTags;
+    }
+
+    public void setNoteTags(List<NoteTag> noteTags) {
+        this.noteTags = noteTags;
     }
 }

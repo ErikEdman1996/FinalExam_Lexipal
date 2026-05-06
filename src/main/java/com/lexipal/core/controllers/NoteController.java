@@ -3,6 +3,7 @@ package com.lexipal.core.controllers;
 import com.lexipal.core.dtos.requests.NoteCreateRequestDTO;
 import com.lexipal.core.dtos.requests.NoteUpdateRequestDTO;
 import com.lexipal.core.dtos.responses.NoteReadResponseDTO;
+import com.lexipal.core.models.NoteTagMatch;
 import com.lexipal.core.services.NoteService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,19 +36,23 @@ public class NoteController
     }
 
     @GetMapping
-    public ResponseEntity<List<NoteReadResponseDTO>> getAllNotes(@AuthenticationPrincipal Jwt jwt)
+    public ResponseEntity<List<NoteReadResponseDTO>> getAllNotes(@RequestParam(required = false) List<Long> tagIds,
+                                                                 @RequestParam(defaultValue = "ANY") NoteTagMatch tagMatch,
+                                                                 @AuthenticationPrincipal Jwt jwt)
     {
         String keycloakSub = jwt.getSubject();
-        List<NoteReadResponseDTO> notes = noteService.getAllNotesForUser(keycloakSub);
+        List<NoteReadResponseDTO> notes = noteService.getAllNotesForUser(keycloakSub, tagIds, tagMatch);
         return ResponseEntity.ok(notes);
     }
 
     @GetMapping("/book/{bookId}")
     public ResponseEntity<List<NoteReadResponseDTO>> getNotesForBook(@PathVariable Long bookId,
+                                                                     @RequestParam(required = false) List<Long> tagIds,
+                                                                     @RequestParam(defaultValue = "ANY") NoteTagMatch tagMatch,
                                                                      @AuthenticationPrincipal Jwt jwt)
     {
         String keycloakSub = jwt.getSubject();
-        List<NoteReadResponseDTO> notes = noteService.getAllNotesForBook(bookId, keycloakSub);
+        List<NoteReadResponseDTO> notes = noteService.getAllNotesForBook(bookId, keycloakSub, tagIds, tagMatch);
         return ResponseEntity.ok(notes);
     }
 

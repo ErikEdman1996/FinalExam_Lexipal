@@ -10,6 +10,7 @@ import com.lexipal.core.dtos.responses.CircleMemberDetailResponseDTO;
 import com.lexipal.core.dtos.responses.CircleMemberProgressDTO;
 import com.lexipal.core.dtos.responses.CircleNoteDTO;
 import com.lexipal.core.dtos.responses.CircleSessionDTO;
+import com.lexipal.core.dtos.responses.NoteTagResponseDTO;
 import com.lexipal.core.entities.Book;
 import com.lexipal.core.entities.BookCircle;
 import com.lexipal.core.entities.CircleMember;
@@ -18,6 +19,8 @@ import com.lexipal.core.entities.CircleMemberRole;
 import com.lexipal.core.entities.CircleStatus;
 import com.lexipal.core.entities.CircleVisibility;
 import com.lexipal.core.entities.Note;
+import com.lexipal.core.entities.NoteTag;
+import com.lexipal.core.entities.NoteTagAssignment;
 import com.lexipal.core.entities.Session;
 import com.lexipal.core.entities.User;
 import com.lexipal.core.exceptions.ResourceNotFoundException;
@@ -35,6 +38,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Comparator;
 import java.util.stream.Collectors;
 
 @Service
@@ -573,7 +577,17 @@ public class BookCircleService implements BookCircleServiceInterface
                 n.getPageNumber(),
                 n.getChapterLabel(),
                 n.getCreatedAt(),
-                n.getSourceSessionId()
+                n.getSourceSessionId(),
+                toNoteTagResponses(n)
         );
+    }
+
+    private List<NoteTagResponseDTO> toNoteTagResponses(Note note)
+    {
+        return note.getTagAssignments().stream()
+                .map(NoteTagAssignment::getTag)
+                .sorted(Comparator.comparing(NoteTag::getNameNormalized))
+                .map(tag -> new NoteTagResponseDTO(tag.getId(), tag.getName(), tag.getColorHex()))
+                .collect(Collectors.toList());
     }
 }
