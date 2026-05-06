@@ -118,6 +118,52 @@ class BookControllerIntegrationTest extends IntegrationTestBase
     }
 
     @Test
+    @DisplayName("POST /books accepts an optional starting page")
+    void addBook_withStartPage_setsInitialReadPages() throws Exception
+    {
+        BookCreateRequestDTO request = new BookCreateRequestDTO("Dune", "Frank Herbert", 688, 12);
+
+        mockMvc.perform(post(BASE_URL)
+                        .with(jwtWithSub(USER_SUB))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.title").value("Dune"))
+                .andExpect(jsonPath("$.totalPages").value(688))
+                .andExpect(jsonPath("$.readPages").value(12))
+                .andExpect(jsonPath("$.status").value("ACTIVE"));
+    }
+
+    @Test
+    @DisplayName("POST /books rejects a negative starting page")
+    void addBook_negativeStartPage_returnsBadRequest() throws Exception
+    {
+        BookCreateRequestDTO request = new BookCreateRequestDTO("Dune", "Frank Herbert", 688, -1);
+
+        mockMvc.perform(post(BASE_URL)
+                        .with(jwtWithSub(USER_SUB))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Validation failed"))
+                .andExpect(jsonPath("$.errors.startPage").exists());
+    }
+
+    @Test
+    @DisplayName("POST /books rejects a starting page at or beyond the total pages")
+    void addBook_startPageAtTotalPages_returnsBadRequest() throws Exception
+    {
+        BookCreateRequestDTO request = new BookCreateRequestDTO("Dune", "Frank Herbert", 688, 688);
+
+        mockMvc.perform(post(BASE_URL)
+                        .with(jwtWithSub(USER_SUB))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("startPage must be less than totalPages."));
+    }
+
+    @Test
     @DisplayName("POST /books stores and returns auto-resolved cover metadata")
     void addBook_coverLookupSucceeds_returnsCoverMetadata() throws Exception
     {

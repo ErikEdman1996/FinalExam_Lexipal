@@ -19,6 +19,9 @@ public class BookCreateRequestDTO
     @Min(value = 1, message = "Total pages must be at least 1")
     private Integer totalPages;
 
+    @Min(value = 0, message = "Starting page cannot be negative")
+    private Integer startPage;
+
     public BookCreateRequestDTO()
     {
 
@@ -26,9 +29,15 @@ public class BookCreateRequestDTO
 
     public BookCreateRequestDTO(String title, String author, Integer totalPages)
     {
+        this(title, author, totalPages, null);
+    }
+
+    public BookCreateRequestDTO(String title, String author, Integer totalPages, Integer startPage)
+    {
         this.title = title;
         this.author = author;
         this.totalPages = totalPages;
+        this.startPage = startPage;
     }
 
     public String getTitle() {
@@ -53,5 +62,13 @@ public class BookCreateRequestDTO
 
     public void setTotalPages(Integer totalPages) {
         this.totalPages = totalPages;
+    }
+
+    public Integer getStartPage() {
+        return startPage;
+    }
+
+    public void setStartPage(Integer startPage) {
+        this.startPage = startPage;
     }
 }

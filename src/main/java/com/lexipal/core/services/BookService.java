@@ -61,6 +61,7 @@ public class BookService implements BookServiceInterface
         newBook.setTitle(request.getTitle().trim());
         newBook.setAuthor(request.getAuthor().trim());
         newBook.setTotalPages(request.getTotalPages());
+        newBook.setReadPages(resolveInitialReadPages(request));
         newBook.setUser(user);
         applyBestCoverMatch(newBook);
 
@@ -117,6 +118,23 @@ public class BookService implements BookServiceInterface
         Book updatedBook = bookRepository.save(existingBook);
         logger.info("Updated book {} for user {}", bookId, updatedBook.getUser().getId());
         return toBookUpdateResponse(updatedBook);
+    }
+
+    private int resolveInitialReadPages(BookCreateRequestDTO request)
+    {
+        int startPage = request.getStartPage() == null ? 0 : request.getStartPage();
+
+        if (startPage < 0)
+        {
+            throw new IllegalArgumentException("startPage cannot be negative.");
+        }
+
+        if (request.getTotalPages() != null && startPage >= request.getTotalPages())
+        {
+            throw new IllegalArgumentException("startPage must be less than totalPages.");
+        }
+
+        return startPage;
     }
 
     @Override
