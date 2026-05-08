@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 public class NoteService implements NoteServiceInterface
 {
     private static final Logger logger = LogManager.getLogger(NoteService.class);
+    private static final int MAX_TAGS_PER_NOTE = 4;
 
     private final NoteRepository noteRepository;
     private final NoteTagRepository noteTagRepository;
@@ -293,18 +294,39 @@ public class NoteService implements NoteServiceInterface
 
     private void replaceTags(Note note, List<NoteTag> tags)
     {
-        note.getTagAssignments().clear();
+        Set<Long> requestedTagIds = tags.stream()
+                .map(NoteTag::getId)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        note.getTagAssignments().removeIf(assignment ->
+                assignment.getTag() == null ||
+                        assignment.getTag().getId() == null ||
+                        !requestedTagIds.contains(assignment.getTag().getId()));
+
+        Set<Long> existingTagIds = note.getTagAssignments().stream()
+                .map(NoteTagAssignment::getTag)
+                .map(NoteTag::getId)
+                .collect(Collectors.toSet());
 
         for (NoteTag tag : tags)
         {
-            NoteTagAssignment assignment = new NoteTagAssignment(note, tag);
-            note.getTagAssignments().add(assignment);
+            if (!existingTagIds.contains(tag.getId()))
+            {
+                NoteTagAssignment assignment = new NoteTagAssignment(note, tag);
+                note.getTagAssignments().add(assignment);
+                existingTagIds.add(tag.getId());
+            }
         }
     }
 
     private List<NoteTag> resolveOwnedTags(List<Long> tagIds, User user)
     {
         List<Long> normalizedTagIds = normalizeAndValidateTagIds(tagIds, user);
+        if (normalizedTagIds.size() > MAX_TAGS_PER_NOTE)
+        {
+            throw new IllegalArgumentException("A note can have at most " + MAX_TAGS_PER_NOTE + " tags.");
+        }
+
         if (normalizedTagIds.isEmpty())
         {
             return new ArrayList<>();

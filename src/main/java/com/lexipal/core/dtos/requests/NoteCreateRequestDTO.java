@@ -15,6 +15,7 @@ public class NoteCreateRequestDTO
     private Long sessionId;
 
     @NotBlank(message = "Quoted text is required")
+    @Size(max = 500, message = "Quoted text must be 500 characters or fewer")
     private String quotedText;
 
     @NotNull(message = "Page number is required")

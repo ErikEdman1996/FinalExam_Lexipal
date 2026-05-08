@@ -8,6 +8,7 @@ import java.util.List;
 
 public class NoteUpdateRequestDTO
 {
+    @Size(max = 500, message = "Quoted text must be 500 characters or fewer")
     private String quotedText;
 
     @Min(value = 1, message = "Page number must be at least 1")
