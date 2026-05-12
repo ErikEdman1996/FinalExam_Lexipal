@@ -3,6 +3,7 @@ package com.lexipal.core.services;
 import com.lexipal.core.dtos.requests.SessionCompleteRequestDTO;
 import com.lexipal.core.dtos.requests.SessionCreateRequestDTO;
 import com.lexipal.core.dtos.requests.SessionUpdateRequestDTO;
+import com.lexipal.core.dtos.responses.AchievementResponseDTO;
 import com.lexipal.core.dtos.responses.SessionCreateResponseDTO;
 import com.lexipal.core.dtos.responses.SessionReadResponseDTO;
 import com.lexipal.core.dtos.responses.SessionUpdateResponseDTO;
@@ -193,11 +194,12 @@ public class SessionService implements SessionServiceInterface
 
         dailyActivityService.recordSessionCompletedActivity(updatedSession);
         XpUpdateResponseDTO xpUpdate = xpService.awardXp(updatedSession.getUser(), 25);
-        achievementService.evaluateAchievements(updatedSession.getUser());
+        List<AchievementResponseDTO> newlyUnlockedAchievements =
+                achievementService.evaluateAchievements(updatedSession.getUser());
 
         logger.info("Completed session {} for user {}", updatedSession.getId(), updatedSession.getUser().getId());
 
-        return toSessionUpdateResponse(updatedSession, xpUpdate);
+        return toSessionUpdateResponse(updatedSession, xpUpdate, newlyUnlockedAchievements);
     }
 
     private void validateSessionPages(Book book, Integer startPage, Integer endPage)
@@ -309,6 +311,12 @@ public class SessionService implements SessionServiceInterface
 
     private SessionUpdateResponseDTO toSessionUpdateResponse(Session session, XpUpdateResponseDTO xpUpdate)
     {
+        return toSessionUpdateResponse(session, xpUpdate, List.of());
+    }
+
+    private SessionUpdateResponseDTO toSessionUpdateResponse(Session session, XpUpdateResponseDTO xpUpdate,
+                                                             List<AchievementResponseDTO> newlyUnlockedAchievements)
+    {
         return new SessionUpdateResponseDTO(
                 session.getId(),
                 session.getBook().getId(),
@@ -321,7 +329,8 @@ public class SessionService implements SessionServiceInterface
                 session.getSessionDate(),
                 session.getCompletedAt(),
                 session.getCapturedWordCount(),
-                xpUpdate
+                xpUpdate,
+                newlyUnlockedAchievements
         );
     }
 

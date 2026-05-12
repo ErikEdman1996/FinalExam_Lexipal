@@ -4,6 +4,7 @@ import com.lexipal.core.entities.CircleStatus;
 import com.lexipal.core.entities.CircleVisibility;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class BookCircleCreateResponseDTO
 {
@@ -16,6 +17,7 @@ public class BookCircleCreateResponseDTO
     private CircleVisibility visibility;
     private CircleStatus status;
     private LocalDateTime createdAt;
+    private List<AchievementResponseDTO> newlyUnlockedAchievements = List.of();
 
     public BookCircleCreateResponseDTO()
     {
@@ -26,6 +28,14 @@ public class BookCircleCreateResponseDTO
                                        Integer totalPages, Integer memberCap, CircleVisibility visibility,
                                        CircleStatus status, LocalDateTime createdAt)
     {
+        this(id, inviteCode, bookTitle, bookAuthor, totalPages, memberCap, visibility, status, createdAt, List.of());
+    }
+
+    public BookCircleCreateResponseDTO(Long id, String inviteCode, String bookTitle, String bookAuthor,
+                                       Integer totalPages, Integer memberCap, CircleVisibility visibility,
+                                       CircleStatus status, LocalDateTime createdAt,
+                                       List<AchievementResponseDTO> newlyUnlockedAchievements)
+    {
         this.id = id;
         this.inviteCode = inviteCode;
         this.bookTitle = bookTitle;
@@ -35,6 +45,7 @@ public class BookCircleCreateResponseDTO
         this.visibility = visibility;
         this.status = status;
         this.createdAt = createdAt;
+        setNewlyUnlockedAchievements(newlyUnlockedAchievements);
     }
 
     public Long getId() { return id; }
@@ -63,4 +74,10 @@ public class BookCircleCreateResponseDTO
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public List<AchievementResponseDTO> getNewlyUnlockedAchievements() { return newlyUnlockedAchievements; }
+    public void setNewlyUnlockedAchievements(List<AchievementResponseDTO> newlyUnlockedAchievements)
+    {
+        this.newlyUnlockedAchievements = newlyUnlockedAchievements == null ? List.of() : newlyUnlockedAchievements;
+    }
 }

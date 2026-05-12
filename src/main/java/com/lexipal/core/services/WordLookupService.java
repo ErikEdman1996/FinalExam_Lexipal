@@ -1,6 +1,7 @@
 package com.lexipal.core.services;
 
 import com.lexipal.core.dtos.requests.WordLookupCreateRequestDTO;
+import com.lexipal.core.dtos.responses.AchievementResponseDTO;
 import com.lexipal.core.dtos.responses.CodexEntryReadResponseDTO;
 import com.lexipal.core.dtos.responses.WordLookupCreateResponseDTO;
 import com.lexipal.core.dtos.responses.WordLookupReadResponseDTO;
@@ -150,9 +151,9 @@ public class WordLookupService implements WordLookupServiceInterface
         int currentCapturedCount = session.getCapturedWordCount() == null ? 0 : session.getCapturedWordCount();
         session.setCapturedWordCount(currentCapturedCount + 1);
         sessionRepository.save(session);
-        achievementService.evaluateAchievements(user);
 
         XpUpdateResponseDTO xpUpdate = xpService.awardXp(user, newCodexEntry.getXpValue());
+        List<AchievementResponseDTO> newlyUnlockedAchievements = achievementService.evaluateAchievements(user);
 
         logger.info("Added new codex entry '{}' from session {} for user {}", cleanLemma, session.getId(), user.getId());
 
@@ -169,7 +170,8 @@ public class WordLookupService implements WordLookupServiceInterface
                 codexBoardService.getPageProgressForUser(user, boardWord.pageNumber()),
                 codexBoardService.getOverallProgressForUser(user),
                 boardWord.rarityTier(),
-                xpUpdate
+                xpUpdate,
+                newlyUnlockedAchievements
         );
     }
 

@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,17 +80,18 @@ public class AchievementService
         return buildAchievementResponses(user);
     }
 
-    public void evaluateAchievements(User user)
+    public List<AchievementResponseDTO> evaluateAchievements(User user)
     {
         if (user == null || user.getId() == null)
         {
-            return;
+            return List.of();
         }
 
         Map<String, Integer> progressByMetric = buildProgressByMetric(user.getId());
         Map<Long, UserAchievement> unlockedByAchievementId = userAchievementRepository.findByUser_Id(user.getId())
                 .stream()
                 .collect(Collectors.toMap(ua -> ua.getAchievement().getId(), Function.identity()));
+        List<AchievementResponseDTO> newlyUnlockedAchievements = new ArrayList<>();
 
         for (AchievementDefinition definition : achievementDefinitionRepository.findByActiveTrueOrderBySortOrderAsc())
         {
@@ -109,9 +111,12 @@ public class AchievementService
             unlock.setAchievement(definition);
             unlock.setUnlockedAt(LocalDateTime.now());
             unlock.setProgressValueAtUnlock(progress);
-            userAchievementRepository.save(unlock);
-            unlockedByAchievementId.put(definition.getId(), unlock);
+            UserAchievement savedUnlock = userAchievementRepository.save(unlock);
+            unlockedByAchievementId.put(definition.getId(), savedUnlock);
+            newlyUnlockedAchievements.add(toAchievementResponse(definition, progress, savedUnlock));
         }
+
+        return newlyUnlockedAchievements;
     }
 
     private List<AchievementResponseDTO> buildAchievementResponses(User user)
@@ -124,19 +129,28 @@ public class AchievementService
         return achievementDefinitionRepository.findByActiveTrueOrderBySortOrderAsc().stream()
                 .map(definition -> {
                     UserAchievement unlock = unlockedByAchievementId.get(definition.getId());
-                    return new AchievementResponseDTO(
-                            definition.getCode(),
-                            definition.getCategory(),
-                            definition.getTitle(),
-                            definition.getDescription(),
-                            definition.getThreshold(),
+                    return toAchievementResponse(
+                            definition,
                             progressByMetric.getOrDefault(definition.getMetricKey(), 0),
-                            unlock != null,
-                            unlock == null ? null : unlock.getUnlockedAt(),
-                            definition.getSortOrder()
-                    );
+                            unlock);
                 })
                 .collect(Collectors.toList());
+    }
+
+    private AchievementResponseDTO toAchievementResponse(AchievementDefinition definition, int progress,
+                                                         UserAchievement unlock)
+    {
+        return new AchievementResponseDTO(
+                definition.getCode(),
+                definition.getCategory(),
+                definition.getTitle(),
+                definition.getDescription(),
+                definition.getThreshold(),
+                progress,
+                unlock != null,
+                unlock == null ? null : unlock.getUnlockedAt(),
+                definition.getSortOrder()
+        );
     }
 
     private Map<String, Integer> buildProgressByMetric(Long userId)

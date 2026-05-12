@@ -3,6 +3,7 @@ package com.lexipal.core.services;
 import com.lexipal.core.dtos.requests.BookCircleCreateRequestDTO;
 import com.lexipal.core.dtos.requests.BookCreateRequestDTO;
 import com.lexipal.core.dtos.requests.SetNextMeetingRequestDTO;
+import com.lexipal.core.dtos.responses.AchievementResponseDTO;
 import com.lexipal.core.dtos.responses.BookCircleCreateResponseDTO;
 import com.lexipal.core.dtos.responses.BookCircleReadResponseDTO;
 import com.lexipal.core.dtos.responses.BookCreateResponseDTO;
@@ -117,7 +118,7 @@ public class BookCircleService implements BookCircleServiceInterface
         ownerMember.setBook(ownerBook);
         ownerMember.setRole(CircleMemberRole.OWNER);
         circleMemberRepository.save(ownerMember);
-        achievementService.evaluateAchievements(owner);
+        List<AchievementResponseDTO> newlyUnlockedAchievements = achievementService.evaluateAchievements(owner);
 
         logger.info("Created circle {} for owner {}", savedCircle.getId(), owner.getId());
 
@@ -130,7 +131,8 @@ public class BookCircleService implements BookCircleServiceInterface
                 savedCircle.getMemberCap(),
                 savedCircle.getVisibility(),
                 savedCircle.getStatus(),
-                savedCircle.getCreatedAt()
+                savedCircle.getCreatedAt(),
+                newlyUnlockedAchievements
         );
     }
 

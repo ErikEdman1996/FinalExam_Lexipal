@@ -1,6 +1,7 @@
 package com.lexipal.core.dtos.responses;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class SessionUpdateResponseDTO
 {
@@ -16,6 +17,7 @@ public class SessionUpdateResponseDTO
     private LocalDateTime completedAt;
     private int capturedWordCount;
     private XpUpdateResponseDTO xpUpdate;
+    private List<AchievementResponseDTO> newlyUnlockedAchievements = List.of();
 
     public SessionUpdateResponseDTO()
     {
@@ -25,6 +27,15 @@ public class SessionUpdateResponseDTO
     public SessionUpdateResponseDTO(Long id, Long bookId, Long durationSeconds, Integer startPage, Integer endPage,
                                     Integer pagesRead, String reflection, String status, LocalDateTime sessionDate,
                                     LocalDateTime completedAt, int capturedWordCount, XpUpdateResponseDTO xpUpdate)
+    {
+        this(id, bookId, durationSeconds, startPage, endPage, pagesRead, reflection, status, sessionDate,
+                completedAt, capturedWordCount, xpUpdate, List.of());
+    }
+
+    public SessionUpdateResponseDTO(Long id, Long bookId, Long durationSeconds, Integer startPage, Integer endPage,
+                                    Integer pagesRead, String reflection, String status, LocalDateTime sessionDate,
+                                    LocalDateTime completedAt, int capturedWordCount, XpUpdateResponseDTO xpUpdate,
+                                    List<AchievementResponseDTO> newlyUnlockedAchievements)
     {
         this.id = id;
         this.bookId = bookId;
@@ -38,6 +49,7 @@ public class SessionUpdateResponseDTO
         this.completedAt = completedAt;
         this.capturedWordCount = capturedWordCount;
         this.xpUpdate = xpUpdate;
+        setNewlyUnlockedAchievements(newlyUnlockedAchievements);
     }
 
     public Long getId() {
@@ -138,5 +150,15 @@ public class SessionUpdateResponseDTO
     public void setXpUpdate(XpUpdateResponseDTO xpUpdate)
     {
         this.xpUpdate = xpUpdate;
+    }
+
+    public List<AchievementResponseDTO> getNewlyUnlockedAchievements()
+    {
+        return newlyUnlockedAchievements;
+    }
+
+    public void setNewlyUnlockedAchievements(List<AchievementResponseDTO> newlyUnlockedAchievements)
+    {
+        this.newlyUnlockedAchievements = newlyUnlockedAchievements == null ? List.of() : newlyUnlockedAchievements;
     }
 }

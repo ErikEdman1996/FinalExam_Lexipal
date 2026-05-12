@@ -2,6 +2,8 @@ package com.lexipal.core.dtos.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.List;
+
 public class WordLookupCreateResponseDTO
 {
     private WordLookupReadResponseDTO wordLookup;
@@ -17,6 +19,7 @@ public class WordLookupCreateResponseDTO
     private CodexBoardProgressResponseDTO overallProgress;
     private String rarityTier;
     private XpUpdateResponseDTO xpUpdate;
+    private List<AchievementResponseDTO> newlyUnlockedAchievements = List.of();
 
     public WordLookupCreateResponseDTO()
     {
@@ -37,6 +40,25 @@ public class WordLookupCreateResponseDTO
                                        String rarityTier,
                                        XpUpdateResponseDTO xpUpdate)
     {
+        this(wordLookup, codexEntry, lookupSucceeded, collectible, newLookup, newCapture, alreadyCaptured,
+                pageNumber, slotNumber, pageProgress, overallProgress, rarityTier, xpUpdate, List.of());
+    }
+
+    public WordLookupCreateResponseDTO(WordLookupReadResponseDTO wordLookup,
+                                       CodexEntryReadResponseDTO codexEntry,
+                                       boolean lookupSucceeded,
+                                       boolean collectible,
+                                       boolean newLookup,
+                                       boolean newCapture,
+                                       boolean alreadyCaptured,
+                                       Integer pageNumber,
+                                       Integer slotNumber,
+                                       CodexBoardProgressResponseDTO pageProgress,
+                                       CodexBoardProgressResponseDTO overallProgress,
+                                       String rarityTier,
+                                       XpUpdateResponseDTO xpUpdate,
+                                       List<AchievementResponseDTO> newlyUnlockedAchievements)
+    {
         this.wordLookup = wordLookup;
         this.codexEntry = codexEntry;
         this.lookupSucceeded = lookupSucceeded;
@@ -50,6 +72,7 @@ public class WordLookupCreateResponseDTO
         this.overallProgress = overallProgress;
         this.rarityTier = rarityTier;
         this.xpUpdate = xpUpdate;
+        setNewlyUnlockedAchievements(newlyUnlockedAchievements);
     }
 
     public WordLookupReadResponseDTO getWordLookup()
@@ -183,5 +206,15 @@ public class WordLookupCreateResponseDTO
     public void setXpUpdate(XpUpdateResponseDTO xpUpdate)
     {
         this.xpUpdate = xpUpdate;
+    }
+
+    public List<AchievementResponseDTO> getNewlyUnlockedAchievements()
+    {
+        return newlyUnlockedAchievements;
+    }
+
+    public void setNewlyUnlockedAchievements(List<AchievementResponseDTO> newlyUnlockedAchievements)
+    {
+        this.newlyUnlockedAchievements = newlyUnlockedAchievements == null ? List.of() : newlyUnlockedAchievements;
     }
 }

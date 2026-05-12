@@ -313,7 +313,8 @@ class SessionControllerIntegrationTest extends IntegrationTestBase
                 .andExpect(jsonPath("$.completedAt").isNotEmpty())
                 .andExpect(jsonPath("$.xpUpdate.xpAwarded").value(25))
                 .andExpect(jsonPath("$.xpUpdate.previousTotalXp").value(0))
-                .andExpect(jsonPath("$.xpUpdate.newTotalXp").value(25));
+                .andExpect(jsonPath("$.xpUpdate.newTotalXp").value(25))
+                .andExpect(jsonPath("$.newlyUnlockedAchievements[0].code").value("PAGES_50"));
 
         Book updatedBook = bookRepository.findById(testBook.getId()).orElseThrow();
         assert updatedBook.getReadPages() == 100;
