@@ -8,10 +8,12 @@ import com.lexipal.core.repositories.StreakMetaDataRepository;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 
 @Service
 @Transactional
@@ -21,13 +23,16 @@ public class StreakMetaDataService implements StreakMetaDataServiceInterface
 
     private final StreakMetaDataRepository streakMetaDataRepository;
     private final UserServiceInterface userService;
+    private final ZoneId streakZone;
 
     @Autowired
     public StreakMetaDataService(final StreakMetaDataRepository streakMetaDataRepository,
-                                 final UserServiceInterface userService)
+                                 final UserServiceInterface userService,
+                                 @Value("${lexipal.streak.timezone:Europe/Stockholm}") String timezone)
     {
         this.streakMetaDataRepository = streakMetaDataRepository;
         this.userService = userService;
+        this.streakZone = ZoneId.of(timezone);
     }
 
     @Override
@@ -121,9 +126,28 @@ public class StreakMetaDataService implements StreakMetaDataServiceInterface
         return new StreakMetaDataReadResponseDTO(
                 streakMetaData.getId(),
                 streakMetaData.getUser().getId(),
-                streakMetaData.getCurrentStreak(),
+                resolveEffectiveCurrentStreak(
+                        streakMetaData.getCurrentStreak(),
+                        streakMetaData.getLastActivityDate(),
+                        LocalDate.now(streakZone)
+                ),
                 streakMetaData.getLongestStreak(),
                 streakMetaData.getLastActivityDate()
         );
+    }
+
+    int resolveEffectiveCurrentStreak(Integer currentStreak, LocalDate lastActivityDate, LocalDate asOfDate)
+    {
+        if (currentStreak == null || currentStreak <= 0 || lastActivityDate == null || asOfDate == null)
+        {
+            return 0;
+        }
+
+        if (lastActivityDate.isEqual(asOfDate) || lastActivityDate.isEqual(asOfDate.minusDays(1)))
+        {
+            return currentStreak;
+        }
+
+        return 0;
     }
 }

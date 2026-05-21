@@ -60,7 +60,8 @@ public class ProfileService implements ProfileServiceInterface
 
     private ProfileReadResponseDTO buildProfileResponse(User user, String keycloakSub)
     {
-        ProfileStatsResponseDTO stats = buildStats(user);
+        List<Session> completedSessions = getCompletedSessions(user);
+        ProfileStatsResponseDTO stats = buildStats(user, completedSessions);
         StreakMetaDataReadResponseDTO streak = streakMetaDataService.getStreakMetaData(keycloakSub);
         List<DailyActivityReadResponseDTO> recentDailyActivities = user.getDailyActivities().stream()
                 .sorted(Comparator.comparing(DailyActivity::getActivityDate).reversed()
@@ -81,13 +82,16 @@ public class ProfileService implements ProfileServiceInterface
         );
     }
 
-    private ProfileStatsResponseDTO buildStats(User user)
+    private List<Session> getCompletedSessions(User user)
     {
-        List<Session> completedSessions = sessionRepository.findByUser_IdAndStatus(
+        return sessionRepository.findByUser_IdAndStatus(
                 user.getId(),
                 Session.SessionStatus.COMPLETED
         );
+    }
 
+    private ProfileStatsResponseDTO buildStats(User user, List<Session> completedSessions)
+    {
         long totalMinutesRead = completedSessions.stream()
                 .map(Session::getDurationSeconds)
                 .filter(durationSeconds -> durationSeconds != null && durationSeconds > 0)
