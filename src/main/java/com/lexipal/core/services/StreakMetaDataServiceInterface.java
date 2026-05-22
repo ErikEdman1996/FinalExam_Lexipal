@@ -11,4 +11,6 @@ public interface StreakMetaDataServiceInterface
     StreakMetaDataReadResponseDTO initializeStreakMetaData(StreakMetaDataCreateRequestDTO dto, String keycloakSub);
     StreakMetaDataReadResponseDTO getStreakMetaData(String keycloakSub);
     void recordActivity(User user, LocalDate activityDate);
+    int getAvailableStreakFreezes(User user);
+    void addAvailableStreakFreeze(User user);
 }

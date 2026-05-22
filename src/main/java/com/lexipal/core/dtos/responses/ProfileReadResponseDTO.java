@@ -13,6 +13,8 @@ public class ProfileReadResponseDTO
     private StreakMetaDataReadResponseDTO streak;
     private List<DailyActivityReadResponseDTO> recentDailyActivities;
     private PortraitResponseDTO selectedPortrait;
+    private ThemeResponseDTO selectedTheme;
+    private WalletResponseDTO wallet;
 
     public ProfileReadResponseDTO()
     {
@@ -24,7 +26,8 @@ public class ProfileReadResponseDTO
                                   StreakMetaDataReadResponseDTO streak,
                                   List<DailyActivityReadResponseDTO> recentDailyActivities)
     {
-        this(status, nickname, needsOnboarding, createdAt, stats, streak, recentDailyActivities, null);
+        this(status, nickname, needsOnboarding, createdAt, stats, streak, recentDailyActivities,
+                null, null, null);
     }
 
     public ProfileReadResponseDTO(String status, String nickname, boolean needsOnboarding,
@@ -32,6 +35,29 @@ public class ProfileReadResponseDTO
                                   StreakMetaDataReadResponseDTO streak,
                                   List<DailyActivityReadResponseDTO> recentDailyActivities,
                                   PortraitResponseDTO selectedPortrait)
+    {
+        this(status, nickname, needsOnboarding, createdAt, stats, streak, recentDailyActivities,
+                selectedPortrait, null, null);
+    }
+
+    public ProfileReadResponseDTO(String status, String nickname, boolean needsOnboarding,
+                                  LocalDateTime createdAt, ProfileStatsResponseDTO stats,
+                                  StreakMetaDataReadResponseDTO streak,
+                                  List<DailyActivityReadResponseDTO> recentDailyActivities,
+                                  PortraitResponseDTO selectedPortrait,
+                                  WalletResponseDTO wallet)
+    {
+        this(status, nickname, needsOnboarding, createdAt, stats, streak, recentDailyActivities,
+                selectedPortrait, null, wallet);
+    }
+
+    public ProfileReadResponseDTO(String status, String nickname, boolean needsOnboarding,
+                                  LocalDateTime createdAt, ProfileStatsResponseDTO stats,
+                                  StreakMetaDataReadResponseDTO streak,
+                                  List<DailyActivityReadResponseDTO> recentDailyActivities,
+                                  PortraitResponseDTO selectedPortrait,
+                                  ThemeResponseDTO selectedTheme,
+                                  WalletResponseDTO wallet)
     {
         this.status = status;
         this.nickname = nickname;
@@ -41,6 +67,8 @@ public class ProfileReadResponseDTO
         this.streak = streak;
         this.recentDailyActivities = recentDailyActivities;
         this.selectedPortrait = selectedPortrait;
+        this.selectedTheme = selectedTheme;
+        this.wallet = wallet;
     }
 
     public String getStatus() {
@@ -105,5 +133,21 @@ public class ProfileReadResponseDTO
 
     public void setSelectedPortrait(PortraitResponseDTO selectedPortrait) {
         this.selectedPortrait = selectedPortrait;
+    }
+
+    public ThemeResponseDTO getSelectedTheme() {
+        return selectedTheme;
+    }
+
+    public void setSelectedTheme(ThemeResponseDTO selectedTheme) {
+        this.selectedTheme = selectedTheme;
+    }
+
+    public WalletResponseDTO getWallet() {
+        return wallet;
+    }
+
+    public void setWallet(WalletResponseDTO wallet) {
+        this.wallet = wallet;
     }
 }

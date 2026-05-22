@@ -49,6 +49,8 @@ src/test/**
 !src/test/java/com/lexipal/core/controllers/
 !src/test/java/com/lexipal/core/controllers/AchievementPortraitControllerIntegrationTest.java
 !src/test/java/com/lexipal/core/controllers/StreakLeaderboardControllerIntegrationTest.java
+!src/test/java/com/lexipal/core/controllers/WalletControllerIntegrationTest.java
 !src/test/java/com/lexipal/core/services/
+!src/test/java/com/lexipal/core/services/CurrencyServiceTest.java
 !src/test/java/com/lexipal/core/services/XpServiceTest.java
 !src/test/java/com/lexipal/core/services/StreakMetaDataServiceTest.java

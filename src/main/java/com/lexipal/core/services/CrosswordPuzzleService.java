@@ -15,6 +15,7 @@ import com.lexipal.core.entities.ChallengeResult;
 import com.lexipal.core.entities.ChallengeType;
 import com.lexipal.core.entities.CrosswordPuzzle;
 import com.lexipal.core.entities.CrosswordPuzzleStatus;
+import com.lexipal.core.entities.CurrencyTransactionReason;
 import com.lexipal.core.entities.User;
 import com.lexipal.core.entities.Word;
 import com.lexipal.core.entities.WordLookup;
@@ -68,6 +69,7 @@ public class CrosswordPuzzleService
     private final WordRepository wordRepository;
     private final UserServiceInterface userService;
     private final XpService xpService;
+    private final CurrencyService currencyService;
     private final WordService wordService;
     private final CodexBoardService codexBoardService;
     private final ObjectMapper objectMapper;
@@ -79,6 +81,7 @@ public class CrosswordPuzzleService
                                   final WordRepository wordRepository,
                                   final UserServiceInterface userService,
                                   final XpService xpService,
+                                  final CurrencyService currencyService,
                                   final WordService wordService,
                                   final CodexBoardService codexBoardService,
                                   final ObjectMapper objectMapper)
@@ -90,6 +93,7 @@ public class CrosswordPuzzleService
         this.wordRepository = wordRepository;
         this.userService = userService;
         this.xpService = xpService;
+        this.currencyService = currencyService;
         this.wordService = wordService;
         this.codexBoardService = codexBoardService;
         this.objectMapper = objectMapper;
@@ -199,6 +203,12 @@ public class CrosswordPuzzleService
         puzzle.getChallenge().getAttempts().add(savedAttempt);
 
         XpUpdateResponseDTO xpUpdate = xpService.awardXp(user, xpAwarded);
+        if (result == ChallengeResult.PASS)
+        {
+            currencyService.awardCoins(user,
+                    CurrencyTransactionReason.CROSSWORD_PASSED,
+                    "CROSSWORD_PUZZLE", puzzle.getId());
+        }
 
         return new CrosswordPuzzleSubmitResponseDTO(
                 toPuzzleReadResponse(puzzle),

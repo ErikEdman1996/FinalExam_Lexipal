@@ -28,6 +28,12 @@ public class StreakMetaData
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate lastActivityDate;
 
+    @Column(nullable = false)
+    private Integer availableStreakFreezes;
+
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate freezeProtectedThroughDate;
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     @JsonBackReference("user-streakMetaData")
@@ -43,6 +49,7 @@ public class StreakMetaData
     {
         if (this.currentStreak == null) this.currentStreak = 0;
         if (this.longestStreak == null) this.longestStreak = 0;
+        if (this.availableStreakFreezes == null) this.availableStreakFreezes = 0;
     }
 
     public StreakMetaData(Long id, Integer currentStreak, Integer longestStreak, LocalDate lastActivityDate, User user)
@@ -84,6 +91,22 @@ public class StreakMetaData
 
     public void setLastActivityDate(LocalDate lastActivityDate) {
         this.lastActivityDate = lastActivityDate;
+    }
+
+    public Integer getAvailableStreakFreezes() {
+        return availableStreakFreezes;
+    }
+
+    public void setAvailableStreakFreezes(Integer availableStreakFreezes) {
+        this.availableStreakFreezes = availableStreakFreezes;
+    }
+
+    public LocalDate getFreezeProtectedThroughDate() {
+        return freezeProtectedThroughDate;
+    }
+
+    public void setFreezeProtectedThroughDate(LocalDate freezeProtectedThroughDate) {
+        this.freezeProtectedThroughDate = freezeProtectedThroughDate;
     }
 
     public User getUser() {

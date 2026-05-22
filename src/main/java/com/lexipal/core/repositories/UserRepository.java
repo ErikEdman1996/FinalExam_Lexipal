@@ -2,6 +2,8 @@ package com.lexipal.core.repositories;
 import com.lexipal.core.entities.User;
 import com.lexipal.core.repositories.projections.AdminDailyUserProjection;
 import com.lexipal.core.repositories.projections.AdminTopUserProjection;
+import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,6 +19,10 @@ public interface UserRepository extends JpaRepository<User, Long>
     List<User> findByTotalXpIsNull();
     Optional<User> findByNicknameNormalized(String nicknameNormalized);
     boolean existsByNicknameNormalized(String nicknameNormalized);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select u from User u where u.id = :id")
+    Optional<User> findByIdForUpdate(@Param("id") Long id);
 
     long countByCreatedAtGreaterThanEqualAndCreatedAtLessThan(LocalDateTime start, LocalDateTime end);
 

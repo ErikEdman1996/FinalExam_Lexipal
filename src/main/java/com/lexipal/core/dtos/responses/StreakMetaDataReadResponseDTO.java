@@ -9,6 +9,8 @@ public class StreakMetaDataReadResponseDTO
     private Integer currentStreak;
     private Integer longestStreak;
     private LocalDate lastActivityDate;
+    private Integer availableStreakFreezes;
+    private LocalDate freezeProtectedThroughDate;
 
     public StreakMetaDataReadResponseDTO()
     {
@@ -18,11 +20,20 @@ public class StreakMetaDataReadResponseDTO
     public StreakMetaDataReadResponseDTO(Long id, Long userId, Integer currentStreak, Integer longestStreak,
                                          LocalDate lastActivityDate)
     {
+        this(id, userId, currentStreak, longestStreak, lastActivityDate, 0, null);
+    }
+
+    public StreakMetaDataReadResponseDTO(Long id, Long userId, Integer currentStreak, Integer longestStreak,
+                                         LocalDate lastActivityDate, Integer availableStreakFreezes,
+                                         LocalDate freezeProtectedThroughDate)
+    {
         this.id = id;
         this.userId = userId;
         this.currentStreak = currentStreak;
         this.longestStreak = longestStreak;
         this.lastActivityDate = lastActivityDate;
+        this.availableStreakFreezes = availableStreakFreezes;
+        this.freezeProtectedThroughDate = freezeProtectedThroughDate;
     }
 
     public Long getId() {
@@ -63,5 +74,21 @@ public class StreakMetaDataReadResponseDTO
 
     public void setLastActivityDate(LocalDate lastActivityDate) {
         this.lastActivityDate = lastActivityDate;
+    }
+
+    public Integer getAvailableStreakFreezes() {
+        return availableStreakFreezes;
+    }
+
+    public void setAvailableStreakFreezes(Integer availableStreakFreezes) {
+        this.availableStreakFreezes = availableStreakFreezes;
+    }
+
+    public LocalDate getFreezeProtectedThroughDate() {
+        return freezeProtectedThroughDate;
+    }
+
+    public void setFreezeProtectedThroughDate(LocalDate freezeProtectedThroughDate) {
+        this.freezeProtectedThroughDate = freezeProtectedThroughDate;
     }
 }

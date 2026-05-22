@@ -9,6 +9,7 @@ import com.lexipal.core.dtos.responses.ReadingListSubscriptionResponseDTO;
 import com.lexipal.core.dtos.responses.ReadingListSummaryResponseDTO;
 import com.lexipal.core.entities.Book;
 import com.lexipal.core.entities.CatalogBook;
+import com.lexipal.core.entities.CurrencyTransactionReason;
 import com.lexipal.core.entities.DailyActivity;
 import com.lexipal.core.entities.ReadingList;
 import com.lexipal.core.entities.ReadingListBook;
@@ -65,6 +66,7 @@ public class ReadingListService implements ReadingListServiceInterface
     private final DailyActivityRepository dailyActivityRepository;
     private final UserServiceInterface userService;
     private final XpService xpService;
+    private final CurrencyService currencyService;
     private final AchievementService achievementService;
 
     @Autowired
@@ -77,6 +79,7 @@ public class ReadingListService implements ReadingListServiceInterface
                               final DailyActivityRepository dailyActivityRepository,
                               final UserServiceInterface userService,
                               final XpService xpService,
+                              final CurrencyService currencyService,
                               final AchievementService achievementService)
     {
         this.readingListRepository = readingListRepository;
@@ -88,6 +91,7 @@ public class ReadingListService implements ReadingListServiceInterface
         this.dailyActivityRepository = dailyActivityRepository;
         this.userService = userService;
         this.xpService = xpService;
+        this.currencyService = currencyService;
         this.achievementService = achievementService;
     }
 
@@ -354,6 +358,9 @@ public class ReadingListService implements ReadingListServiceInterface
                         LIST_BOOK_COMPLETION_XP,
                         catalogId);
                 xpService.awardXp(book.getUser(), LIST_BOOK_COMPLETION_XP);
+                currencyService.awardCoins(book.getUser(),
+                        CurrencyTransactionReason.READING_LIST_BOOK_COMPLETED,
+                        "CATALOG_BOOK", catalogId);
                 logger.info("Awarded {} XP to user {} for reading-list book {}",
                         LIST_BOOK_COMPLETION_XP, userId, catalogId);
             }
@@ -403,6 +410,9 @@ public class ReadingListService implements ReadingListServiceInterface
                     LIST_FULLY_COMPLETED_XP,
                     sub.getId());
             xpService.awardXp(sub.getUser(), LIST_FULLY_COMPLETED_XP);
+            currencyService.awardCoins(sub.getUser(),
+                    CurrencyTransactionReason.READING_LIST_COMPLETED,
+                    "READING_LIST_SUBSCRIPTION", sub.getId());
             logger.info("Awarded {} XP to user {} for completing reading list subscription {}",
                     LIST_FULLY_COMPLETED_XP, sub.getUser().getId(), sub.getId());
         }

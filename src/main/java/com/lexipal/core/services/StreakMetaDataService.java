@@ -44,6 +44,7 @@ public class StreakMetaDataService implements StreakMetaDataServiceInterface
         StreakMetaData streakMetaData = streakMetaDataRepository.findByUser_Id(user.getId())
                 .orElseGet(() -> createStreakMetaData(user, dto));
 
+        reconcileMissedDays(streakMetaData, LocalDate.now(streakZone));
         return toStreakMetaDataReadResponse(streakMetaData);
     }
 
@@ -54,6 +55,7 @@ public class StreakMetaDataService implements StreakMetaDataServiceInterface
         User user = userService.getOrCreateUser(keycloakSub);
         StreakMetaData streakMetaData = ensureStreakMetaData(user);
 
+        reconcileMissedDays(streakMetaData, LocalDate.now(streakZone));
         return toStreakMetaDataReadResponse(streakMetaData);
     }
 
@@ -67,9 +69,10 @@ public class StreakMetaDataService implements StreakMetaDataServiceInterface
         }
 
         StreakMetaData streakMetaData = ensureStreakMetaData(user);
-        LocalDate lastActivityDate = streakMetaData.getLastActivityDate();
+        reconcileMissedDays(streakMetaData, activityDate);
+        LocalDate continuityDate = resolveContinuityDate(streakMetaData);
 
-        if (lastActivityDate == null)
+        if (continuityDate == null)
         {
             streakMetaData.setCurrentStreak(1);
             streakMetaData.setLongestStreak(Math.max(1, streakMetaData.getLongestStreak()));
@@ -79,13 +82,14 @@ public class StreakMetaDataService implements StreakMetaDataServiceInterface
             return;
         }
 
-        if (activityDate.isBefore(lastActivityDate) || activityDate.isEqual(lastActivityDate))
+        if (!activityDate.isAfter(continuityDate))
         {
-            logger.info("Ignored streak update for user {} because activity date {} is not after {}", user.getId(), activityDate, lastActivityDate);
+            logger.info("Ignored streak update for user {} because activity date {} is not after continuity date {}",
+                    user.getId(), activityDate, continuityDate);
             return;
         }
 
-        if (activityDate.isEqual(lastActivityDate.plusDays(1)))
+        if (activityDate.isEqual(continuityDate.plusDays(1)) && streakMetaData.getCurrentStreak() > 0)
         {
             streakMetaData.setCurrentStreak(streakMetaData.getCurrentStreak() + 1);
         }
@@ -98,6 +102,20 @@ public class StreakMetaDataService implements StreakMetaDataServiceInterface
         streakMetaData.setLastActivityDate(activityDate);
         streakMetaDataRepository.save(streakMetaData);
         logger.info("Recorded streak activity for user {} on {}; current streak {}, longest streak {}", user.getId(), activityDate, streakMetaData.getCurrentStreak(), streakMetaData.getLongestStreak());
+    }
+
+    @Override
+    public int getAvailableStreakFreezes(User user)
+    {
+        return availableStreakFreezes(ensureStreakMetaData(user));
+    }
+
+    @Override
+    public void addAvailableStreakFreeze(User user)
+    {
+        StreakMetaData streakMetaData = ensureStreakMetaData(user);
+        streakMetaData.setAvailableStreakFreezes(availableStreakFreezes(streakMetaData) + 1);
+        streakMetaDataRepository.save(streakMetaData);
     }
 
     private StreakMetaData ensureStreakMetaData(User user)
@@ -113,6 +131,7 @@ public class StreakMetaDataService implements StreakMetaDataServiceInterface
         streakMetaData.setCurrentStreak(dto != null && dto.getCurrentStreak() != null ? dto.getCurrentStreak() : 0);
         streakMetaData.setLongestStreak(dto != null && dto.getLongestStreak() != null ? dto.getLongestStreak() : 0);
         streakMetaData.setLastActivityDate(dto != null ? dto.getLastActivityDate() : null);
+        streakMetaData.setAvailableStreakFreezes(0);
 
         StreakMetaData savedStreak = streakMetaDataRepository.save(streakMetaData);
         user.setStreakMetaData(savedStreak);
@@ -128,11 +147,13 @@ public class StreakMetaDataService implements StreakMetaDataServiceInterface
                 streakMetaData.getUser().getId(),
                 resolveEffectiveCurrentStreak(
                         streakMetaData.getCurrentStreak(),
-                        streakMetaData.getLastActivityDate(),
+                        resolveContinuityDate(streakMetaData),
                         LocalDate.now(streakZone)
                 ),
                 streakMetaData.getLongestStreak(),
-                streakMetaData.getLastActivityDate()
+                streakMetaData.getLastActivityDate(),
+                availableStreakFreezes(streakMetaData),
+                streakMetaData.getFreezeProtectedThroughDate()
         );
     }
 
@@ -149,5 +170,78 @@ public class StreakMetaDataService implements StreakMetaDataServiceInterface
         }
 
         return 0;
+    }
+
+    void reconcileMissedDays(StreakMetaData streakMetaData, LocalDate asOfDate)
+    {
+        if (streakMetaData == null || asOfDate == null
+                || streakMetaData.getCurrentStreak() == null || streakMetaData.getCurrentStreak() <= 0)
+        {
+            return;
+        }
+
+        LocalDate continuityDate = resolveContinuityDate(streakMetaData);
+        if (continuityDate == null)
+        {
+            return;
+        }
+
+        LocalDate lastMissedDate = asOfDate.minusDays(1);
+        if (!continuityDate.isBefore(lastMissedDate))
+        {
+            return;
+        }
+
+        int availableFreezes = availableStreakFreezes(streakMetaData);
+        boolean changed = false;
+
+        while (continuityDate.isBefore(lastMissedDate) && availableFreezes > 0)
+        {
+            continuityDate = continuityDate.plusDays(1);
+            streakMetaData.setFreezeProtectedThroughDate(continuityDate);
+            availableFreezes--;
+            changed = true;
+        }
+
+        if (changed)
+        {
+            streakMetaData.setAvailableStreakFreezes(availableFreezes);
+        }
+
+        if (continuityDate.isBefore(lastMissedDate))
+        {
+            streakMetaData.setCurrentStreak(0);
+            changed = true;
+        }
+
+        if (changed)
+        {
+            streakMetaDataRepository.save(streakMetaData);
+        }
+    }
+
+    private LocalDate resolveContinuityDate(StreakMetaData streakMetaData)
+    {
+        LocalDate lastActivityDate = streakMetaData.getLastActivityDate();
+        LocalDate freezeProtectedThroughDate = streakMetaData.getFreezeProtectedThroughDate();
+
+        if (lastActivityDate == null)
+        {
+            return freezeProtectedThroughDate;
+        }
+
+        if (freezeProtectedThroughDate == null || lastActivityDate.isAfter(freezeProtectedThroughDate))
+        {
+            return lastActivityDate;
+        }
+
+        return freezeProtectedThroughDate;
+    }
+
+    private int availableStreakFreezes(StreakMetaData streakMetaData)
+    {
+        return streakMetaData.getAvailableStreakFreezes() == null
+                ? 0
+                : Math.max(streakMetaData.getAvailableStreakFreezes(), 0);
     }
 }

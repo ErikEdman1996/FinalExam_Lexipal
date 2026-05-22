@@ -21,7 +21,10 @@ public interface StreakMetaDataRepository extends JpaRepository<StreakMetaData, 
             SELECT u.id as "userId",
                    u.nickname as "nickname",
                    CASE
-                       WHEN sm.last_activity_date = :asOfDate OR sm.last_activity_date = :previousDate
+                       WHEN sm.last_activity_date = :asOfDate
+                            OR sm.last_activity_date = :previousDate
+                            OR sm.freeze_protected_through_date = :asOfDate
+                            OR sm.freeze_protected_through_date = :previousDate
                        THEN coalesce(sm.current_streak, 0)
                        ELSE 0
                    END as "currentStreak",
@@ -32,7 +35,10 @@ public interface StreakMetaDataRepository extends JpaRepository<StreakMetaData, 
               AND u.nickname IS NOT NULL
               AND trim(u.nickname) <> ''
             ORDER BY CASE
-                         WHEN sm.last_activity_date = :asOfDate OR sm.last_activity_date = :previousDate
+                         WHEN sm.last_activity_date = :asOfDate
+                              OR sm.last_activity_date = :previousDate
+                              OR sm.freeze_protected_through_date = :asOfDate
+                              OR sm.freeze_protected_through_date = :previousDate
                          THEN coalesce(sm.current_streak, 0)
                          ELSE 0
                      END DESC,

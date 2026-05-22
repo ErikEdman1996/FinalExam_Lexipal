@@ -43,9 +43,16 @@ public class User
     @Column
     private Integer totalXp;
 
+    @Column(nullable = false)
+    private Integer coinBalance;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "selected_portrait_id")
     private PortraitDefinition selectedPortrait;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "selected_theme_id")
+    private ThemeDefinition selectedTheme;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonManagedReference("user-books")
@@ -117,6 +124,7 @@ public class User
         this.totalPagesRead = 0;
         this.totalBooksRead = 0;
         this.totalXp = 0;
+        this.coinBalance = 0;
     }
 
     public Long getId()
@@ -200,12 +208,30 @@ public class User
         this.totalXp = totalXp;
     }
 
+    public Integer getCoinBalance()
+    {
+        return coinBalance;
+    }
+
+    public void setCoinBalance(Integer coinBalance)
+    {
+        this.coinBalance = coinBalance;
+    }
+
     public PortraitDefinition getSelectedPortrait() {
         return selectedPortrait;
     }
 
     public void setSelectedPortrait(PortraitDefinition selectedPortrait) {
         this.selectedPortrait = selectedPortrait;
+    }
+
+    public ThemeDefinition getSelectedTheme() {
+        return selectedTheme;
+    }
+
+    public void setSelectedTheme(ThemeDefinition selectedTheme) {
+        this.selectedTheme = selectedTheme;
     }
 
     public List<Book> getBooks() {

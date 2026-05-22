@@ -9,6 +9,7 @@ import com.lexipal.core.dtos.responses.SessionReadResponseDTO;
 import com.lexipal.core.dtos.responses.SessionUpdateResponseDTO;
 import com.lexipal.core.dtos.responses.XpUpdateResponseDTO;
 import com.lexipal.core.entities.Book;
+import com.lexipal.core.entities.CurrencyTransactionReason;
 import com.lexipal.core.entities.Session;
 import com.lexipal.core.entities.User;
 import com.lexipal.core.exceptions.ResourceNotFoundException;
@@ -37,6 +38,7 @@ public class SessionService implements SessionServiceInterface
     private final DailyActivityServiceInterface dailyActivityService;
     private final UserServiceInterface userService;
     private final XpService xpService;
+    private final CurrencyService currencyService;
     private final BookLifecycleValidator bookLifecycleValidator;
     private final AchievementService achievementService;
 
@@ -47,6 +49,7 @@ public class SessionService implements SessionServiceInterface
                           final DailyActivityServiceInterface dailyActivityService,
                           final UserServiceInterface userService,
                           final XpService xpService,
+                          final CurrencyService currencyService,
                           final BookLifecycleValidator bookLifecycleValidator,
                           final AchievementService achievementService)
     {
@@ -56,6 +59,7 @@ public class SessionService implements SessionServiceInterface
         this.dailyActivityService = dailyActivityService;
         this.userService = userService;
         this.xpService = xpService;
+        this.currencyService = currencyService;
         this.bookLifecycleValidator = bookLifecycleValidator;
         this.achievementService = achievementService;
     }
@@ -194,6 +198,9 @@ public class SessionService implements SessionServiceInterface
 
         dailyActivityService.recordSessionCompletedActivity(updatedSession);
         XpUpdateResponseDTO xpUpdate = xpService.awardXp(updatedSession.getUser(), 25);
+        currencyService.awardCoins(updatedSession.getUser(),
+                CurrencyTransactionReason.SESSION_COMPLETED,
+                "SESSION", updatedSession.getId());
         List<AchievementResponseDTO> newlyUnlockedAchievements =
                 achievementService.evaluateAchievements(updatedSession.getUser());
 

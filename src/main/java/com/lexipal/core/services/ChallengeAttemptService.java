@@ -2,10 +2,12 @@ package com.lexipal.core.services;
 
 import com.lexipal.core.dtos.requests.ChallengeAttemptCreateRequestDTO;
 import com.lexipal.core.dtos.responses.ChallengeAttemptReadResponseDTO;
+import com.lexipal.core.dtos.responses.XpUpdateResponseDTO;
 import com.lexipal.core.entities.Challenge;
 import com.lexipal.core.entities.ChallengeAttempt;
 import com.lexipal.core.entities.ChallengeResult;
 import com.lexipal.core.entities.ChallengeType;
+import com.lexipal.core.entities.CurrencyTransactionReason;
 import com.lexipal.core.entities.User;
 import com.lexipal.core.entities.Word;
 import com.lexipal.core.entities.WordLookup;
@@ -33,19 +35,22 @@ public class ChallengeAttemptService implements ChallengeAttemptServiceInterface
     private final WordLookupRepository wordLookupRepository;
     private final UserServiceInterface userService;
     private final XpService xpService;
+    private final CurrencyService currencyService;
 
     @Autowired
     public ChallengeAttemptService(final ChallengeAttemptRepository challengeAttemptRepository,
                                    final ChallengeRepository challengeRepository,
                                    final WordLookupRepository wordLookupRepository,
                                    final UserServiceInterface userService,
-                                   final XpService xpService)
+                                   final XpService xpService,
+                                   final CurrencyService currencyService)
     {
         this.challengeAttemptRepository = challengeAttemptRepository;
         this.challengeRepository = challengeRepository;
         this.wordLookupRepository = wordLookupRepository;
         this.userService = userService;
         this.xpService = xpService;
+        this.currencyService = currencyService;
     }
 
     @Override
@@ -82,7 +87,15 @@ public class ChallengeAttemptService implements ChallengeAttemptServiceInterface
         user.getChallengeAttempts().add(savedAttempt);
         challenge.getAttempts().add(savedAttempt);
 
-        return toChallengeAttemptReadResponse(savedAttempt, xpService.awardXp(user, savedAttempt.getXpAwarded()));
+        XpUpdateResponseDTO xpUpdate = xpService.awardXp(user, savedAttempt.getXpAwarded());
+        if (savedAttempt.getResult() == ChallengeResult.PASS)
+        {
+            currencyService.awardCoins(user,
+                    CurrencyTransactionReason.CHALLENGE_PASSED,
+                    "CHALLENGE_ATTEMPT", savedAttempt.getId());
+        }
+
+        return toChallengeAttemptReadResponse(savedAttempt, xpUpdate);
     }
 
     @Override
@@ -119,7 +132,7 @@ public class ChallengeAttemptService implements ChallengeAttemptServiceInterface
     }
 
     private ChallengeAttemptReadResponseDTO toChallengeAttemptReadResponse(ChallengeAttempt attempt,
-                                                                           com.lexipal.core.dtos.responses.XpUpdateResponseDTO xpUpdate)
+                                                                           XpUpdateResponseDTO xpUpdate)
     {
         WordLookup wordLookup = attempt.getWordLookup();
         Word sourceWord = wordLookup != null ? wordLookup.getWord() : null;

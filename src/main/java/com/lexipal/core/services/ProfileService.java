@@ -27,19 +27,25 @@ public class ProfileService implements ProfileServiceInterface
     private final XpService xpService;
     private final SessionRepository sessionRepository;
     private final PortraitService portraitService;
+    private final ThemeService themeService;
+    private final CurrencyService currencyService;
 
     @Autowired
     public ProfileService(final UserServiceInterface userService,
                           final StreakMetaDataServiceInterface streakMetaDataService,
                           final XpService xpService,
                           final SessionRepository sessionRepository,
-                          final PortraitService portraitService)
+                          final PortraitService portraitService,
+                          final ThemeService themeService,
+                          final CurrencyService currencyService)
     {
         this.userService = userService;
         this.streakMetaDataService = streakMetaDataService;
         this.xpService = xpService;
         this.sessionRepository = sessionRepository;
         this.portraitService = portraitService;
+        this.themeService = themeService;
+        this.currencyService = currencyService;
     }
 
     @Override
@@ -78,7 +84,9 @@ public class ProfileService implements ProfileServiceInterface
                 stats,
                 streak,
                 recentDailyActivities,
-                portraitService.getSelectedPortraitForProfile(user)
+                portraitService.getSelectedPortraitForProfile(user),
+                themeService.getSelectedThemeForProfile(user),
+                currencyService.getWallet(user)
         );
     }
 

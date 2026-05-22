@@ -130,6 +130,27 @@ class StreakLeaderboardControllerIntegrationTest extends IntegrationTestBase
                 .andExpect(jsonPath("$.streak.longestStreak").value(12));
     }
 
+    @Test
+    @DisplayName("Streak reads consume freezes and leaderboard keeps protected streak active")
+    void streakReads_consumeFreezeAndLeaderboardUsesProtection() throws Exception
+    {
+        LocalDate today = LocalDate.now(STREAK_ZONE);
+        User user = createUser("leaderboard-freeze-sub", "Frozen Reader");
+        StreakMetaData streak = createStreak(user, 12, 12, today.minusDays(2));
+        streak.setAvailableStreakFreezes(1);
+        streakMetaDataRepository.save(streak);
+
+        mockMvc.perform(get("/lexipal/api/v1/streakMetadata/me").with(jwtWithSub(user.getKeycloakSub())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.currentStreak").value(12))
+                .andExpect(jsonPath("$.availableStreakFreezes").value(0))
+                .andExpect(jsonPath("$.freezeProtectedThroughDate").value(today.minusDays(1).toString()));
+
+        mockMvc.perform(get(LEADERBOARD_URL).with(jwtWithSub(user.getKeycloakSub())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.entries[?(@.nickname == 'Frozen Reader')].currentStreak").value(hasItem(12)));
+    }
+
     private User createUser(String sub, String nickname)
     {
         User user = new User();

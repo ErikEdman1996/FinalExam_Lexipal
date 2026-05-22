@@ -1,0 +1,12 @@
+package com.lexipal.core.entities;
+
+public enum CurrencyTransactionReason
+{
+    SESSION_COMPLETED,
+    CHALLENGE_PASSED,
+    CROSSWORD_PASSED,
+    READING_LIST_BOOK_COMPLETED,
+    READING_LIST_COMPLETED,
+    STREAK_FREEZE_PURCHASE,
+    THEME_PURCHASE
+}
