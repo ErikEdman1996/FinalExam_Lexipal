@@ -21,7 +21,6 @@ This is an in-product reading tool. Keep the wallet and store useful and restrai
 - XP remains lifetime progression for levels and portrait unlocks.
 - Never subtract XP for store purchases.
 - Coin earnings are backend-owned; the frontend has no grant-coins endpoint.
-- Captured words can still award XP, but captured words do not award coins.
 - Failed or zero-reward outcomes do not award coins.
 - Streak freezes are automatic inventory items. Do not build manual activation or date selection.
 - Themes are durable unlocks. Purchase and selection are separate actions.
@@ -62,7 +61,7 @@ Every paid theme costs `100` coins.
 | `rose_bookmark` | Rose Bookmark | Light |
 | `midnight_archive` | Midnight Archive | Dark |
 | `mothlight_nocturne` | Mothlight Nocturne | Dark |
-| `forest_codex` | Forest Codex | Dark |
+| `forest_canopy` | Forest Canopy | Dark |
 | `plum_afterword` | Plum Afterword | Dark |
 
 Purchasing a paid theme:
@@ -160,7 +159,7 @@ Use these seeds for the eight paid themes:
 | `rose_bookmark` | `#F3E7E9 / #FCF4F4 / #E7D7DC / #E7D7DC / #DDCAD0` | `#B24E6A / #993F59 / #EBCBD5 / #6B647F / #A98142` |
 | `midnight_archive` | `#0C1220 / #151D31 / #10182A / #0E1424 / #080E19` | `#6D95D8 / #82A6E3 / #6D95D82E / #A1B7D6 / #D7A65D` |
 | `mothlight_nocturne` | `#120F0A / #211A11 / #19130D / #150F0A / #0D0906` | `#D99245 / #E2A45C / #D992452E / #A89A7C / #E0B65D` |
-| `forest_codex` | `#09130F / #10231B / #0D1A14 / #0A1610 / #07100C` | `#55A676 / #69B88A / #55A6762E / #8FB3A0 / #C6A458` |
+| `forest_canopy` | `#09130F / #10231B / #0D1A14 / #0A1610 / #07100C` | `#55A676 / #69B88A / #55A6762E / #8FB3A0 / #C6A458` |
 | `plum_afterword` | `#150D1C / #24162D / #1B1122 / #160C1D / #100913` | `#AE72D6 / #BF86E3 / #AE72D62E / #A58BB8 / #D6A85E` |
 
 For paid theme token maps:
@@ -462,11 +461,6 @@ Invalidate or update relevant wallet/store/profile/theme queries after:
 - successful theme selection
 - coin-eligible reward flows already present in the app
 
-After captured-word flows:
-
-- do not show coin-earned UI
-- do not imply word capture changed store balance
-
 ## Error Handling
 
 Insufficient coins:
@@ -513,4 +507,4 @@ Use the app's normal authenticated request, pending state, toast, and query inva
 11. All ten theme codes resolve to complete frontend token maps.
 12. The existing default Light and Dark hex maps stay exact.
 13. Null selected-theme state preserves the existing default theme fallback.
-14. Frontend does not treat XP as spendable coins or word capture as coin earnings.
+14. Frontend does not treat XP as spendable coins or zero-reward flows as coin earnings.

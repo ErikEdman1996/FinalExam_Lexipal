@@ -66,15 +66,6 @@ public interface SessionRepository extends JpaRepository<Session, Long>
                                             @Param("end") LocalDateTime end);
 
     @Query("""
-            SELECT COALESCE(SUM(s.capturedWordCount), 0) FROM Session s
-            WHERE s.status = com.lexipal.core.entities.Session.SessionStatus.COMPLETED
-              AND s.completedAt >= :start
-              AND s.completedAt < :end
-            """)
-    long sumCapturedWordsCompletedBetween(@Param("start") LocalDateTime start,
-                                          @Param("end") LocalDateTime end);
-
-    @Query("""
             SELECT COUNT(s) FROM Session s
             WHERE s.status = com.lexipal.core.entities.Session.SessionStatus.COMPLETED
               AND s.completedAt >= :start

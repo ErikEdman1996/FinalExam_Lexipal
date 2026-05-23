@@ -14,7 +14,6 @@ public class SessionReadResponseDTO
     private String status;
     private LocalDateTime sessionDate;
     private LocalDateTime completedAt;
-    private int capturedWordCount;
 
     public SessionReadResponseDTO()
     {
@@ -23,7 +22,7 @@ public class SessionReadResponseDTO
 
     public SessionReadResponseDTO(Long id, Long bookId, Long durationSeconds, Integer startPage, Integer endPage,
                                   Integer pagesRead, String reflection, String status, LocalDateTime sessionDate,
-                                  LocalDateTime completedAt, int capturedWordCount)
+                                  LocalDateTime completedAt)
     {
         this.id = id;
         this.bookId = bookId;
@@ -35,7 +34,6 @@ public class SessionReadResponseDTO
         this.status = status;
         this.sessionDate = sessionDate;
         this.completedAt = completedAt;
-        this.capturedWordCount = capturedWordCount;
     }
 
     public Long getId() {
@@ -118,11 +116,4 @@ public class SessionReadResponseDTO
         this.completedAt = completedAt;
     }
 
-    public int getCapturedWordCount() {
-        return capturedWordCount;
-    }
-
-    public void setCapturedWordCount(int capturedWordCount) {
-        this.capturedWordCount = capturedWordCount;
-    }
 }

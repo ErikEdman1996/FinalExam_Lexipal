@@ -116,7 +116,6 @@ public class AdminAnalyticsService
                 bookRepository.countCompletedBetween(queryStart, queryEnd),
                 sessionRepository.countCompletedBetween(queryStart, queryEnd),
                 sessionRepository.sumDurationSecondsCompletedBetween(queryStart, queryEnd) / 60,
-                sessionRepository.sumCapturedWordsCompletedBetween(queryStart, queryEnd),
                 dailyActivityRepository.sumPositiveXpEarnedBetween(queryStartDate, endDate),
                 readingListRepository.countByCreatedAtGreaterThanEqualAndCreatedAtLessThan(queryStart, queryEnd),
                 subscriptionRepository.countBySubscribedAtGreaterThanEqualAndSubscribedAtLessThan(queryStart, queryEnd),

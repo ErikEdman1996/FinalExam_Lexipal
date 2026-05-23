@@ -6,7 +6,6 @@ public class ProfileStatsResponseDTO
     private Integer totalPagesRead;
     private Integer totalBooksRead;
     private Integer totalSessionsCompleted;
-    private Integer totalCapturedWords;
     private Integer totalXpEarned;
     private Integer level;
     private Integer xpIntoLevel;
@@ -22,14 +21,14 @@ public class ProfileStatsResponseDTO
     }
 
     public ProfileStatsResponseDTO(Long totalMinutesRead, Integer totalPagesRead, Integer totalBooksRead, Integer totalSessionsCompleted,
-                                   Integer totalCapturedWords, Integer totalXpEarned)
+                                   Integer totalXpEarned)
     {
-        this(totalMinutesRead, totalPagesRead, totalBooksRead, totalSessionsCompleted, totalCapturedWords, totalXpEarned,
+        this(totalMinutesRead, totalPagesRead, totalBooksRead, totalSessionsCompleted, totalXpEarned,
                 null, null, null, null, null, null, null);
     }
 
     public ProfileStatsResponseDTO(Long totalMinutesRead, Integer totalPagesRead, Integer totalBooksRead, Integer totalSessionsCompleted,
-                                   Integer totalCapturedWords, Integer totalXpEarned, Integer level,
+                                   Integer totalXpEarned, Integer level,
                                    Integer xpIntoLevel, Integer xpPerLevel, Integer maxLevel,
                                    Integer currentLevelMinXp, Integer nextLevelMinXp, Integer xpToNextLevel)
     {
@@ -37,7 +36,6 @@ public class ProfileStatsResponseDTO
         this.totalPagesRead = totalPagesRead;
         this.totalBooksRead = totalBooksRead;
         this.totalSessionsCompleted = totalSessionsCompleted;
-        this.totalCapturedWords = totalCapturedWords;
         this.totalXpEarned = totalXpEarned;
         this.level = level;
         this.xpIntoLevel = xpIntoLevel;
@@ -78,14 +76,6 @@ public class ProfileStatsResponseDTO
 
     public void setTotalSessionsCompleted(Integer totalSessionsCompleted) {
         this.totalSessionsCompleted = totalSessionsCompleted;
-    }
-
-    public Integer getTotalCapturedWords() {
-        return totalCapturedWords;
-    }
-
-    public void setTotalCapturedWords(Integer totalCapturedWords) {
-        this.totalCapturedWords = totalCapturedWords;
     }
 
     public Integer getTotalXpEarned() {

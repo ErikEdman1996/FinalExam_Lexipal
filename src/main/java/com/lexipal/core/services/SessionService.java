@@ -294,7 +294,6 @@ public class SessionService implements SessionServiceInterface
                 session.getStatus().name(),
                 session.getSessionDate(),
                 session.getCompletedAt(),
-                session.getCapturedWordCount(),
                 xpUpdate
         );
     }
@@ -311,8 +310,7 @@ public class SessionService implements SessionServiceInterface
                 session.getReflection(),
                 session.getStatus().name(),
                 session.getSessionDate(),
-                session.getCompletedAt(),
-                session.getCapturedWordCount()
+                session.getCompletedAt()
         );
     }
 
@@ -335,7 +333,6 @@ public class SessionService implements SessionServiceInterface
                 session.getStatus().name(),
                 session.getSessionDate(),
                 session.getCompletedAt(),
-                session.getCapturedWordCount(),
                 xpUpdate,
                 newlyUnlockedAchievements
         );

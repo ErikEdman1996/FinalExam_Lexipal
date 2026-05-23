@@ -84,7 +84,6 @@ Navigation items:
 - Reading Lists.
 - Book Circles.
 - Notes.
-- Codex.
 - Profile.
 
 Use clear icons with labels. Keep the shell practical and easy to scan.

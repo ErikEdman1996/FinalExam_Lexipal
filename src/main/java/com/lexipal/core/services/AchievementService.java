@@ -9,7 +9,6 @@ import com.lexipal.core.repositories.AchievementDefinitionRepository;
 import com.lexipal.core.repositories.BookCircleRepository;
 import com.lexipal.core.repositories.BookRepository;
 import com.lexipal.core.repositories.CircleMemberRepository;
-import com.lexipal.core.repositories.CodexEntryRepository;
 import com.lexipal.core.repositories.ReadingListRepository;
 import com.lexipal.core.repositories.ReadingListSubscriptionRepository;
 import com.lexipal.core.repositories.SessionRepository;
@@ -32,7 +31,6 @@ public class AchievementService
 {
     public static final String METRIC_PAGES_READ = "pages_read";
     public static final String METRIC_BOOKS_COMPLETED = "books_completed";
-    public static final String METRIC_CODEX_WORDS = "codex_words";
     public static final String METRIC_READING_LIST_STARS = "reading_list_stars";
     public static final String METRIC_READING_LIST_SUBSCRIBERS = "reading_list_subscribers";
     public static final String METRIC_BOOK_CIRCLES_STARTED = "book_circles_started";
@@ -43,7 +41,6 @@ public class AchievementService
     private final UserServiceInterface userService;
     private final SessionRepository sessionRepository;
     private final BookRepository bookRepository;
-    private final CodexEntryRepository codexEntryRepository;
     private final ReadingListRepository readingListRepository;
     private final ReadingListSubscriptionRepository readingListSubscriptionRepository;
     private final BookCircleRepository bookCircleRepository;
@@ -55,7 +52,6 @@ public class AchievementService
                               final UserServiceInterface userService,
                               final SessionRepository sessionRepository,
                               final BookRepository bookRepository,
-                              final CodexEntryRepository codexEntryRepository,
                               final ReadingListRepository readingListRepository,
                               final ReadingListSubscriptionRepository readingListSubscriptionRepository,
                               final BookCircleRepository bookCircleRepository,
@@ -66,7 +62,6 @@ public class AchievementService
         this.userService = userService;
         this.sessionRepository = sessionRepository;
         this.bookRepository = bookRepository;
-        this.codexEntryRepository = codexEntryRepository;
         this.readingListRepository = readingListRepository;
         this.readingListSubscriptionRepository = readingListSubscriptionRepository;
         this.bookCircleRepository = bookCircleRepository;
@@ -159,7 +154,6 @@ public class AchievementService
         progress.put(METRIC_PAGES_READ, sessionRepository.sumCompletedPagesByUserId(userId));
         progress.put(METRIC_BOOKS_COMPLETED,
                 Math.toIntExact(bookRepository.countByUser_IdAndStatus(userId, Book.BookStatus.COMPLETE)));
-        progress.put(METRIC_CODEX_WORDS, Math.toIntExact(codexEntryRepository.countByUser_Id(userId)));
         progress.put(METRIC_READING_LIST_STARS, readingListRepository.findMaxStarCountByOwnerId(userId));
         progress.put(METRIC_READING_LIST_SUBSCRIBERS,
                 readingListSubscriptionRepository.findMaxSubscriberCountByOwnerId(userId));

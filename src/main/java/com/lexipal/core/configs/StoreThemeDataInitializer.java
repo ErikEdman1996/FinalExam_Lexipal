@@ -43,8 +43,8 @@ public class StoreThemeDataInitializer
                     "Deep archive blues for after-hours reading.", ThemeTone.DARK, 140);
             seedPaidTheme(storeItemRepository, themeRepository, "mothlight_nocturne", "Mothlight Nocturne",
                     "Amber lamplight against a dark nocturne.", ThemeTone.DARK, 150);
-            seedPaidTheme(storeItemRepository, themeRepository, "forest_codex", "Forest Codex",
-                    "Dark forest greens for a quiet codex.", ThemeTone.DARK, 160);
+            seedPaidTheme(storeItemRepository, themeRepository, "forest_canopy", "Forest Canopy",
+                    "Dark forest greens for quiet evening reading.", ThemeTone.DARK, 160);
             seedPaidTheme(storeItemRepository, themeRepository, "plum_afterword", "Plum Afterword",
                     "Plum shadows for the page after the ending.", ThemeTone.DARK, 170);
         };

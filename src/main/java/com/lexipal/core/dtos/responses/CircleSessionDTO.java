@@ -15,7 +15,6 @@ public class CircleSessionDTO
     private Integer pagesRead;
     private Session.SessionStatus status;
     private String reflection;
-    private Integer capturedWordCount;
 
     public CircleSessionDTO()
     {
@@ -24,7 +23,7 @@ public class CircleSessionDTO
 
     public CircleSessionDTO(Long sessionId, LocalDateTime sessionDate, LocalDateTime completedAt,
                             Long durationSeconds, Integer startPage, Integer endPage, Integer pagesRead,
-                            Session.SessionStatus status, String reflection, Integer capturedWordCount)
+                            Session.SessionStatus status, String reflection)
     {
         this.sessionId = sessionId;
         this.sessionDate = sessionDate;
@@ -35,7 +34,6 @@ public class CircleSessionDTO
         this.pagesRead = pagesRead;
         this.status = status;
         this.reflection = reflection;
-        this.capturedWordCount = capturedWordCount;
     }
 
     public Long getSessionId() { return sessionId; }
@@ -65,6 +63,4 @@ public class CircleSessionDTO
     public String getReflection() { return reflection; }
     public void setReflection(String reflection) { this.reflection = reflection; }
 
-    public Integer getCapturedWordCount() { return capturedWordCount; }
-    public void setCapturedWordCount(Integer capturedWordCount) { this.capturedWordCount = capturedWordCount; }
 }

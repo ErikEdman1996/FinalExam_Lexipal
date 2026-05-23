@@ -8,7 +8,6 @@ public record AdminDashboardSummaryDTO(
         long completedBooks,
         long completedSessions,
         long totalMinutesRead,
-        long capturedWords,
         long xpAwarded,
         long readingListsCreated,
         long readingListSubscriptions,

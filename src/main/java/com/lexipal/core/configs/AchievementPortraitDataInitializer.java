@@ -26,8 +26,6 @@ public class AchievementPortraitDataInitializer
                     "Read %,d pages", "Read %,d total pages.", 100, 50, 100, 200, 500, 1000, 2000, 5000);
             seedAchievementSeries(repository, "BOOKS", "Books completed", AchievementService.METRIC_BOOKS_COMPLETED,
                     "Complete %,d books", "Complete %,d books.", 200, 1, 3, 5, 10, 25, 50, 100);
-            seedAchievementSeries(repository, "CODEX", "Codex words", AchievementService.METRIC_CODEX_WORDS,
-                    "Find %,d codex words", "Add %,d words to your codex.", 300, 10, 25, 50, 100, 200, 300);
             seedAchievementSeries(repository, "LIST_STARS", "Reading list stars", AchievementService.METRIC_READING_LIST_STARS,
                     "Earn %,d list stars", "Earn %,d stars on one reading list.", 400, 1, 5, 10, 25, 50, 100);
             seedAchievementSeries(repository, "LIST_SUBSCRIBERS", "Reading list subscribers",

@@ -67,7 +67,7 @@ class WalletControllerIntegrationTest extends IntegrationTestBase
                 .andExpect(jsonPath("$.items[?(@.code == 'rose_bookmark')].priceCoins").value(hasItem(100)))
                 .andExpect(jsonPath("$.items[?(@.code == 'midnight_archive')].priceCoins").value(hasItem(100)))
                 .andExpect(jsonPath("$.items[?(@.code == 'mothlight_nocturne')].priceCoins").value(hasItem(100)))
-                .andExpect(jsonPath("$.items[?(@.code == 'forest_codex')].priceCoins").value(hasItem(100)))
+                .andExpect(jsonPath("$.items[?(@.code == 'forest_canopy')].priceCoins").value(hasItem(100)))
                 .andExpect(jsonPath("$.items[?(@.code == 'plum_afterword')].priceCoins").value(hasItem(100)));
     }
 
@@ -122,7 +122,7 @@ class WalletControllerIntegrationTest extends IntegrationTestBase
         user.setCoinBalance(99);
         userRepository.save(user);
 
-        mockMvc.perform(post(STORE_ITEMS_URL + "forest_codex/purchase")
+        mockMvc.perform(post(STORE_ITEMS_URL + "forest_canopy/purchase")
                         .with(jwtWithSub(user.getKeycloakSub())))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").value("You do not have enough coins."));
@@ -272,11 +272,11 @@ class WalletControllerIntegrationTest extends IntegrationTestBase
     }
 
     @Test
-    @DisplayName("Captured codex words keep XP but do not award coins")
-    void capturedWord_doesNotAwardCoins() throws Exception
+    @DisplayName("Word lookups do not award XP or coins")
+    void wordLookup_doesNotAwardXpOrCoins() throws Exception
     {
-        User user = createUser("wallet-capture-sub");
-        Book book = createBook(user, "Wallet Codex Book");
+        User user = createUser("wallet-lookup-sub");
+        Book book = createBook(user, "Wallet Lookup Book");
         Session session = createInProgressSession(user, book);
         Word word = new Word();
         word.setLemma("explain");
@@ -287,8 +287,17 @@ class WalletControllerIntegrationTest extends IntegrationTestBase
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new WordLookupCreateRequestDTO("explain"))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.isNewCapture").value(true))
-                .andExpect(jsonPath("$.xpUpdate.xpAwarded").value(30));
+                .andExpect(jsonPath("$.lookupSucceeded").value(true))
+                .andExpect(jsonPath("$.isNewLookup").value(true))
+                .andExpect(jsonPath("$.*", hasSize(3)));
+
+        mockMvc.perform(post("/lexipal/api/v1/word-lookups/" + session.getId())
+                        .with(jwtWithSub(user.getKeycloakSub()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new WordLookupCreateRequestDTO("explain"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.lookupSucceeded").value(true))
+                .andExpect(jsonPath("$.isNewLookup").value(false));
 
         mockMvc.perform(get(WALLET_URL).with(jwtWithSub(user.getKeycloakSub())))
                 .andExpect(status().isOk())

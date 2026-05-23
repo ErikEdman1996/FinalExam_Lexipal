@@ -200,8 +200,7 @@ Response `200 OK`:
       "endPage": 120,
       "pagesRead": 40,
       "status": "COMPLETED",
-      "reflection": "The Fremen scene...",
-      "capturedWordCount": 4
+      "reflection": "The Fremen scene..."
     }
   ],
   "notes": [

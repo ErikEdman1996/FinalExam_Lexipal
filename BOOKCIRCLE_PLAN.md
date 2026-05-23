@@ -254,7 +254,7 @@ List<CircleNoteDTO> notes
 ```
 Long sessionId, LocalDateTime sessionDate, LocalDateTime completedAt,
 Long durationSeconds, Integer startPage, Integer endPage, Integer pagesRead,
-SessionStatus status, String reflection, Integer capturedWordCount
+SessionStatus status, String reflection
 ```
 
 ### `CircleNoteDTO`

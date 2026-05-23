@@ -21,7 +21,6 @@ import com.lexipal.core.entities.Word;
 import com.lexipal.core.entities.WordLookup;
 import com.lexipal.core.exceptions.ResourceConflictException;
 import com.lexipal.core.exceptions.ResourceNotFoundException;
-import com.lexipal.core.models.CodexBoardWordDefinition;
 import com.lexipal.core.repositories.ChallengeAttemptRepository;
 import com.lexipal.core.repositories.ChallengeRepository;
 import com.lexipal.core.repositories.CrosswordPuzzleRepository;
@@ -70,8 +69,6 @@ public class CrosswordPuzzleService
     private final UserServiceInterface userService;
     private final XpService xpService;
     private final CurrencyService currencyService;
-    private final WordService wordService;
-    private final CodexBoardService codexBoardService;
     private final ObjectMapper objectMapper;
 
     public CrosswordPuzzleService(final CrosswordPuzzleRepository crosswordPuzzleRepository,
@@ -82,8 +79,6 @@ public class CrosswordPuzzleService
                                   final UserServiceInterface userService,
                                   final XpService xpService,
                                   final CurrencyService currencyService,
-                                  final WordService wordService,
-                                  final CodexBoardService codexBoardService,
                                   final ObjectMapper objectMapper)
     {
         this.crosswordPuzzleRepository = crosswordPuzzleRepository;
@@ -94,8 +89,6 @@ public class CrosswordPuzzleService
         this.userService = userService;
         this.xpService = xpService;
         this.currencyService = currencyService;
-        this.wordService = wordService;
-        this.codexBoardService = codexBoardService;
         this.objectMapper = objectMapper;
     }
 
@@ -111,17 +104,6 @@ public class CrosswordPuzzleService
         appendGlobalWordCandidates(candidates, seenLemmas, random);
 
         Optional<GeneratedCrossword> generated = tryGenerateCrossword(candidates, random, true);
-        if (generated.isEmpty())
-        {
-            generated = tryGenerateCrossword(candidates, random, false);
-        }
-
-        if (generated.isEmpty())
-        {
-            appendCodexBoardCandidates(candidates, seenLemmas, random);
-            generated = tryGenerateCrossword(candidates, random, true);
-        }
-
         if (generated.isEmpty())
         {
             generated = tryGenerateCrossword(candidates, random, false);
@@ -259,36 +241,6 @@ public class CrosswordPuzzleService
         appendCandidateTier(candidates, globalWordCandidates);
     }
 
-    private void appendCodexBoardCandidates(List<CandidateWord> candidates, Set<String> seenLemmas, Random random)
-    {
-        List<CodexBoardWordDefinition> boardWords = new ArrayList<>(codexBoardService.getBoardWords());
-        Collections.shuffle(boardWords, random);
-
-        for (CodexBoardWordDefinition boardWord : boardWords)
-        {
-            if (candidates.size() >= MAX_CANDIDATE_POOL)
-            {
-                return;
-            }
-
-            String lemma = normalizeLemma(boardWord.lemma());
-            if (!isEligibleLemma(lemma) || seenLemmas.contains(lemma))
-            {
-                continue;
-            }
-
-            try
-            {
-                Word word = wordService.saveWordFromApi(lemma);
-                appendCandidate(word, null, WordSource.CODEX_BOARD_CSV, candidates, seenLemmas);
-            }
-            catch (RuntimeException ex)
-            {
-                logger.debug("Skipping crossword CSV fallback word '{}'", lemma, ex);
-            }
-        }
-    }
-
     private void appendCandidateTier(List<CandidateWord> candidates, List<CandidateWord> candidateTier)
     {
         for (CandidateWord candidate : candidateTier)
@@ -357,7 +309,6 @@ public class CrosswordPuzzleService
     {
         List<CandidateWord> userLookupCandidates = new ArrayList<>();
         List<CandidateWord> globalWordCandidates = new ArrayList<>();
-        List<CandidateWord> codexBoardCandidates = new ArrayList<>();
 
         for (CandidateWord candidate : candidatePool)
         {
@@ -365,13 +316,11 @@ public class CrosswordPuzzleService
             {
                 case USER_LOOKUP -> userLookupCandidates.add(candidate);
                 case GLOBAL_WORD -> globalWordCandidates.add(candidate);
-                case CODEX_BOARD_CSV -> codexBoardCandidates.add(candidate);
             }
         }
 
         Collections.shuffle(userLookupCandidates, random);
         Collections.shuffle(globalWordCandidates, random);
-        Collections.shuffle(codexBoardCandidates, random);
 
         if (strictSourcePriority)
         {
@@ -392,7 +341,6 @@ public class CrosswordPuzzleService
         List<CandidateWord> orderedCandidates = new ArrayList<>(candidatePool.size());
         orderedCandidates.addAll(userLookupCandidates);
         orderedCandidates.addAll(globalWordCandidates);
-        orderedCandidates.addAll(codexBoardCandidates);
 
         return orderedCandidates;
     }
@@ -769,8 +717,7 @@ public class CrosswordPuzzleService
     private enum WordSource
     {
         USER_LOOKUP,
-        GLOBAL_WORD,
-        CODEX_BOARD_CSV
+        GLOBAL_WORD
     }
 
     private record CandidateWord(String lemma, String clue, Long wordId, Long wordLookupId, WordSource source)

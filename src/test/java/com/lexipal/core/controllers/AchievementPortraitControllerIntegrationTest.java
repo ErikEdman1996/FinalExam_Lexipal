@@ -9,23 +9,19 @@ import com.lexipal.core.entities.CircleMember;
 import com.lexipal.core.entities.CircleMemberRole;
 import com.lexipal.core.entities.CircleStatus;
 import com.lexipal.core.entities.CircleVisibility;
-import com.lexipal.core.entities.CodexEntry;
 import com.lexipal.core.entities.ReadingList;
 import com.lexipal.core.entities.ReadingListSubscription;
 import com.lexipal.core.entities.Session;
 import com.lexipal.core.entities.User;
-import com.lexipal.core.entities.Word;
 import com.lexipal.core.repositories.BookCircleRepository;
 import com.lexipal.core.repositories.BookRepository;
 import com.lexipal.core.repositories.CircleMemberRepository;
-import com.lexipal.core.repositories.CodexEntryRepository;
 import com.lexipal.core.repositories.PortraitDefinitionRepository;
 import com.lexipal.core.repositories.ReadingListRepository;
 import com.lexipal.core.repositories.ReadingListSubscriptionRepository;
 import com.lexipal.core.repositories.SessionRepository;
 import com.lexipal.core.repositories.UserAchievementRepository;
 import com.lexipal.core.repositories.UserRepository;
-import com.lexipal.core.repositories.WordRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,8 +45,6 @@ class AchievementPortraitControllerIntegrationTest extends IntegrationTestBase
     @Autowired private UserRepository userRepository;
     @Autowired private BookRepository bookRepository;
     @Autowired private SessionRepository sessionRepository;
-    @Autowired private WordRepository wordRepository;
-    @Autowired private CodexEntryRepository codexEntryRepository;
     @Autowired private ReadingListRepository readingListRepository;
     @Autowired private ReadingListSubscriptionRepository subscriptionRepository;
     @Autowired private BookCircleRepository bookCircleRepository;
@@ -65,7 +59,6 @@ class AchievementPortraitControllerIntegrationTest extends IntegrationTestBase
         User user = createUser("achievement-retro-sub", 0);
         Book book = createBook(user, "Retro Book", 100, Book.BookStatus.COMPLETE);
         createCompletedSession(user, book, 1, 61);
-        createCodexEntries(user, 10);
         createCompletedCircleBook(user, book);
 
         mockMvc.perform(get(ACHIEVEMENTS_URL).with(jwtWithSub(user.getKeycloakSub())))
@@ -74,7 +67,6 @@ class AchievementPortraitControllerIntegrationTest extends IntegrationTestBase
                 .andExpect(jsonPath("$[?(@.code == 'PAGES_100')].unlocked").value(hasItem(false)))
                 .andExpect(jsonPath("$[?(@.code == 'PAGES_100')].progress").value(hasItem(60)))
                 .andExpect(jsonPath("$[?(@.code == 'BOOKS_1')].unlocked").value(hasItem(true)))
-                .andExpect(jsonPath("$[?(@.code == 'CODEX_10')].unlocked").value(hasItem(true)))
                 .andExpect(jsonPath("$[?(@.code == 'CIRCLE_BOOKS_1')].unlocked").value(hasItem(true)));
 
         int unlockCount = userAchievementRepository.findByUser_Id(user.getId()).size();
@@ -265,22 +257,6 @@ class AchievementPortraitControllerIntegrationTest extends IntegrationTestBase
         session.setPagesRead(0);
         session.setStatus(Session.SessionStatus.IN_PROGRESS);
         return sessionRepository.save(session);
-    }
-
-    private void createCodexEntries(User user, int count)
-    {
-        for (int i = 0; i < count; i++)
-        {
-            Word word = new Word();
-            word.setLemma("achievement-word-" + user.getKeycloakSub() + "-" + i);
-            word = wordRepository.save(word);
-
-            CodexEntry entry = new CodexEntry();
-            entry.setUser(user);
-            entry.setWord(word);
-            entry.setXpValue(10);
-            codexEntryRepository.save(entry);
-        }
     }
 
     private ReadingList createReadingList(User owner, String title)

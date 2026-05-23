@@ -566,8 +566,7 @@ public class BookCircleService implements BookCircleServiceInterface
                 s.getEndPage(),
                 s.getPagesRead(),
                 s.getStatus(),
-                s.getReflection(),
-                s.getCapturedWordCount()
+                s.getReflection()
         );
     }
 

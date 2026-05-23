@@ -54,9 +54,6 @@ public class Session
     @JsonBackReference(value = "book-sessions")
     private Book book;
 
-    @Column(nullable = false)
-    private Integer capturedWordCount;
-
     @OneToMany(mappedBy = "session", cascade = CascadeType.ALL)
     @JsonManagedReference("session-dailyActivities")
     private List<DailyActivity> dailyActivities = new ArrayList<>();
@@ -68,8 +65,7 @@ public class Session
 
     public Session(Long durationSeconds, Integer startPage, Integer endPage, Integer pagesRead,
                    String reflection, SessionStatus status, LocalDateTime sessionDate, LocalDateTime completedAt,
-                   User user, Book book,
-                   Integer capturedWordCount)
+                   User user, Book book)
     {
         this.durationSeconds = durationSeconds;
         this.startPage = startPage;
@@ -81,7 +77,6 @@ public class Session
         this.completedAt = completedAt;
         this.user = user;
         this.book = book;
-        this.capturedWordCount = capturedWordCount;
     }
 
     @PrePersist
@@ -106,10 +101,6 @@ public class Session
             this.pagesRead = 0;
         }
 
-        if (this.capturedWordCount == null)
-        {
-            this.capturedWordCount = 0;
-        }
     }
 
     public Long getId() {
@@ -190,14 +181,6 @@ public class Session
 
     public void setUser(User user) {
         this.user = user;
-    }
-
-    public Integer getCapturedWordCount() {
-        return capturedWordCount;
-    }
-
-    public void setCapturedWordCount(Integer capturedWordCount) {
-        this.capturedWordCount = capturedWordCount;
     }
 
     public List<DailyActivity> getDailyActivities() {

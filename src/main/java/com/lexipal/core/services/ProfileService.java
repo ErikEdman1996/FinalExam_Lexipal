@@ -119,8 +119,6 @@ public class ProfileService implements ProfileServiceInterface
         int totalSessionsCompleted = (int) completedSessions.stream()
                 .count();
 
-        int totalCapturedWords = user.getCodexEntries().size();
-
         int totalXpEarned = xpService.getCurrentTotalXp(user);
 
         return new ProfileStatsResponseDTO(
@@ -128,7 +126,6 @@ public class ProfileService implements ProfileServiceInterface
                 totalPagesRead,
                 totalBooksRead,
                 totalSessionsCompleted,
-                totalCapturedWords,
                 totalXpEarned,
                 xpService.calculateLevel(totalXpEarned),
                 xpService.calculateXpIntoLevel(totalXpEarned),
