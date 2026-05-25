@@ -30,6 +30,7 @@ class CurrencyServiceTest
         assertEquals(10, service.rewardAmount(CurrencyTransactionReason.CROSSWORD_PASSED));
         assertEquals(50, service.rewardAmount(CurrencyTransactionReason.READING_LIST_BOOK_COMPLETED));
         assertEquals(200, service.rewardAmount(CurrencyTransactionReason.READING_LIST_COMPLETED));
+        assertEquals(10, service.rewardAmount(CurrencyTransactionReason.DAILY_QUEST_COMPLETED));
         assertEquals(0, service.rewardAmount(CurrencyTransactionReason.STREAK_FREEZE_PURCHASE));
         assertEquals(0, service.rewardAmount(CurrencyTransactionReason.THEME_PURCHASE));
     }

@@ -43,7 +43,8 @@ public class DailyActivity
         SESSION_COMPLETED,
         CHALLENGE_COMPLETED,
         READING_LIST_BOOK_COMPLETED,
-        READING_LIST_COMPLETED
+        READING_LIST_COMPLETED,
+        DAILY_QUEST_COMPLETED
     }
 
     public DailyActivity()

@@ -37,6 +37,53 @@ public interface SessionRepository extends JpaRepository<Session, Long>
             """)
     int sumCompletedPagesByUserId(@Param("userId") Long userId);
 
+    @Query(value = """
+            SELECT * FROM sessions s
+            WHERE s.user_id = :userId
+              AND s.status = 'COMPLETED'
+              AND s.completed_at IS NOT NULL
+              AND s.completed_at < :before
+            ORDER BY s.completed_at DESC, s.id DESC
+            LIMIT 1
+            """, nativeQuery = true)
+    Optional<Session> findLatestCompletedBefore(@Param("userId") Long userId,
+                                                @Param("before") LocalDateTime before);
+
+    @Query(value = """
+            SELECT * FROM sessions s
+            WHERE s.user_id = :userId
+              AND s.status = 'COMPLETED'
+              AND s.completed_at >= :start
+              AND s.completed_at < :end
+            ORDER BY s.completed_at DESC, s.id DESC
+            LIMIT 1
+            """, nativeQuery = true)
+    Optional<Session> findLatestCompletedBetween(@Param("userId") Long userId,
+                                                 @Param("start") LocalDateTime start,
+                                                 @Param("end") LocalDateTime end);
+
+    @Query("""
+            SELECT COALESCE(SUM(s.pagesRead), 0) FROM Session s
+            WHERE s.user.id = :userId
+              AND s.status = com.lexipal.core.entities.Session.SessionStatus.COMPLETED
+              AND s.completedAt >= :start
+              AND s.completedAt < :end
+            """)
+    int sumCompletedPagesByUserIdBetween(@Param("userId") Long userId,
+                                         @Param("start") LocalDateTime start,
+                                         @Param("end") LocalDateTime end);
+
+    @Query("""
+            SELECT COALESCE(SUM(s.durationSeconds), 0) FROM Session s
+            WHERE s.user.id = :userId
+              AND s.status = com.lexipal.core.entities.Session.SessionStatus.COMPLETED
+              AND s.completedAt >= :start
+              AND s.completedAt < :end
+            """)
+    long sumCompletedDurationSecondsByUserIdBetween(@Param("userId") Long userId,
+                                                    @Param("start") LocalDateTime start,
+                                                    @Param("end") LocalDateTime end);
+
     @Query("SELECT MAX(s.completedAt) FROM Session s WHERE s.book.id = :bookId AND s.status = com.lexipal.core.entities.Session.SessionStatus.COMPLETED")
     LocalDateTime findLatestCompletedAtByBookId(@Param("bookId") Long bookId);
 

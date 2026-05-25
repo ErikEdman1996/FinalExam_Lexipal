@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 public class SessionService implements SessionServiceInterface
 {
     private static final Logger logger = LogManager.getLogger(SessionService.class);
+    private static final int SESSION_COMPLETION_XP = 25;
 
     final SessionRepository sessionRepository;
     final BookRepository bookRepository;
@@ -41,6 +42,7 @@ public class SessionService implements SessionServiceInterface
     private final CurrencyService currencyService;
     private final BookLifecycleValidator bookLifecycleValidator;
     private final AchievementService achievementService;
+    private final DailyQuestServiceInterface dailyQuestService;
 
     @Autowired
     public SessionService(final SessionRepository sessionRepository,
@@ -51,7 +53,8 @@ public class SessionService implements SessionServiceInterface
                           final XpService xpService,
                           final CurrencyService currencyService,
                           final BookLifecycleValidator bookLifecycleValidator,
-                          final AchievementService achievementService)
+                          final AchievementService achievementService,
+                          final DailyQuestServiceInterface dailyQuestService)
     {
         this.sessionRepository = sessionRepository;
         this.bookRepository = bookRepository;
@@ -62,6 +65,7 @@ public class SessionService implements SessionServiceInterface
         this.currencyService = currencyService;
         this.bookLifecycleValidator = bookLifecycleValidator;
         this.achievementService = achievementService;
+        this.dailyQuestService = dailyQuestService;
     }
 
     @Override
@@ -197,16 +201,24 @@ public class SessionService implements SessionServiceInterface
         bookService.syncBookProgress(updatedSession.getBook().getId());
 
         dailyActivityService.recordSessionCompletedActivity(updatedSession);
-        XpUpdateResponseDTO xpUpdate = xpService.awardXp(updatedSession.getUser(), 25);
+        XpUpdateResponseDTO xpUpdate = xpService.awardXp(updatedSession.getUser(), SESSION_COMPLETION_XP);
         currencyService.awardCoins(updatedSession.getUser(),
                 CurrencyTransactionReason.SESSION_COMPLETED,
                 "SESSION", updatedSession.getId());
+        DailyQuestServiceInterface.DailyQuestEvaluationResult questResult =
+                dailyQuestService.evaluateSessionCompletion(updatedSession);
+        if (questResult != null && questResult.xpUpdate() != null)
+        {
+            xpUpdate = combineXpUpdates(xpUpdate, questResult.xpUpdate());
+        }
         List<AchievementResponseDTO> newlyUnlockedAchievements =
                 achievementService.evaluateAchievements(updatedSession.getUser());
 
         logger.info("Completed session {} for user {}", updatedSession.getId(), updatedSession.getUser().getId());
 
-        return toSessionUpdateResponse(updatedSession, xpUpdate, newlyUnlockedAchievements);
+        return toSessionUpdateResponse(updatedSession, xpUpdate,
+                questResult != null ? questResult.dailyQuest() : null,
+                newlyUnlockedAchievements);
     }
 
     private void validateSessionPages(Book book, Integer startPage, Integer endPage)
@@ -322,6 +334,13 @@ public class SessionService implements SessionServiceInterface
     private SessionUpdateResponseDTO toSessionUpdateResponse(Session session, XpUpdateResponseDTO xpUpdate,
                                                              List<AchievementResponseDTO> newlyUnlockedAchievements)
     {
+        return toSessionUpdateResponse(session, xpUpdate, null, newlyUnlockedAchievements);
+    }
+
+    private SessionUpdateResponseDTO toSessionUpdateResponse(Session session, XpUpdateResponseDTO xpUpdate,
+                                                             com.lexipal.core.dtos.responses.DailyQuestResponseDTO dailyQuest,
+                                                             List<AchievementResponseDTO> newlyUnlockedAchievements)
+    {
         return new SessionUpdateResponseDTO(
                 session.getId(),
                 session.getBook().getId(),
@@ -334,8 +353,40 @@ public class SessionService implements SessionServiceInterface
                 session.getSessionDate(),
                 session.getCompletedAt(),
                 xpUpdate,
+                dailyQuest,
                 newlyUnlockedAchievements
         );
+    }
+
+    private XpUpdateResponseDTO combineXpUpdates(XpUpdateResponseDTO first, XpUpdateResponseDTO second)
+    {
+        if (first == null)
+        {
+            return second;
+        }
+        if (second == null)
+        {
+            return first;
+        }
+
+        return new XpUpdateResponseDTO(
+                safeInt(first.getXpAwarded()) + safeInt(second.getXpAwarded()),
+                first.getPreviousTotalXp(),
+                second.getNewTotalXp(),
+                second.getLevel(),
+                second.getXpIntoLevel(),
+                second.getXpPerLevel(),
+                first.isLeveledUp() || second.isLeveledUp(),
+                second.getMaxLevel(),
+                second.getCurrentLevelMinXp(),
+                second.getNextLevelMinXp(),
+                second.getXpToNextLevel()
+        );
+    }
+
+    private int safeInt(Integer value)
+    {
+        return value == null ? 0 : value;
     }
 
     private void applyCompletionFields(Session session, SessionCompleteRequestDTO dto)

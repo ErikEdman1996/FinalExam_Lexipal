@@ -1,6 +1,7 @@
 package com.lexipal.core.services;
 
 import com.lexipal.core.dtos.responses.DailyActivityReadResponseDTO;
+import com.lexipal.core.dtos.responses.DailyQuestResponseDTO;
 import com.lexipal.core.dtos.responses.ProfileReadResponseDTO;
 import com.lexipal.core.dtos.responses.ProfileStatsResponseDTO;
 import com.lexipal.core.dtos.responses.StreakMetaDataReadResponseDTO;
@@ -29,6 +30,7 @@ public class ProfileService implements ProfileServiceInterface
     private final PortraitService portraitService;
     private final ThemeService themeService;
     private final CurrencyService currencyService;
+    private final DailyQuestServiceInterface dailyQuestService;
 
     @Autowired
     public ProfileService(final UserServiceInterface userService,
@@ -37,7 +39,8 @@ public class ProfileService implements ProfileServiceInterface
                           final SessionRepository sessionRepository,
                           final PortraitService portraitService,
                           final ThemeService themeService,
-                          final CurrencyService currencyService)
+                          final CurrencyService currencyService,
+                          final DailyQuestServiceInterface dailyQuestService)
     {
         this.userService = userService;
         this.streakMetaDataService = streakMetaDataService;
@@ -46,6 +49,7 @@ public class ProfileService implements ProfileServiceInterface
         this.portraitService = portraitService;
         this.themeService = themeService;
         this.currencyService = currencyService;
+        this.dailyQuestService = dailyQuestService;
     }
 
     @Override
@@ -66,6 +70,7 @@ public class ProfileService implements ProfileServiceInterface
 
     private ProfileReadResponseDTO buildProfileResponse(User user, String keycloakSub)
     {
+        DailyQuestResponseDTO dailyQuest = dailyQuestService.getTodayQuestForUser(user);
         List<Session> completedSessions = getCompletedSessions(user);
         ProfileStatsResponseDTO stats = buildStats(user, completedSessions);
         StreakMetaDataReadResponseDTO streak = streakMetaDataService.getStreakMetaData(keycloakSub);
@@ -86,7 +91,8 @@ public class ProfileService implements ProfileServiceInterface
                 recentDailyActivities,
                 portraitService.getSelectedPortraitForProfile(user),
                 themeService.getSelectedThemeForProfile(user),
-                currencyService.getWallet(user)
+                currencyService.getWallet(user),
+                dailyQuest
         );
     }
 

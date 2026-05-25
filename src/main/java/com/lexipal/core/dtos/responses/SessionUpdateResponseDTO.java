@@ -16,6 +16,7 @@ public class SessionUpdateResponseDTO
     private LocalDateTime sessionDate;
     private LocalDateTime completedAt;
     private XpUpdateResponseDTO xpUpdate;
+    private DailyQuestResponseDTO dailyQuest;
     private List<AchievementResponseDTO> newlyUnlockedAchievements = List.of();
 
     public SessionUpdateResponseDTO()
@@ -36,6 +37,16 @@ public class SessionUpdateResponseDTO
                                     LocalDateTime completedAt, XpUpdateResponseDTO xpUpdate,
                                     List<AchievementResponseDTO> newlyUnlockedAchievements)
     {
+        this(id, bookId, durationSeconds, startPage, endPage, pagesRead, reflection, status, sessionDate,
+                completedAt, xpUpdate, null, newlyUnlockedAchievements);
+    }
+
+    public SessionUpdateResponseDTO(Long id, Long bookId, Long durationSeconds, Integer startPage, Integer endPage,
+                                    Integer pagesRead, String reflection, String status, LocalDateTime sessionDate,
+                                    LocalDateTime completedAt, XpUpdateResponseDTO xpUpdate,
+                                    DailyQuestResponseDTO dailyQuest,
+                                    List<AchievementResponseDTO> newlyUnlockedAchievements)
+    {
         this.id = id;
         this.bookId = bookId;
         this.durationSeconds = durationSeconds;
@@ -47,6 +58,7 @@ public class SessionUpdateResponseDTO
         this.sessionDate = sessionDate;
         this.completedAt = completedAt;
         this.xpUpdate = xpUpdate;
+        this.dailyQuest = dailyQuest;
         setNewlyUnlockedAchievements(newlyUnlockedAchievements);
     }
 
@@ -140,6 +152,16 @@ public class SessionUpdateResponseDTO
     public void setXpUpdate(XpUpdateResponseDTO xpUpdate)
     {
         this.xpUpdate = xpUpdate;
+    }
+
+    public DailyQuestResponseDTO getDailyQuest()
+    {
+        return dailyQuest;
+    }
+
+    public void setDailyQuest(DailyQuestResponseDTO dailyQuest)
+    {
+        this.dailyQuest = dailyQuest;
     }
 
     public List<AchievementResponseDTO> getNewlyUnlockedAchievements()

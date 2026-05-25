@@ -214,15 +214,19 @@ class WalletControllerIntegrationTest extends IntegrationTestBase
 
         mockMvc.perform(get(WALLET_URL).with(jwtWithSub(user.getKeycloakSub())))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.coinBalance").value(25));
+                .andExpect(jsonPath("$.coinBalance").value(35));
 
         List<CurrencyTransaction> transactions =
                 currencyTransactionRepository.findByUser_IdOrderByCreatedAtAscIdAsc(user.getId());
-        assertEquals(1, transactions.size());
+        assertEquals(2, transactions.size());
         assertEquals(CurrencyTransactionType.EARN, transactions.get(0).getType());
         assertEquals(CurrencyTransactionReason.SESSION_COMPLETED, transactions.get(0).getReason());
         assertEquals(25, transactions.get(0).getAmount());
         assertEquals(25, transactions.get(0).getBalanceAfter());
+        assertEquals(CurrencyTransactionType.EARN, transactions.get(1).getType());
+        assertEquals(CurrencyTransactionReason.DAILY_QUEST_COMPLETED, transactions.get(1).getReason());
+        assertEquals(10, transactions.get(1).getAmount());
+        assertEquals(35, transactions.get(1).getBalanceAfter());
     }
 
     @Test

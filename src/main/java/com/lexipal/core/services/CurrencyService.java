@@ -22,6 +22,7 @@ public class CurrencyService
     public static final int CROSSWORD_PASSED_COINS = 10;
     public static final int READING_LIST_BOOK_COMPLETED_COINS = 50;
     public static final int READING_LIST_COMPLETED_COINS = 200;
+    public static final int DAILY_QUEST_COMPLETED_COINS = 10;
 
     private final UserRepository userRepository;
     private final CurrencyTransactionRepository currencyTransactionRepository;
@@ -101,6 +102,7 @@ public class CurrencyService
             case CROSSWORD_PASSED -> CROSSWORD_PASSED_COINS;
             case READING_LIST_BOOK_COMPLETED -> READING_LIST_BOOK_COMPLETED_COINS;
             case READING_LIST_COMPLETED -> READING_LIST_COMPLETED_COINS;
+            case DAILY_QUEST_COMPLETED -> DAILY_QUEST_COMPLETED_COINS;
             case STREAK_FREEZE_PURCHASE, THEME_PURCHASE -> 0;
         };
     }

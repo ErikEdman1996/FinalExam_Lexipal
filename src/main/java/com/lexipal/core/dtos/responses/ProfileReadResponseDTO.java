@@ -15,6 +15,7 @@ public class ProfileReadResponseDTO
     private PortraitResponseDTO selectedPortrait;
     private ThemeResponseDTO selectedTheme;
     private WalletResponseDTO wallet;
+    private DailyQuestResponseDTO dailyQuest;
 
     public ProfileReadResponseDTO()
     {
@@ -27,7 +28,7 @@ public class ProfileReadResponseDTO
                                   List<DailyActivityReadResponseDTO> recentDailyActivities)
     {
         this(status, nickname, needsOnboarding, createdAt, stats, streak, recentDailyActivities,
-                null, null, null);
+                null, null, null, null);
     }
 
     public ProfileReadResponseDTO(String status, String nickname, boolean needsOnboarding,
@@ -37,7 +38,7 @@ public class ProfileReadResponseDTO
                                   PortraitResponseDTO selectedPortrait)
     {
         this(status, nickname, needsOnboarding, createdAt, stats, streak, recentDailyActivities,
-                selectedPortrait, null, null);
+                selectedPortrait, null, null, null);
     }
 
     public ProfileReadResponseDTO(String status, String nickname, boolean needsOnboarding,
@@ -48,7 +49,7 @@ public class ProfileReadResponseDTO
                                   WalletResponseDTO wallet)
     {
         this(status, nickname, needsOnboarding, createdAt, stats, streak, recentDailyActivities,
-                selectedPortrait, null, wallet);
+                selectedPortrait, null, wallet, null);
     }
 
     public ProfileReadResponseDTO(String status, String nickname, boolean needsOnboarding,
@@ -58,6 +59,19 @@ public class ProfileReadResponseDTO
                                   PortraitResponseDTO selectedPortrait,
                                   ThemeResponseDTO selectedTheme,
                                   WalletResponseDTO wallet)
+    {
+        this(status, nickname, needsOnboarding, createdAt, stats, streak, recentDailyActivities,
+                selectedPortrait, selectedTheme, wallet, null);
+    }
+
+    public ProfileReadResponseDTO(String status, String nickname, boolean needsOnboarding,
+                                  LocalDateTime createdAt, ProfileStatsResponseDTO stats,
+                                  StreakMetaDataReadResponseDTO streak,
+                                  List<DailyActivityReadResponseDTO> recentDailyActivities,
+                                  PortraitResponseDTO selectedPortrait,
+                                  ThemeResponseDTO selectedTheme,
+                                  WalletResponseDTO wallet,
+                                  DailyQuestResponseDTO dailyQuest)
     {
         this.status = status;
         this.nickname = nickname;
@@ -69,6 +83,7 @@ public class ProfileReadResponseDTO
         this.selectedPortrait = selectedPortrait;
         this.selectedTheme = selectedTheme;
         this.wallet = wallet;
+        this.dailyQuest = dailyQuest;
     }
 
     public String getStatus() {
@@ -149,5 +164,13 @@ public class ProfileReadResponseDTO
 
     public void setWallet(WalletResponseDTO wallet) {
         this.wallet = wallet;
+    }
+
+    public DailyQuestResponseDTO getDailyQuest() {
+        return dailyQuest;
+    }
+
+    public void setDailyQuest(DailyQuestResponseDTO dailyQuest) {
+        this.dailyQuest = dailyQuest;
     }
 }

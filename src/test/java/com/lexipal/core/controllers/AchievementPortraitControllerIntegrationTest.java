@@ -144,28 +144,28 @@ class AchievementPortraitControllerIntegrationTest extends IntegrationTestBase
                         .content(objectMapper.writeValueAsString(
                                 new SessionCompleteRequestDTO(5, 600L, "A solid threshold session."))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.xpUpdate.xpAwarded").value(25))
+                .andExpect(jsonPath("$.xpUpdate.xpAwarded").value(35))
                 .andExpect(jsonPath("$.xpUpdate.previousTotalXp").value(75))
-                .andExpect(jsonPath("$.xpUpdate.newTotalXp").value(100))
+                .andExpect(jsonPath("$.xpUpdate.newTotalXp").value(110))
                 .andExpect(jsonPath("$.xpUpdate.level").value(2))
-                .andExpect(jsonPath("$.xpUpdate.xpIntoLevel").value(0))
+                .andExpect(jsonPath("$.xpUpdate.xpIntoLevel").value(10))
                 .andExpect(jsonPath("$.xpUpdate.xpPerLevel").value(150))
                 .andExpect(jsonPath("$.xpUpdate.maxLevel").value(10))
                 .andExpect(jsonPath("$.xpUpdate.currentLevelMinXp").value(100))
                 .andExpect(jsonPath("$.xpUpdate.nextLevelMinXp").value(250))
-                .andExpect(jsonPath("$.xpUpdate.xpToNextLevel").value(150))
+                .andExpect(jsonPath("$.xpUpdate.xpToNextLevel").value(140))
                 .andExpect(jsonPath("$.xpUpdate.leveledUp").value(true));
 
         mockMvc.perform(get("/lexipal/api/v1/profile/me").with(jwtWithSub(user.getKeycloakSub())))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.stats.totalXpEarned").value(100))
+                .andExpect(jsonPath("$.stats.totalXpEarned").value(110))
                 .andExpect(jsonPath("$.stats.level").value(2))
-                .andExpect(jsonPath("$.stats.xpIntoLevel").value(0))
+                .andExpect(jsonPath("$.stats.xpIntoLevel").value(10))
                 .andExpect(jsonPath("$.stats.xpPerLevel").value(150))
                 .andExpect(jsonPath("$.stats.maxLevel").value(10))
                 .andExpect(jsonPath("$.stats.currentLevelMinXp").value(100))
                 .andExpect(jsonPath("$.stats.nextLevelMinXp").value(250))
-                .andExpect(jsonPath("$.stats.xpToNextLevel").value(150));
+                .andExpect(jsonPath("$.stats.xpToNextLevel").value(140));
     }
 
     @Test
