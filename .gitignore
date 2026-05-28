@@ -48,6 +48,7 @@ src/test/**
 !src/test/java/com/lexipal/core/
 !src/test/java/com/lexipal/core/controllers/
 !src/test/java/com/lexipal/core/controllers/AchievementPortraitControllerIntegrationTest.java
+!src/test/java/com/lexipal/core/controllers/ProfileReadingSeriesControllerIntegrationTest.java
 !src/test/java/com/lexipal/core/controllers/StreakLeaderboardControllerIntegrationTest.java
 !src/test/java/com/lexipal/core/controllers/WalletControllerIntegrationTest.java
 !src/test/java/com/lexipal/core/controllers/WordLookupControllerIntegrationTest.java

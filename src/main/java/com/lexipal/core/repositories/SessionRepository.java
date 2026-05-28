@@ -2,6 +2,7 @@ package com.lexipal.core.repositories;
 
 import com.lexipal.core.entities.Session;
 import com.lexipal.core.repositories.projections.AdminDailySessionProjection;
+import com.lexipal.core.repositories.projections.CompletedSessionPageProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -93,6 +94,29 @@ public interface SessionRepository extends JpaRepository<Session, Long>
               AND s.completedAt IS NOT NULL
             """)
     LocalDateTime findEarliestCompletedAt();
+
+    @Query("""
+            SELECT MIN(s.completedAt) FROM Session s
+            WHERE s.user.id = :userId
+              AND s.status = com.lexipal.core.entities.Session.SessionStatus.COMPLETED
+              AND s.completedAt IS NOT NULL
+            """)
+    LocalDateTime findEarliestCompletedAtByUserId(@Param("userId") Long userId);
+
+    @Query("""
+            SELECT s.completedAt AS completedAt,
+                   s.pagesRead AS pagesRead
+            FROM Session s
+            WHERE s.user.id = :userId
+              AND s.status = com.lexipal.core.entities.Session.SessionStatus.COMPLETED
+              AND s.completedAt IS NOT NULL
+              AND s.completedAt >= :start
+              AND s.completedAt < :end
+            ORDER BY s.completedAt ASC, s.id ASC
+            """)
+    List<CompletedSessionPageProjection> findCompletedPageRowsByUserIdBetween(@Param("userId") Long userId,
+                                                                               @Param("start") LocalDateTime start,
+                                                                               @Param("end") LocalDateTime end);
 
     @Query("""
             SELECT COALESCE(SUM(s.pagesRead), 0) FROM Session s

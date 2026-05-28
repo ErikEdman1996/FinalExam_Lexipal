@@ -31,6 +31,8 @@ jwt:
 
 lexipal:
   allowed-origins: ${LEXIPAL_ALLOWED_ORIGINS:http://localhost:5173}
+  analytics:
+    timezone: ${LEXIPAL_ANALYTICS_TIMEZONE:Europe/Stockholm}
   streak:
     timezone: ${LEXIPAL_STREAK_TIMEZONE:Europe/Stockholm}
 
