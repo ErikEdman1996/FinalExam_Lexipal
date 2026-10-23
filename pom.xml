@@ -11,7 +11,7 @@
 	<artifactId>core</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>Lexipal</name>
-	<description>Demo project for Spring Boot</description>
+	<description>Reading companion API with reading sessions, vocabulary practice and book circles</description>
 
 	<properties>
 		<java.version>21</java.version>
